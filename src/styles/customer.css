@@ -1,0 +1,720 @@
+/* ==========================================================================
+   Customer Mobile Interface Styles - Matching Design 1
+   ========================================================================== */
+
+.customer-view-wrapper {
+  min-height: 100vh;
+  background: #0f172a;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 24px 16px;
+  font-family: var(--font-family);
+}
+
+.customer-top-bar-controls {
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  color: #ffffff;
+}
+
+.customer-mode-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #93c5fd;
+}
+
+.customer-back-to-admin {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.15s;
+}
+
+.customer-back-to-admin:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+/* Mobile Frame Mockup */
+.mobile-device-frame {
+  width: 100%;
+  max-width: 410px;
+  height: 844px;
+  background: #f4f6fb;
+  border-radius: 40px;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 0 10px #1e293b;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* Mobile Status Bar */
+.mobile-status-bar {
+  height: 44px;
+  padding: 0 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 50;
+  transition: color 0.2s;
+}
+
+.mobile-status-bar.dark-text {
+  color: #0f172a;
+}
+
+.mobile-status-bar.light-text {
+  color: #ffffff;
+}
+
+.status-bar-icons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Screen Content Area */
+.mobile-screen-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 80px; /* space for bottom nav */
+}
+
+/* --------------------------------------------------------------------------
+   Screen 1: Customer Home (Design 1 - Left)
+   -------------------------------------------------------------------------- */
+.home-header-bg {
+  background: linear-gradient(180deg, #073b94 0%, #1052c2 65%, #f4f6fb 100%);
+  padding: 10px 18px 24px 18px;
+  color: #ffffff;
+}
+
+.home-nav-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.mobile-icon-btn {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  padding: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.home-user-greeting {
+  margin-bottom: 16px;
+}
+
+.user-name-title {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.bike-safe-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #bfdbfe;
+  font-weight: 500;
+}
+
+.bike-safe-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #10b981;
+}
+
+/* Bike Selector Card */
+.bike-selector-card {
+  background: #ffffff;
+  border-radius: var(--radius-xl);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  color: var(--text-main);
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.bike-selector-card:hover {
+  transform: translateY(-1px);
+}
+
+.bike-card-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.bike-card-reg-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.bike-card-model {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.bike-chevron-right {
+  color: #94a3b8;
+}
+
+/* Quick Actions Grid */
+.home-quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  padding: 18px 18px 8px 18px;
+}
+
+.quick-action-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.action-icon-box {
+  width: 54px;
+  height: 54px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+  transition: transform 0.15s;
+}
+
+.action-icon-box:hover {
+  transform: scale(1.05);
+}
+
+.action-tracking { background-color: #2563eb; }
+.action-service { background-color: #22c55e; }
+.action-history { background-color: #f97316; }
+.action-alerts { background-color: #ef4444; }
+
+.action-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-main);
+  text-align: center;
+}
+
+/* Home Section Layout */
+.home-section-container {
+  padding: 12px 18px;
+}
+
+.section-head-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.section-title-bold {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.section-link-blue {
+  font-size: 12.5px;
+  color: #2563eb;
+  font-weight: 600;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.section-link-blue:hover {
+  text-decoration: underline;
+}
+
+/* Map Card */
+.home-map-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.location-info-card {
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.location-info-row {
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.location-info-row:last-child {
+  border-bottom: none;
+}
+
+.location-info-icon-wrap {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #eff6ff;
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.location-info-texts {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.location-info-label {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.location-info-val {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+/* --------------------------------------------------------------------------
+   Screen 2: Bike Details (Design 1 - Center)
+   -------------------------------------------------------------------------- */
+.subscreen-header {
+  height: 54px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff;
+  border-bottom: 1px solid var(--border-subtle);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.subscreen-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.subscreen-back-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-main);
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bike-details-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 18px 16px 18px;
+}
+
+.bike-hero-logo {
+  margin-bottom: 12px;
+}
+
+.bike-hero-reg-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.bike-hero-model {
+  font-size: 14px;
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+.bike-hero-purchased {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 4px;
+}
+
+.bike-distance-stats-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 0 18px;
+  margin-bottom: 16px;
+}
+
+.distance-stat-card {
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid var(--border-color);
+  padding: 14px;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-card-top-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.stat-icon-blue { background: #eff6ff; color: #2563eb; }
+.stat-icon-purple { background: #f5f3ff; color: #7c3aed; }
+
+.stat-card-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.stat-card-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.stat-card-trend {
+  font-size: 10px;
+  color: #10b981;
+  font-weight: 600;
+}
+
+.bike-action-list {
+  padding: 0 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bike-action-card-item {
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid var(--border-color);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.bike-action-card-item:hover {
+  transform: translateY(-1px);
+}
+
+.bike-action-icon-box {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.bike-action-icon-blue { background: #eff6ff; color: #2563eb; }
+.bike-action-icon-dark { background: #f1f5f9; color: #334155; }
+
+.bike-action-text-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.bike-action-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.bike-action-sub {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+/* --------------------------------------------------------------------------
+   Screen 3: Service (Design 1 - Right)
+   -------------------------------------------------------------------------- */
+.service-screen-container {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.service-bike-header-card {
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid var(--border-color);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: var(--shadow-card);
+}
+
+.service-due-highlight-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  padding: 18px;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.due-card-header-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.wrench-blue-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background-color: #eff6ff;
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.due-card-texts {
+  display: flex;
+  flex-direction: column;
+}
+
+.due-title-sub {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.due-date-bold {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.due-days-pill {
+  font-size: 11.5px;
+  color: #10b981;
+  font-weight: 600;
+}
+
+.book-service-btn-full {
+  width: 100%;
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.book-service-btn-full:hover {
+  background: #1d4ed8;
+}
+
+.service-details-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-card);
+}
+
+.service-detail-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 12.5px;
+}
+
+.service-detail-item-row:last-child {
+  border-bottom: none;
+}
+
+.detail-row-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.detail-icon-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-green-circle { background: #ecfdf5; color: #10b981; }
+.icon-blue-circle { background: #eff6ff; color: #2563eb; }
+.icon-gray-circle { background: #f1f5f9; color: #475569; }
+
+.detail-text-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-title {
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.detail-date {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.detail-km-badge {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.service-history-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-card);
+}
+
+.service-history-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-subtle);
+  cursor: pointer;
+}
+
+.service-history-row:last-child {
+  border-bottom: none;
+}
+
+.history-cost-tag {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* --------------------------------------------------------------------------
+   Mobile Bottom Navigation Bar
+   -------------------------------------------------------------------------- */
+.mobile-bottom-nav {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 68px;
+  background: #ffffff;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 10px;
+  z-index: 100;
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 6px 12px;
+  transition: color 0.15s;
+}
+
+.bottom-nav-item.active {
+  color: #2563eb;
+  font-weight: 700;
+}
