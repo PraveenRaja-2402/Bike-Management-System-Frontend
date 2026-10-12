@@ -1,6 +1,6 @@
 # 🏍️ Bike Service Management System (React.js + Vite)
 
-A modern, responsive, and feature-rich **Bike Service Management System** frontend built with **React.js**, **Vite**, **Vanilla CSS**, and **React Router**. 
+A modern, responsive, and feature-rich **Bike Service Management System** frontend built with **React.js**, **Vite**, **Vanilla CSS**, and **React Router**.
 
 This application replicates the reference dashboard and mobile designs with high fidelity, providing both an **Admin Operations Portal** and a **Customer Mobile Interface**.
 
@@ -113,16 +113,16 @@ Rendered within an interactive iPhone device frame (or accessible full-screen on
 
 ## 🛠️ Technology Stack
 
-| Technology | Purpose |
-| :--- | :--- |
-| **React 19** | Component-based UI library |
-| **Vite 8** | Modern, fast frontend build tool & dev server |
-| **JavaScript (ES6+)** | Core language (clean, understandable, beginner-friendly) |
-| **Vanilla CSS** | Design system with CSS variables, modular stylesheets |
-| **React Router v7** | Client-side routing and page navigation |
-| **Lucide React** | Consistent, modern vector iconography |
-| **Leaflet** | Interactive GPS mapping, tile rendering, and custom bike pins |
-| **Google Font: Inter** | Modern typography matching enterprise dashboards |
+| Technology             | Purpose                                                       |
+| :--------------------- | :------------------------------------------------------------ |
+| **React 19**           | Component-based UI library                                    |
+| **Vite 8**             | Modern, fast frontend build tool & dev server                 |
+| **JavaScript (ES6+)**  | Core language (clean, understandable, beginner-friendly)      |
+| **Vanilla CSS**        | Design system with CSS variables, modular stylesheets         |
+| **React Router v7**    | Client-side routing and page navigation                       |
+| **Lucide React**       | Consistent, modern vector iconography                         |
+| **Leaflet**            | Interactive GPS mapping, tile rendering, and custom bike pins |
+| **Google Font: Inter** | Modern typography matching enterprise dashboards              |
 
 ---
 
@@ -226,19 +226,19 @@ npm run preview
 
 ## 🧭 Navigation & Routes
 
-| URL Path | Screen Description |
-| :--- | :--- |
-| `/` | Automatically redirects to `/admin/all-pages` |
-| `/admin/all-pages` | **All Pages Overview** — 8 module cards with live preview frames |
-| `/admin/dashboard` | **Dashboard** — Fleet telemetry, KPI cards, recent activities |
-| `/admin/live-tracking` | **Live Bike Tracking** — GPS map, bike status filter, live speed |
-| `/admin/next-service` | **Next Service Notifications** — Expiry countdown & notification dispatcher |
-| `/admin/job-cards` | **Job Cards** — Workshop jobs, status tabs, creation form |
-| `/admin/users` | **Users** — Technicians, managers, and customer directory |
-| `/admin/manage-brands` | **Manage Bike Brands** — Manufacturers, logos, and service intervals |
-| `/admin/settings` | **Settings** — Company settings, diagnostic rules, backups |
-| `/admin/profile` | **Profile** — Profile overview, edit profile, password, activity logs |
-| `/customer` | **Customer Mobile App** — Home, Bike Details, Service Booking, Live Location |
+| URL Path               | Screen Description                                                           |
+| :--------------------- | :--------------------------------------------------------------------------- |
+| `/`                    | Automatically redirects to `/admin/all-pages`                                |
+| `/admin/all-pages`     | **All Pages Showcase** — Interactive 3D slide deck & filmstrip with live playgrounds         |
+| `/admin/dashboard`     | **Dashboard** — Fleet telemetry, KPI cards, recent activities                |
+| `/admin/live-tracking` | **Live Bike Tracking** — GPS map, bike status filter, live speed             |
+| `/admin/next-service`  | **Next Service Notifications** — Expiry countdown & notification dispatcher  |
+| `/admin/job-cards`     | **Job Cards** — Workshop jobs, status tabs, creation form                    |
+| `/admin/users`         | **Users** — Technicians, managers, and customer directory                    |
+| `/admin/manage-brands` | **Manage Bike Brands** — Manufacturers, logos, and service intervals         |
+| `/admin/settings`      | **Settings** — Company settings, diagnostic rules, backups                   |
+| `/admin/profile`       | **Profile** — Profile overview, edit profile, password, activity logs        |
+| `/customer`            | **Customer Mobile App** — Home, Bike Details, Service Booking, Live Location |
 
 > 💡 **Tip**: While anywhere in the Admin Panel, click the **"Customer App Preview 📱"** button in the top-right header to instantly switch to the customer view, or click **"Back to Admin Panel"** inside the mobile view to return.
 
@@ -248,20 +248,24 @@ npm run preview
 
 ```css
 /* Core Colors */
---bg-sidebar: #091224;         /* Deep dark navy sidebar */
---bg-sidebar-hover: #13203c;   /* Sidebar item hover */
---bg-sidebar-active: #2563eb;  /* Bright royal blue active pill */
---primary-blue: #2563eb;       /* Primary action buttons */
+--bg-sidebar: #091224; /* Deep dark navy sidebar */
+--bg-sidebar-hover: #13203c; /* Sidebar item hover */
+--bg-sidebar-active: #2563eb; /* Bright royal blue active pill */
+--primary-blue: #2563eb; /* Primary action buttons */
 --primary-blue-hover: #1d4ed8; /* Button hover state */
---bg-body: #f4f6fb;            /* Pale blue-gray background */
---bg-card: #ffffff;            /* Pure white card container */
---border-color: #e2e8f0;       /* Card and input border */
+--bg-body: #f4f6fb; /* Pale blue-gray background */
+--bg-card: #ffffff; /* Pure white card container */
+--border-color: #e2e8f0; /* Card and input border */
 
 /* Status Palette */
---success-bg: #ecfdf5;  --success-text: #059669; /* Active / Normal / Completed */
---warning-bg: #fffbeb;  --warning-text: #d97706; /* Due Soon / In Service */
---danger-bg: #fef2f2;   --danger-text: #dc2626;  /* Offline / Stopped */
---info-bg: #f0f9ff;     --info-text: #0284c7;    /* Moving / Live */
+--success-bg: #ecfdf5;
+--success-text: #059669; /* Active / Normal / Completed */
+--warning-bg: #fffbeb;
+--warning-text: #d97706; /* Due Soon / In Service */
+--danger-bg: #fef2f2;
+--danger-text: #dc2626; /* Offline / Stopped */
+--info-bg: #f0f9ff;
+--info-text: #0284c7; /* Moving / Live */
 ```
 
 ---
