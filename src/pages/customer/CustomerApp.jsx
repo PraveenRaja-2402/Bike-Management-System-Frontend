@@ -67,7 +67,7 @@ export default function CustomerApp() {
         <button
           type="button"
           className="customer-back-to-admin"
-          onClick={() => navigate('/admin/all-pages')}
+          onClick={() => navigate('/admin/dashboard')}
         >
           <ArrowLeft size={14} /> Back to Admin Panel
         </button>

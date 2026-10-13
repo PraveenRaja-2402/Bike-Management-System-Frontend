@@ -6,7 +6,7 @@ export default function LeafletMap({
   zoom = 14, 
   bikes = [], 
   selectedBike = null,
-  showGeofence = true,
+  showGeofence = false,
   height = '400px',
   onSelectBike = null,
   showControls = true
@@ -167,10 +167,11 @@ export default function LeafletMap({
                 ${bike.status}
               </span>
             </div>
+            <div style="color: #64748b; font-size: 11px;">Rider: <strong>${bike.customer}</strong></div>
             <div style="color: #64748b; font-size: 11px;">Model: <strong>${bike.model}</strong></div>
-            <div style="color: #64748b; font-size: 11px;">Speed: <strong>${bike.speed || '0 km/h'}</strong></div>
             <div style="color: #64748b; font-size: 11px;">Location: ${bike.lastLocation || 'Salem'}</div>
-            ${bike.battery ? `<div style="color: #64748b; font-size: 11px;">Battery: <strong>${bike.battery}</strong></div>` : ''}
+            ${bike.speed && bike.status === 'Moving' ? `<div style="color: #10b981; font-weight: 600; font-size: 11px; margin-top: 2px;">Speed: ${bike.speed}</div>` : ''}
+            <div style="color: #94a3b8; font-size: 10px; margin-top: 4px;">Last Signal: ${bike.lastUpdated || 'Live'}</div>
           </div>
         `);
 
@@ -185,7 +186,7 @@ export default function LeafletMap({
     if (selectedBike && selectedBike.lat && selectedBike.lng) {
       map.flyTo([selectedBike.lat, selectedBike.lng], 15, { animate: true, duration: 0.8 });
     }
-  }, [bikes, selectedBike, showGeofence]);
+  }, [bikes, selectedBike, showGeofence, onSelectBike]);
 
   const handleZoomIn = () => {
     if (mapInstanceRef.current) mapInstanceRef.current.zoomIn();

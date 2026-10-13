@@ -18,8 +18,7 @@ export default function App() {
       <Routes>
         {/* Admin Panel Routes */}
         <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<Navigate to="/admin/all-pages" replace />} />
-          <Route path="all-pages" element={<AllPagesOverview />} />
+          <Route index element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="live-tracking" element={<LiveTrackingPage />} />
           <Route path="next-service" element={<NextServicePage />} />
@@ -33,9 +32,9 @@ export default function App() {
         {/* Customer Mobile Interface */}
         <Route path="/customer" element={<CustomerApp />} />
 
-        {/* Default route redirect to All Pages Overview */}
-        <Route path="/" element={<Navigate to="/admin/all-pages" replace />} />
-        <Route path="*" element={<Navigate to="/admin/all-pages" replace />} />
+        {/* Default route redirect to Dashboard */}
+        <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
       </Routes>
     </BrowserRouter>
   );

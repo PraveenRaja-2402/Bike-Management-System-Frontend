@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
-  LayoutGrid, 
+  User,
   Home, 
   MapPin, 
   Bell, 
@@ -9,22 +9,20 @@ import {
   Users, 
   Tag, 
   Settings, 
-  User,
   Smartphone,
   X
 } from 'lucide-react';
 
 export default function Sidebar({ isOpen, onClose }) {
   const navItems = [
-    { name: 'All Pages', path: '/admin/all-pages', icon: LayoutGrid },
+    { name: 'Profile', path: '/admin/profile', icon: User },
     { name: 'Dashboard', path: '/admin/dashboard', icon: Home },
     { name: 'Live Tracking', path: '/admin/live-tracking', icon: MapPin },
     { name: 'Next Service', path: '/admin/next-service', icon: Bell },
     { name: 'Job Cards', path: '/admin/job-cards', icon: ClipboardCheck },
     { name: 'Users', path: '/admin/users', icon: Users },
     { name: 'Manage Brands', path: '/admin/manage-brands', icon: Tag },
-    { name: 'Settings', path: '/admin/settings', icon: Settings },
-    { name: 'Profile', path: '/admin/profile', icon: User }
+    { name: 'Settings', path: '/admin/settings', icon: Settings }
   ];
 
   return (

@@ -1230,6 +1230,242 @@
   box-shadow: var(--shadow-card);
   overflow: hidden;
   position: relative;
+  min-height: 480px;
+}
+
+/* Live Tracking Top Summary Bar */
+.tracking-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.tracking-summary-pills {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tracking-summary-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-full);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-main);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.tracking-summary-pill .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.tracking-summary-pill .dot.moving {
+  background-color: #10b981;
+}
+
+.tracking-summary-pill .dot.parked {
+  background-color: #3b82f6;
+}
+
+.tracking-summary-pill .dot.stopped {
+  background-color: #f59e0b;
+}
+
+.tracking-summary-pill .dot.offline {
+  background-color: #94a3b8;
+}
+
+.tracking-actions-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tracking-live-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: var(--radius-md);
+  font-size: 11.5px;
+  font-weight: 600;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tracking-live-btn.active {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #065f46;
+}
+
+.pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+  animation: trackingPulse 1.8s infinite;
+}
+
+@keyframes trackingPulse {
+  0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { transform: scale(1.1); box-shadow: 0 0 0 5px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* Floating Selected Bike Tracking Overlay */
+.tracking-floating-card {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(10px);
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  padding: 14px 16px;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
+  width: 310px;
+  max-width: calc(100% - 28px);
+  animation: fadeIn 0.2s ease;
+}
+
+.floating-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.floating-card-reg {
+  font-size: 15px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.2px;
+}
+
+.floating-card-model {
+  font-size: 11.5px;
+  color: #64748b;
+  margin-top: 1px;
+}
+
+.floating-card-close {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 3px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s, background-color 0.15s;
+}
+
+.floating-card-close:hover {
+  color: #0f172a;
+  background: #f1f5f9;
+}
+
+.tracking-stats-simple {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.simple-stat-box {
+  background: #f8fafc;
+  padding: 7px 9px;
+  border-radius: var(--radius-sm);
+  border: 1px solid #e2e8f0;
+}
+
+.simple-stat-label {
+  font-size: 10.5px;
+  color: #64748b;
+  display: block;
+}
+
+.simple-stat-value {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0f172a;
+  display: block;
+  margin-top: 1px;
+}
+
+.floating-card-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 11.5px;
+  color: #475569;
+  padding-top: 8px;
+  border-top: 1px solid #f1f5f9;
+  margin-bottom: 10px;
+}
+
+.detail-line {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.detail-icon {
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.floating-card-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.card-action-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #0f172a;
+  transition: all 0.15s;
+}
+
+.card-action-btn:hover {
+  background: #f8fafc;
+}
+
+.card-action-btn.primary {
+  background: var(--primary-blue);
+  color: #ffffff;
+  border-color: var(--primary-blue);
+}
+
+.card-action-btn.primary:hover {
+  background: #1d4ed8;
 }
 
 /* --------------------------------------------------------------------------

@@ -1,14 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Search, 
   MapPin, 
-  Navigation, 
-  Battery, 
-  Fuel, 
   Clock, 
   RotateCw,
-  SlidersHorizontal,
-  ChevronRight
+  Crosshair,
+  X,
+  Phone,
+  Radio
 } from 'lucide-react';
 import LeafletMap from '../../components/common/LeafletMap';
 import StatusBadge from '../../components/common/StatusBadge';
@@ -19,6 +18,55 @@ export default function LiveTrackingPage() {
   const [selectedBike, setSelectedBike] = useState(mockBikes[0]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('ALL');
+  const [isLiveActive, setIsLiveActive] = useState(true);
+  const [lastRefreshedTime, setLastRefreshedTime] = useState('Just now');
+
+  // Stats summary counts
+  const movingCount = bikes.filter((b) => b.status === 'Moving').length;
+  const parkedCount = bikes.filter((b) => b.status === 'Parked').length;
+  const stoppedCount = bikes.filter((b) => b.status === 'Stopped').length;
+  const offlineCount = bikes.filter((b) => b.status === 'Offline').length;
+
+  // Real-time GPS movement simulation for moving bikes
+  useEffect(() => {
+    if (!isLiveActive) return;
+
+    const interval = setInterval(() => {
+      setBikes((prevBikes) =>
+        prevBikes.map((b) => {
+          if (b.status === 'Moving') {
+            const deltaLat = (Math.random() - 0.48) * 0.0003;
+            const deltaLng = (Math.random() - 0.48) * 0.0003;
+            const updatedBike = {
+              ...b,
+              lat: Number((b.lat + deltaLat).toFixed(5)),
+              lng: Number((b.lng + deltaLng).toFixed(5)),
+              lastUpdated: 'Just now'
+            };
+            if (selectedBike && selectedBike.id === b.id) {
+              setSelectedBike(updatedBike);
+            }
+            return updatedBike;
+          }
+          return b;
+        })
+      );
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [isLiveActive, selectedBike]);
+
+  // Handle manual refresh
+  const handleManualRefresh = () => {
+    const now = new Date();
+    setLastRefreshedTime(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+    setBikes((prevBikes) =>
+      prevBikes.map((b) => ({
+        ...b,
+        lastUpdated: b.status === 'Offline' ? b.lastUpdated : 'Just now'
+      }))
+    );
+  };
 
   const filteredBikes = bikes.filter((b) => {
     const matchesSearch = b.regNo.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -30,6 +78,62 @@ export default function LiveTrackingPage() {
 
   return (
     <div className="live-tracking-page">
+      {/* Top summary & GPS controls bar */}
+      <div className="tracking-header-bar">
+        <div className="tracking-summary-pills">
+          <div className="tracking-summary-pill">
+            <span>Total: <strong>{bikes.length}</strong></span>
+          </div>
+          <div className="tracking-summary-pill">
+            <span className="dot moving" />
+            <span>Moving: <strong>{movingCount}</strong></span>
+          </div>
+          <div className="tracking-summary-pill">
+            <span className="dot parked" />
+            <span>Parked: <strong>{parkedCount}</strong></span>
+          </div>
+          <div className="tracking-summary-pill">
+            <span className="dot stopped" />
+            <span>Stopped: <strong>{stoppedCount}</strong></span>
+          </div>
+          <div className="tracking-summary-pill">
+            <span className="dot offline" />
+            <span>Offline: <strong>{offlineCount}</strong></span>
+          </div>
+        </div>
+
+        <div className="tracking-actions-bar">
+          <button
+            type="button"
+            className={`tracking-live-btn ${isLiveActive ? 'active' : ''}`}
+            onClick={() => setIsLiveActive(!isLiveActive)}
+            title="Toggle live GPS simulation"
+          >
+            {isLiveActive ? (
+              <>
+                <span className="pulse-dot" />
+                <span>Live GPS Active</span>
+              </>
+            ) : (
+              <>
+                <Radio size={14} color="#94a3b8" />
+                <span style={{ color: '#64748b' }}>GPS Paused</span>
+              </>
+            )}
+          </button>
+
+          <button
+            type="button"
+            className="tracking-live-btn"
+            onClick={handleManualRefresh}
+            title="Refresh GPS positions"
+          >
+            <RotateCw size={13} />
+            <span>Refresh ({lastRefreshedTime})</span>
+          </button>
+        </div>
+      </div>
+
       <div className="tracking-container">
         
         {/* Left Side: Bike List and Filters */}
@@ -40,7 +144,7 @@ export default function LiveTrackingPage() {
                 type="text"
                 className="search-input"
                 style={{ width: '100%' }}
-                placeholder="Search by Reg No, Customer or Brand..."
+                placeholder="Search Reg No, Customer, Brand..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -51,15 +155,21 @@ export default function LiveTrackingPage() {
 
             {/* Quick Filter Pills */}
             <div style={{ display: 'flex', gap: '4px', overflowX: 'auto', paddingBottom: '2px' }}>
-              {['ALL', 'MOVING', 'PARKED', 'STOPPED', 'OFFLINE'].map((status) => (
+              {[
+                { label: 'ALL', count: bikes.length },
+                { label: 'MOVING', count: movingCount },
+                { label: 'PARKED', count: parkedCount },
+                { label: 'STOPPED', count: stoppedCount },
+                { label: 'OFFLINE', count: offlineCount }
+              ].map(({ label, count }) => (
                 <button
-                  key={status}
+                  key={label}
                   type="button"
-                  className={`tab-pill ${filterStatus === status ? 'active' : ''}`}
-                  style={{ fontSize: '11px', padding: '4px 8px' }}
-                  onClick={() => setFilterStatus(status)}
+                  className={`tab-pill ${filterStatus === label ? 'active' : ''}`}
+                  style={{ fontSize: '11px', padding: '4px 7px', whiteSpace: 'nowrap' }}
+                  onClick={() => setFilterStatus(label)}
                 >
-                  {status}
+                  {label} ({count})
                 </button>
               ))}
             </div>
@@ -85,15 +195,15 @@ export default function LiveTrackingPage() {
                       )}
                     </div>
                     <span className="tracking-model">{bike.model} • {bike.customer}</span>
-                    <span style={{ fontSize: '10.5px', color: '#94a3b8', marginTop: '2px' }}>
-                      {bike.lastLocation}
+                    <span style={{ fontSize: '10.5px', color: '#94a3b8', marginTop: '3px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <MapPin size={11} style={{ flexShrink: 0 }} /> {bike.lastLocation}
                     </span>
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
                     <StatusBadge status={bike.status} />
                     <span style={{ fontSize: '10px', color: '#94a3b8' }}>
-                      {bike.status === 'Offline' ? '2 days ago' : 'Live'}
+                      {bike.status === 'Offline' ? 'Offline' : 'Live'}
                     </span>
                   </div>
                 </div>
@@ -108,53 +218,88 @@ export default function LiveTrackingPage() {
           </div>
         </div>
 
-        {/* Right Side: Map & Live Telemetry Inspector */}
+        {/* Right Side: Map & Simple Tracking Inspector */}
         <div className="tracking-map-card">
           <LeafletMap
             bikes={filteredBikes}
             selectedBike={selectedBike}
             onSelectBike={setSelectedBike}
+            showGeofence={false}
             height="100%"
           />
 
-          {/* Floating Selected Bike Detail Overlay */}
+          {/* Floating Selected Bike Tracking Card (Basic Tracking Only - No Fuel, No Battery) */}
           {selectedBike && (
-            <div style={{
-              position: 'absolute',
-              top: '16px',
-              left: '16px',
-              zIndex: 1000,
-              background: 'rgba(255, 255, 255, 0.95)',
-              backdropFilter: 'blur(8px)',
-              borderRadius: '12px',
-              border: '1px solid #e2e8f0',
-              padding: '14px 18px',
-              boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
-              maxWidth: '320px',
-              animation: 'fadeIn 0.2s ease'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a' }}>{selectedBike.regNo}</span>
-                <StatusBadge status={selectedBike.status} />
-              </div>
-              <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '10px' }}>
-                {selectedBike.model} ({selectedBike.brand})
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '11.5px', marginBottom: '10px' }}>
-                <div style={{ background: '#f8fafc', padding: '6px 8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                  <span style={{ color: '#64748b', display: 'block' }}>Speed</span>
-                  <strong style={{ fontSize: '13px', color: '#0f172a' }}>{selectedBike.speed}</strong>
+            <div className="tracking-floating-card">
+              <div className="floating-card-header">
+                <div>
+                  <div className="floating-card-reg">{selectedBike.regNo}</div>
+                  <div className="floating-card-model">{selectedBike.model} • {selectedBike.customer}</div>
                 </div>
-                <div style={{ background: '#f8fafc', padding: '6px 8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                  <span style={{ color: '#64748b', display: 'block' }}>Battery</span>
-                  <strong style={{ fontSize: '13px', color: '#10b981' }}>{selectedBike.battery || '94%'}</strong>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <StatusBadge status={selectedBike.status} />
+                  <button 
+                    type="button" 
+                    className="floating-card-close"
+                    onClick={() => setSelectedBike(null)}
+                    title="Close preview"
+                  >
+                    <X size={15} />
+                  </button>
                 </div>
               </div>
 
-              <div style={{ fontSize: '11px', color: '#64748b', borderTop: '1px solid #f1f5f9', paddingTop: '8px' }}>
-                <span style={{ display: 'block' }}>📍 {selectedBike.lastLocation}</span>
-                <span style={{ display: 'block', marginTop: '2px', color: '#94a3b8' }}>🕒 {selectedBike.lastUpdated}</span>
+              {/* Basic Tracking Specs */}
+              <div className="tracking-stats-simple">
+                <div className="simple-stat-box">
+                  <span className="simple-stat-label">Movement Status</span>
+                  <span 
+                    className="simple-stat-value"
+                    style={{ 
+                      color: selectedBike.status === 'Moving' ? '#10b981' : 
+                             selectedBike.status === 'Parked' ? '#2563eb' : 
+                             selectedBike.status === 'Stopped' ? '#f59e0b' : '#64748b' 
+                    }}
+                  >
+                    {selectedBike.status}
+                  </span>
+                </div>
+                <div className="simple-stat-box">
+                  <span className="simple-stat-label">Current Speed</span>
+                  <span className="simple-stat-value" style={{ color: selectedBike.status === 'Moving' ? '#10b981' : '#0f172a' }}>
+                    {selectedBike.status === 'Moving' ? selectedBike.speed : '0 km/h'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Location & GPS Info only */}
+              <div className="floating-card-details">
+                <div className="detail-line">
+                  <MapPin size={13} className="detail-icon" />
+                  <span>{selectedBike.lastLocation}</span>
+                </div>
+                <div className="detail-line">
+                  <Clock size={13} className="detail-icon" />
+                  <span>Last Signal: {selectedBike.lastUpdated}</span>
+                </div>
+                {selectedBike.phone && (
+                  <div className="detail-line">
+                    <Phone size={13} className="detail-icon" />
+                    <span>Rider Contact: {selectedBike.phone}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="floating-card-actions">
+                <button
+                  type="button"
+                  className="card-action-btn primary"
+                  onClick={() => {
+                    setSelectedBike({ ...selectedBike });
+                  }}
+                >
+                  <Crosshair size={13} /> Center on Map
+                </button>
               </div>
             </div>
           )}
