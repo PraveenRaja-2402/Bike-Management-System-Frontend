@@ -1,14 +1,8 @@
 import React, { useState } from 'react';
 import { 
   Settings, 
-  Wrench, 
   Bell, 
-  Users, 
-  ShieldCheck, 
   Building, 
-  MapPin, 
-  Phone, 
-  Mail, 
   CheckCircle,
   Save
 } from 'lucide-react';
@@ -46,7 +40,7 @@ export default function SettingsPage() {
       )}
 
       <div className="settings-layout">
-        {/* Subnavigation Sidebar matching Design 2 */}
+        {/* Subnavigation Sidebar */}
         <div className="settings-subnav">
           <button
             type="button"
@@ -59,38 +53,11 @@ export default function SettingsPage() {
 
           <button
             type="button"
-            className={`settings-nav-btn ${activeTab === 'service' ? 'active' : ''}`}
-            onClick={() => setActiveTab('service')}
-          >
-            <Wrench size={16} />
-            <span>Service Settings</span>
-          </button>
-
-          <button
-            type="button"
             className={`settings-nav-btn ${activeTab === 'notifications' ? 'active' : ''}`}
             onClick={() => setActiveTab('notifications')}
           >
             <Bell size={16} />
             <span>Notification Settings</span>
-          </button>
-
-          <button
-            type="button"
-            className={`settings-nav-btn ${activeTab === 'roles' ? 'active' : ''}`}
-            onClick={() => setActiveTab('roles')}
-          >
-            <Users size={16} />
-            <span>User Roles</span>
-          </button>
-
-          <button
-            type="button"
-            className={`settings-nav-btn ${activeTab === 'backup' ? 'active' : ''}`}
-            onClick={() => setActiveTab('backup')}
-          >
-            <ShieldCheck size={16} />
-            <span>Backup & Security</span>
           </button>
         </div>
 
@@ -101,10 +68,7 @@ export default function SettingsPage() {
               <Settings size={18} color="#2563eb" />
               <span>
                 {activeTab === 'general' && 'General Settings'}
-                {activeTab === 'service' && 'Service Configuration'}
-                {activeTab === 'notifications' && 'Notification Channels'}
-                {activeTab === 'roles' && 'Role Permissions'}
-                {activeTab === 'backup' && 'System Security & Backups'}
+                {activeTab === 'notifications' && 'Notification Settings'}
               </span>
             </div>
           </div>
@@ -160,51 +124,6 @@ export default function SettingsPage() {
                 </>
               )}
 
-              {activeTab === 'service' && (
-                <>
-                  <div className="form-grid-2">
-                    <div className="form-group">
-                      <label className="form-label">Upcoming Service Notice Window (Days)</label>
-                      <input
-                        type="number"
-                        className="form-input no-left-icon"
-                        value={settings.serviceDueNoticeDays}
-                        onChange={(e) => setSettings({ ...settings, serviceDueNoticeDays: e.target.value })}
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label className="form-label">Currency Symbol</label>
-                      <input
-                        type="text"
-                        className="form-input no-left-icon"
-                        value={settings.currency}
-                        onChange={(e) => setSettings({ ...settings, currency: e.target.value })}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label">Standard Periodic Service Interval (km)</label>
-                    <input
-                      type="text"
-                      className="form-input no-left-icon"
-                      defaultValue="5,000 km"
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label">Diagnostic Multi-point Inspection</label>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '13px', marginTop: 4 }}>
-                      <label><input type="checkbox" defaultChecked /> Engine oil and filter check</label>
-                      <label><input type="checkbox" defaultChecked /> Front and rear disc brakes / lining pad inspection</label>
-                      <label><input type="checkbox" defaultChecked /> Drive chain slack and lubrication</label>
-                      <label><input type="checkbox" defaultChecked /> Battery voltage and terminal cleaning</label>
-                      <label><input type="checkbox" defaultChecked /> Tire pressure and tread wear</label>
-                    </div>
-                  </div>
-                </>
-              )}
-
               {activeTab === 'notifications' && (
                 <>
                   <div className="form-group">
@@ -235,77 +154,6 @@ export default function SettingsPage() {
                     </span>
                   </div>
                 </>
-              )}
-
-              {activeTab === 'roles' && (
-                <div>
-                  <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '14px' }}>
-                    Default role permission assignments across the bike service network:
-                  </p>
-                  <table className="admin-data-table">
-                    <thead>
-                      <tr>
-                        <th>Role</th>
-                        <th>Live Tracking</th>
-                        <th>Create Job Cards</th>
-                        <th>Billing</th>
-                        <th>Manage Brands</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td><strong>Administrator</strong></td>
-                        <td>Full Access</td>
-                        <td>Full Access</td>
-                        <td>Full Access</td>
-                        <td>Full Access</td>
-                      </tr>
-                      <tr>
-                        <td><strong>Service Manager</strong></td>
-                        <td>Full Access</td>
-                        <td>Full Access</td>
-                        <td>Full Access</td>
-                        <td>Read Only</td>
-                      </tr>
-                      <tr>
-                        <td><strong>Technician</strong></td>
-                        <td>View Assigned</td>
-                        <td>Update Status</td>
-                        <td>None</td>
-                        <td>None</td>
-                      </tr>
-                      <tr>
-                        <td><strong>Customer</strong></td>
-                        <td>Own Bike Only</td>
-                        <td>Request Service</td>
-                        <td>View Invoices</td>
-                        <td>None</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              )}
-
-              {activeTab === 'backup' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '13px' }}>
-                  <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                    <div style={{ fontWeight: 600, color: '#1e293b' }}>Automated Cloud Database Backup</div>
-                    <div style={{ color: '#64748b', marginTop: '2px' }}>Last backup generated: Today at 03:00 AM (Size: 14.8 MB)</div>
-                    <button 
-                      type="button" 
-                      className="btn-secondary btn-sm" 
-                      style={{ marginTop: '10px' }}
-                      onClick={() => alert('Backup snapshot created successfully! (Mock operation)')}
-                    >
-                      Download Backup Archive
-                    </button>
-                  </div>
-
-                  <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                    <div style={{ fontWeight: 600, color: '#1e293b' }}>Session Security Timeout</div>
-                    <div style={{ color: '#64748b', marginTop: '2px' }}>Inactivity logout timer set to 30 minutes.</div>
-                  </div>
-                </div>
               )}
 
               <div style={{ marginTop: '24px', borderTop: '1px solid #e2e8f0', paddingTop: '16px' }}>

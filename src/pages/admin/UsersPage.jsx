@@ -8,16 +8,20 @@ import {
   Mail, 
   Shield, 
   Edit2, 
+  Trash2,
   Eye, 
-  CheckCircle,
-  X
+  CheckCircle2, 
+  Award,
+  Bike,
+  Sparkles
 } from 'lucide-react';
+import { useApp } from '../../context/AppContext';
 import StatusBadge from '../../components/common/StatusBadge';
 import Modal from '../../components/common/Modal';
-import { mockUsers } from '../../data/mockData';
 
 export default function UsersPage() {
-  const [usersList, setUsersList] = useState(mockUsers);
+  const { currentRole, usersList, addUser, updateUser, deleteUser, bikesList } = useApp();
+
   const [roleFilter, setRoleFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
@@ -27,13 +31,16 @@ export default function UsersPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [viewModalUser, setViewModalUser] = useState(null);
+  const [successToast, setSuccessToast] = useState('');
 
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
     email: '',
     role: 'Customer',
-    status: 'Active'
+    status: 'Active',
+    assignedBike: 'TN 30 AB 1234',
+    initialPoints: 200
   });
 
   const filteredUsers = usersList.filter((u) => {
@@ -46,13 +53,15 @@ export default function UsersPage() {
     return matchesRole && matchesStatus && matchesSearch;
   });
 
-  const handleOpenAdd = () => {
+  const handleOpenAdd = (defaultRole = 'Customer') => {
     setFormData({
       name: '',
       phone: '',
       email: '',
-      role: 'Customer',
-      status: 'Active'
+      role: defaultRole,
+      status: 'Active',
+      assignedBike: bikesList[0]?.regNo || 'TN 30 AB 1234',
+      initialPoints: defaultRole === 'Customer' ? 250 : 0
     });
     setIsAddModalOpen(true);
   };
@@ -64,35 +73,100 @@ export default function UsersPage() {
       phone: user.phone,
       email: user.email,
       role: user.role,
-      status: user.status
+      status: user.status,
+      assignedBike: user.assignedBike || 'TN 30 AB 1234',
+      initialPoints: user.membershipPoints || 500
     });
     setIsEditModalOpen(true);
   };
 
   const handleSaveAdd = (e) => {
     e.preventDefault();
-    const newUser = {
-      id: usersList.length + 1,
-      name: formData.name,
-      phone: formData.phone,
-      email: formData.email,
-      role: formData.role,
-      status: formData.status,
-      registeredDate: '18 Sep 2026'
-    };
-    setUsersList([...usersList, newUser]);
+    addUser(formData);
     setIsAddModalOpen(false);
+    setSuccessToast(`New ${formData.role} account created successfully for "${formData.name}"!`);
+    setTimeout(() => setSuccessToast(''), 4000);
   };
 
   const handleSaveEdit = (e) => {
     e.preventDefault();
-    setUsersList(usersList.map(u => u.id === selectedUser.id ? { ...u, ...formData } : u));
+    updateUser(selectedUser.id, formData);
     setIsEditModalOpen(false);
     setSelectedUser(null);
+    setSuccessToast(`User profile for "${formData.name}" updated!`);
+    setTimeout(() => setSuccessToast(''), 4000);
+  };
+
+  const handleDelete = (user) => {
+    if (window.confirm(`Are you sure you want to delete user ${user.name}?`)) {
+      deleteUser(user.id);
+      setSuccessToast(`User ${user.name} removed from system.`);
+      setTimeout(() => setSuccessToast(''), 4000);
+    }
   };
 
   return (
     <div className="users-page">
+      {successToast && (
+        <div style={{
+          background: '#ecfdf5',
+          border: '1px solid #a7f3d0',
+          color: '#059669',
+          padding: '12px 18px',
+          borderRadius: '8px',
+          marginBottom: '16px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          fontSize: '13.5px'
+        }}>
+          <CheckCircle2 size={18} />
+          <span>{successToast}</span>
+        </div>
+      )}
+
+      {/* Admin Action Highlight: User Creation Quick Launcher */}
+      <div style={{
+        background: '#ffffff',
+        border: '1px solid #e2e8f0',
+        borderRadius: '12px',
+        padding: '16px 20px',
+        marginBottom: '20px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '14px',
+        boxShadow: '0 2px 6px rgba(0,0,0,0.03)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ width: 42, height: 42, borderRadius: '10px', background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <UserPlus size={22} />
+          </div>
+          <div>
+            <div style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>Admin User Creation Center</div>
+            <div style={{ fontSize: '12px', color: '#64748b' }}>Provision customer portal accounts, workshop technicians, and service advisors</div>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button
+            type="button"
+            className="btn-outline-blue"
+            onClick={() => handleOpenAdd('Technician')}
+          >
+            + Add Technician
+          </button>
+          <button
+            type="button"
+            className="btn-primary"
+            onClick={() => handleOpenAdd('Customer')}
+          >
+            <UserPlus size={16} /> Create Customer Account
+          </button>
+        </div>
+      </div>
+
       <div className="table-card">
         {/* Controls Bar matching Design 2 */}
         <div className="table-controls-bar">
@@ -134,8 +208,8 @@ export default function UsersPage() {
               </button>
             </div>
 
-            <button type="button" className="btn-primary" onClick={handleOpenAdd}>
-              <UserPlus size={16} /> Add User
+            <button type="button" className="btn-primary" onClick={() => handleOpenAdd('Customer')}>
+              <Plus size={16} /> Add User
             </button>
           </div>
         </div>
@@ -146,58 +220,86 @@ export default function UsersPage() {
             <thead>
               <tr>
                 <th style={{ width: 40 }}>#</th>
-                <th>Name</th>
-                <th>Phone</th>
-                <th>Email</th>
+                <th>Name & User</th>
+                <th>Phone Number</th>
+                <th>Email Address</th>
                 <th>Role</th>
+                <th>Membership Points</th>
                 <th>Status</th>
                 <th style={{ textAlign: 'center' }}>Action</th>
               </tr>
             </thead>
             <tbody>
-              {filteredUsers.map((user, idx) => (
-                <tr key={user.id}>
-                  <td style={{ color: '#64748b' }}>{idx + 1}</td>
-                  <td>
-                    <div className="table-user-cell">
-                      <div className="user-initial-avatar">
-                        {user.name.charAt(0).toUpperCase()}
+              {filteredUsers.map((user, idx) => {
+                const isCustomer = user.role === 'Customer';
+                const points = user.name === 'Bharath' ? 1250 : user.name === 'Priya' ? 850 : isCustomer ? 350 : null;
+
+                return (
+                  <tr key={user.id}>
+                    <td style={{ color: '#64748b' }}>{idx + 1}</td>
+                    <td>
+                      <div className="table-user-cell">
+                        <div className="user-initial-avatar">
+                          {user.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <span style={{ fontWeight: 600, display: 'block', color: '#0f172a' }}>{user.name}</span>
+                          <span style={{ fontSize: '11px', color: '#94a3b8' }}>ID: USR-0{user.id}</span>
+                        </div>
                       </div>
-                      <span style={{ fontWeight: 600 }}>{user.name}</span>
-                    </div>
-                  </td>
-                  <td style={{ color: '#475569' }}>{user.phone}</td>
-                  <td style={{ color: '#64748b' }}>{user.email}</td>
-                  <td>
-                    <StatusBadge status={user.role} />
-                  </td>
-                  <td>
-                    <StatusBadge status={user.status} />
-                  </td>
-                  <td style={{ textAlign: 'center' }}>
-                    <div className="table-actions" style={{ justifyContent: 'center' }}>
-                      <button 
-                        type="button" 
-                        className="btn-outline-blue"
-                        onClick={() => setViewModalUser(user)}
-                      >
-                        View
-                      </button>
-                      <button 
-                        type="button" 
-                        className="btn-secondary btn-sm"
-                        onClick={() => handleOpenEdit(user)}
-                      >
-                        Edit
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td style={{ color: '#475569' }}>{user.phone}</td>
+                    <td style={{ color: '#64748b' }}>{user.email}</td>
+                    <td>
+                      <StatusBadge status={user.role} />
+                    </td>
+                    <td>
+                      {isCustomer ? (
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#fef3c7', color: '#b45309', padding: '3px 8px', borderRadius: '6px', fontSize: '11.5px', fontWeight: 700 }}>
+                          <Award size={13} />
+                          <span>{points} Pts (Gold)</span>
+                        </div>
+                      ) : (
+                        <span style={{ color: '#94a3b8', fontSize: '12px' }}>Staff Account</span>
+                      )}
+                    </td>
+                    <td>
+                      <StatusBadge status={user.status} />
+                    </td>
+                    <td style={{ textAlign: 'center' }}>
+                      <div className="table-actions" style={{ justifyContent: 'center' }}>
+                        <button 
+                          type="button" 
+                          className="btn-outline-blue btn-sm"
+                          onClick={() => setViewModalUser(user)}
+                        >
+                          View
+                        </button>
+                        <button 
+                          type="button" 
+                          className="btn-secondary btn-sm"
+                          onClick={() => handleOpenEdit(user)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-danger btn-sm"
+                          style={{ padding: '4px 8px' }}
+                          onClick={() => handleDelete(user)}
+                          title="Delete User"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
 
               {filteredUsers.length === 0 && (
                 <tr>
-                  <td colSpan={7} style={{ textAlign: 'center', padding: '30px', color: '#94a3b8' }}>
+                  <td colSpan={8} style={{ textAlign: 'center', padding: '30px', color: '#94a3b8' }}>
                     No users found matching your search.
                   </td>
                 </tr>
@@ -216,11 +318,12 @@ export default function UsersPage() {
         </div>
       </div>
 
-      {/* Modal: Add User */}
+      {/* Modal: Add User (Admin User Creation) */}
       <Modal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
-        title="Add New User"
+        title="Admin User Creation • Provision Account"
+        maxWidth="500px"
       >
         <form onSubmit={handleSaveAdd}>
           <div className="form-group">
@@ -268,9 +371,9 @@ export default function UsersPage() {
                 value={formData.role}
                 onChange={(e) => setFormData({ ...formData, role: e.target.value })}
               >
-                <option value="Customer">Customer</option>
-                <option value="Technician">Technician</option>
-                <option value="Service Manager">Service Manager</option>
+                <option value="Customer">Customer (Vehicle Owner)</option>
+                <option value="Technician">Technician (Workshop Engineer)</option>
+                <option value="Service Manager">Service Manager (Bay Supervisor)</option>
                 <option value="Administrator">Administrator</option>
               </select>
             </div>
@@ -287,7 +390,39 @@ export default function UsersPage() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '16px' }}>
+          {formData.role === 'Customer' && (
+            <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0', marginTop: '10px' }}>
+              <div style={{ fontSize: '12px', fontWeight: 700, color: '#0f172a', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Sparkles size={14} color="#f59e0b" />
+                <span>Customer Loyalty & Vehicle Setup</span>
+              </div>
+              <div className="form-grid-2">
+                <div>
+                  <label style={{ fontSize: '11px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Welcome Membership Bonus</label>
+                  <input
+                    type="number"
+                    className="form-input no-left-icon"
+                    value={formData.initialPoints}
+                    onChange={(e) => setFormData({ ...formData, initialPoints: parseInt(e.target.value, 10) || 0 })}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '11px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Assigned Bike Reg</label>
+                  <select
+                    className="form-input no-left-icon"
+                    value={formData.assignedBike}
+                    onChange={(e) => setFormData({ ...formData, assignedBike: e.target.value })}
+                  >
+                    {bikesList.map(b => (
+                      <option key={b.id} value={b.regNo}>{b.regNo} ({b.model})</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '18px' }}>
             <button type="button" className="btn-secondary" onClick={() => setIsAddModalOpen(false)}>
               Cancel
             </button>
@@ -405,6 +540,11 @@ export default function UsersPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               Status: <StatusBadge status={viewModalUser.status} />
             </div>
+            {viewModalUser.role === 'Customer' && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                Membership Points: <strong style={{ color: '#d97706' }}>1,250 Points (Gold Tier)</strong>
+              </div>
+            )}
           </div>
 
           <div style={{ textAlign: 'right', marginTop: '16px' }}>

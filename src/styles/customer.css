@@ -1,25 +1,26 @@
 /* ==========================================================================
-   Customer Mobile Interface Styles - Matching Design 1
+   Customer Mobile Interface Styles - Ultra-Premium Edition
    ========================================================================== */
 
 .customer-view-wrapper {
   min-height: 100vh;
-  background: #0f172a;
+  background: radial-gradient(circle at 50% 20%, #1e293b 0%, #0f172a 60%, #020617 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding: 24px 16px;
+  padding: 32px 16px;
   font-family: var(--font-family);
+  position: relative;
 }
 
 .customer-top-bar-controls {
   width: 100%;
-  max-width: 440px;
+  max-width: 420px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
   color: #ffffff;
 }
 
@@ -28,8 +29,13 @@
   align-items: center;
   gap: 8px;
   font-size: 13px;
-  font-weight: 600;
-  color: #93c5fd;
+  font-weight: 700;
+  color: #60a5fa;
+  background: rgba(37, 99, 235, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  padding: 6px 14px;
+  border-radius: 9999px;
+  backdrop-filter: blur(8px);
 }
 
 .customer-back-to-admin {
@@ -38,42 +44,98 @@
   gap: 6px;
   background: rgba(255, 255, 255, 0.12);
   color: #ffffff;
-  padding: 6px 12px;
+  padding: 7px 14px;
   border-radius: var(--radius-md);
-  font-size: 12px;
-  font-weight: 500;
-  transition: all 0.15s;
+  font-size: 12.5px;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(8px);
 }
 
 .customer-back-to-admin:hover {
   background: rgba(255, 255, 255, 0.22);
+  transform: translateY(-1px);
 }
 
-/* Mobile Frame Mockup */
+/* ==========================================================================
+   Flagship Mobile Device Mockup Frame (iPhone 16 Pro Form Factor)
+   ========================================================================== */
 .mobile-device-frame {
   width: 100%;
-  max-width: 410px;
-  height: 844px;
-  background: #f4f6fb;
-  border-radius: 40px;
-  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 0 10px #1e293b;
+  max-width: 418px;
+  height: 870px;
+  background: #f8fafc;
+  border-radius: 50px;
+  box-shadow: 
+    0 35px 80px -15px rgba(0, 0, 0, 0.85),
+    0 0 0 1px rgba(255, 255, 255, 0.15),
+    0 0 0 12px #111827;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   position: relative;
+  border: 4px solid #000000;
 }
 
-/* Mobile Status Bar */
-.mobile-status-bar {
-  height: 44px;
-  padding: 0 22px;
+/* Dynamic Island */
+.dynamic-island {
+  position: absolute;
+  top: 11px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 116px;
+  height: 30px;
+  background: #000000;
+  border-radius: 20px;
+  z-index: 200;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 14px;
-  font-weight: 600;
-  z-index: 50;
+  padding: 0 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  transition: width 0.3s ease;
+}
+
+.dynamic-island-camera {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #080c14;
+  border: 1.5px solid #1e293b;
+  position: relative;
+}
+
+.dynamic-island-camera::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #10b981;
+}
+
+.dynamic-island-sensor {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #0f172a;
+}
+
+/* iOS Status Bar */
+.mobile-status-bar {
+  height: 50px;
+  padding: 10px 26px 0 26px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13.5px;
+  font-weight: 700;
+  z-index: 150;
   transition: color 0.2s;
+  letter-spacing: -0.2px;
 }
 
 .mobile-status-bar.dark-text {
@@ -87,41 +149,78 @@
 .status-bar-icons {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
+}
+
+/* Bottom iOS Gesture Home Bar */
+.mobile-home-indicator-bar {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 135px;
+  height: 4.5px;
+  background: #0f172a;
+  border-radius: 3px;
+  z-index: 150;
+  opacity: 0.35;
+  pointer-events: none;
 }
 
 /* Screen Content Area */
 .mobile-screen-content {
   flex: 1;
   overflow-y: auto;
-  padding-bottom: 80px; /* space for bottom nav */
+  padding-bottom: 82px; /* space for bottom nav bar */
 }
 
 /* --------------------------------------------------------------------------
-   Screen 1: Customer Home (Design 1 - Left)
+   Screen 1: Customer Home
    -------------------------------------------------------------------------- */
 .home-header-bg {
-  background: linear-gradient(180deg, #073b94 0%, #1052c2 65%, #f4f6fb 100%);
-  padding: 10px 18px 24px 18px;
+  background: linear-gradient(180deg, #0f2759 0%, #1e3a8a 50%, #2563eb 100%);
+  padding: 12px 20px 24px 20px;
   color: #ffffff;
+  position: relative;
+  overflow: hidden;
+}
+
+.home-header-bg::before {
+  content: '';
+  position: absolute;
+  top: -60px;
+  right: -60px;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(96, 165, 250, 0.25) 0%, transparent 70%);
+  pointer-events: none;
 }
 
 .home-nav-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .mobile-icon-btn {
-  background: transparent;
-  border: none;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
   color: #ffffff;
-  padding: 6px;
+  width: 36px;
+  height: 36px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.15s ease;
+  backdrop-filter: blur(8px);
+}
+
+.mobile-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
 }
 
 .home-user-greeting {
@@ -130,17 +229,18 @@
 
 .user-name-title {
   font-size: 24px;
-  font-weight: 700;
-  letter-spacing: -0.3px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+  color: #ffffff;
 }
 
 .bike-safe-status {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
-  color: #bfdbfe;
-  font-weight: 500;
+  font-size: 12px;
+  color: #93c5fd;
+  font-weight: 600;
 }
 
 .bike-safe-dot {
@@ -148,24 +248,34 @@
   height: 8px;
   border-radius: 50%;
   background-color: #10b981;
+  box-shadow: 0 0 8px #10b981;
+  animation: pulse 2s infinite;
 }
 
-/* Bike Selector Card */
+@keyframes pulse {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* Vehicle Selector Card */
 .bike-selector-card {
-  background: #ffffff;
-  border-radius: var(--radius-xl);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border-radius: 18px;
   padding: 14px 16px;
   display: flex;
   align-items: center;
   gap: 14px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
   color: var(--text-main);
   cursor: pointer;
-  transition: transform 0.15s;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid rgba(255, 255, 255, 0.8);
 }
 
 .bike-selector-card:hover {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
 }
 
 .bike-card-info {
@@ -178,26 +288,23 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 15.5px;
+  font-weight: 800;
   color: #0f172a;
 }
 
 .bike-card-model {
-  font-size: 12.5px;
-  color: var(--text-muted);
-}
-
-.bike-chevron-right {
-  color: #94a3b8;
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
 }
 
 /* Quick Actions Grid */
 .home-quick-actions-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  padding: 18px 18px 8px 18px;
+  gap: 10px;
+  padding: 16px 18px 8px 18px;
 }
 
 .quick-action-item {
@@ -211,31 +318,28 @@
 }
 
 .action-icon-box {
-  width: 54px;
-  height: 54px;
+  width: 52px;
+  height: 52px;
   border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #ffffff;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
-  transition: transform 0.15s;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s;
 }
 
 .action-icon-box:hover {
-  transform: scale(1.05);
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.14);
 }
-
-.action-tracking { background-color: #2563eb; }
-.action-service { background-color: #22c55e; }
-.action-history { background-color: #f97316; }
-.action-alerts { background-color: #ef4444; }
 
 .action-label {
   font-size: 11px;
-  font-weight: 600;
-  color: var(--text-main);
+  font-weight: 700;
+  color: #334155;
   text-align: center;
+  letter-spacing: -0.1px;
 }
 
 /* Home Section Layout */
@@ -247,64 +351,55 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .section-title-bold {
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 14.5px;
+  font-weight: 800;
   color: #0f172a;
+  letter-spacing: -0.2px;
 }
 
 .section-link-blue {
-  font-size: 12.5px;
-  color: #2563eb;
-  font-weight: 600;
   background: transparent;
   border: none;
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 700;
   cursor: pointer;
 }
 
-.section-link-blue:hover {
-  text-decoration: underline;
-}
-
-/* Map Card */
 .home-map-card {
-  background: #ffffff;
-  border-radius: 16px;
-  border: 1px solid var(--border-color);
-  box-shadow: var(--shadow-card);
+  border-radius: 18px;
   overflow: hidden;
-  margin-bottom: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
+  margin-bottom: 10px;
 }
 
 .location-info-card {
   background: #ffffff;
-  border-radius: 14px;
-  border: 1px solid var(--border-color);
-  box-shadow: var(--shadow-card);
-  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  padding: 12px 16px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .location-info-row {
-  padding: 12px 14px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  border-bottom: 1px solid var(--border-subtle);
-  font-size: 12px;
+  gap: 10px;
   cursor: pointer;
-}
-
-.location-info-row:last-child {
-  border-bottom: none;
 }
 
 .location-info-icon-wrap {
   width: 32px;
   height: 32px;
-  border-radius: 50%;
+  border-radius: 8px;
   background: #eff6ff;
   color: #2563eb;
   display: flex;
@@ -320,58 +415,76 @@
 }
 
 .location-info-label {
-  font-size: 11px;
-  color: var(--text-muted);
+  font-size: 10.5px;
+  color: #94a3b8;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
 }
 
 .location-info-val {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-main);
+  font-size: 12.5px;
+  color: #0f172a;
+  font-weight: 700;
 }
 
 /* --------------------------------------------------------------------------
-   Screen 2: Bike Details (Design 1 - Center)
+   Subscreen Common Header
    -------------------------------------------------------------------------- */
 .subscreen-header {
-  height: 54px;
+  height: 52px;
   padding: 0 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
   background: #ffffff;
-  border-bottom: 1px solid var(--border-subtle);
-  position: sticky;
-  top: 0;
-  z-index: 40;
-}
-
-.subscreen-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--text-main);
 }
 
 .subscreen-back-btn {
   background: transparent;
   border: none;
-  color: var(--text-main);
-  cursor: pointer;
-  padding: 6px;
+  color: #0f172a;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
+}
+
+.subscreen-back-btn:hover {
+  background: #f1f5f9;
+}
+
+.subscreen-title {
+  font-size: 15.5px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.2px;
+}
+
+/* --------------------------------------------------------------------------
+   Screen 2: Bike Details
+   -------------------------------------------------------------------------- */
+.customer-bike-details-screen {
+  display: flex;
+  flex-direction: column;
 }
 
 .bike-details-hero {
+  background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
+  padding: 24px 20px 20px 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 24px 18px 16px 18px;
+  text-align: center;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .bike-hero-logo {
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .bike-hero-reg-row {
@@ -379,75 +492,80 @@
   align-items: center;
   gap: 8px;
   font-size: 20px;
-  font-weight: 700;
+  font-weight: 800;
   color: #0f172a;
 }
 
 .bike-hero-model {
-  font-size: 14px;
-  color: var(--text-muted);
-  font-weight: 500;
+  font-size: 13.5px;
+  color: #475569;
+  font-weight: 600;
   margin-top: 2px;
 }
 
 .bike-hero-purchased {
-  font-size: 12px;
+  font-size: 11px;
   color: #94a3b8;
   margin-top: 4px;
 }
 
 .bike-distance-stats-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
-  padding: 0 18px;
-  margin-bottom: 16px;
+  padding: 16px 18px;
 }
 
 .distance-stat-card {
   background: #ffffff;
-  border-radius: 14px;
-  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
   padding: 14px;
-  box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.distance-stat-card:hover {
+  transform: translateY(-2px);
 }
 
 .stat-card-top-icon {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
 }
 
 .stat-icon-blue { background: #eff6ff; color: #2563eb; }
-.stat-icon-purple { background: #f5f3ff; color: #7c3aed; }
+.stat-icon-purple { background: #fdf4ff; color: #c026d3; }
 
 .stat-card-label {
   font-size: 11px;
-  color: var(--text-muted);
-  font-weight: 500;
+  color: #64748b;
+  font-weight: 600;
 }
 
 .stat-card-value {
   font-size: 18px;
-  font-weight: 700;
-  color: var(--text-main);
+  font-weight: 800;
+  color: #0f172a;
+  margin: 2px 0;
 }
 
 .stat-card-trend {
-  font-size: 10px;
+  font-size: 10.5px;
   color: #10b981;
   font-weight: 600;
 }
 
 .bike-action-list {
-  padding: 0 18px;
+  padding: 0 18px 20px 18px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -455,25 +573,26 @@
 
 .bike-action-card-item {
   background: #ffffff;
-  border-radius: 14px;
-  border: 1px solid var(--border-color);
-  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  padding: 12px 14px;
   display: flex;
   align-items: center;
   gap: 14px;
-  box-shadow: var(--shadow-card);
   cursor: pointer;
-  transition: transform 0.15s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+  transition: all 0.15s ease;
 }
 
 .bike-action-card-item:hover {
-  transform: translateY(-1px);
+  border-color: #cbd5e1;
+  transform: translateX(2px);
 }
 
 .bike-action-icon-box {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -491,211 +610,196 @@
 
 .bike-action-title {
   font-size: 13.5px;
-  font-weight: 600;
-  color: var(--text-main);
+  font-weight: 700;
+  color: #0f172a;
 }
 
 .bike-action-sub {
-  font-size: 11.5px;
-  color: var(--text-muted);
+  font-size: 11px;
+  color: #64748b;
 }
 
 /* --------------------------------------------------------------------------
-   Screen 3: Service (Design 1 - Right)
+   Branch Loyalty & GPS Rewards Hero Card (No fake credit card)
    -------------------------------------------------------------------------- */
-.service-screen-container {
-  padding: 16px 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+.branch-loyalty-hero-card {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #111827 100%);
+  border-radius: 20px;
+  padding: 20px;
+  color: #ffffff;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 12px 30px -5px rgba(15, 23, 42, 0.4);
+  border: 1px solid rgba(245, 158, 11, 0.35);
 }
 
-.service-bike-header-card {
+.branch-loyalty-hero-card::after {
+  content: '';
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.18) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* Fines & Challan List */
+.challan-item-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  transition: transform 0.15s ease;
+}
+
+.challan-item-card.unpaid {
+  border-left: 5px solid #e11d48;
+}
+
+.challan-item-card.paid {
+  border-left: 5px solid #10b981;
+}
+
+/* Distance Analytics Bar Chart */
+.distance-bar-chart {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 140px;
+  padding: 10px 4px 0 4px;
+  gap: 8px;
+}
+
+.distance-bar-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.distance-bar-fill {
+  width: 100%;
+  max-width: 28px;
+  border-radius: 8px 8px 0 0;
+  background: #93c5fd;
+  transition: height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+.distance-bar-fill.active {
+  background: linear-gradient(180deg, #38bdf8 0%, #2563eb 100%);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+}
+
+.distance-bar-label {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.distance-bar-val {
+  font-size: 10px;
+  color: #0f172a;
+  font-weight: 800;
+  margin-bottom: 2px;
+}
+
+/* Route Playback Player HUD */
+.playback-hud-card {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(16px);
+  border-radius: 20px;
+  padding: 16px 18px;
+  color: #ffffff;
+  box-shadow: 0 16px 35px rgba(0, 0, 0, 0.45);
+  z-index: 1000;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.playback-controls-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.playback-play-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
+  color: #ffffff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.5);
+  transition: transform 0.15s ease;
+}
+
+.playback-play-btn:active {
+  transform: scale(0.92);
+}
+
+.playback-scrubber {
+  width: 100%;
+  -webkit-appearance: none;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.2);
+  outline: none;
+  cursor: pointer;
+}
+
+.playback-scrubber::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #38bdf8;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* Geofence Card Item */
+.geofence-item-card {
   background: #ffffff;
   border-radius: 14px;
   border: 1px solid var(--border-color);
   padding: 12px 14px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  box-shadow: var(--shadow-card);
-}
-
-.service-due-highlight-card {
-  background: #ffffff;
-  border-radius: 16px;
-  border: 1px solid var(--border-color);
-  padding: 18px;
-  box-shadow: var(--shadow-card);
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.due-card-header-row {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.wrench-blue-box {
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
-  background-color: #eff6ff;
-  color: #2563eb;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.due-card-texts {
-  display: flex;
-  flex-direction: column;
-}
-
-.due-title-sub {
-  font-size: 11.5px;
-  color: var(--text-muted);
-}
-
-.due-date-bold {
-  font-size: 18px;
-  font-weight: 700;
-  color: #0f172a;
-}
-
-.due-days-pill {
-  font-size: 11.5px;
-  color: #10b981;
-  font-weight: 600;
-}
-
-.book-service-btn-full {
-  width: 100%;
-  background: #2563eb;
-  color: #ffffff;
-  border: none;
-  padding: 12px;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 600;
-  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
-  cursor: pointer;
-  transition: background-color 0.15s;
-}
-
-.book-service-btn-full:hover {
-  background: #1d4ed8;
-}
-
-.service-details-card {
-  background: #ffffff;
-  border-radius: 16px;
-  border: 1px solid var(--border-color);
-  padding: 14px 16px;
-  box-shadow: var(--shadow-card);
-}
-
-.service-detail-item-row {
-  display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--border-subtle);
-  font-size: 12.5px;
 }
 
-.service-detail-item-row:last-child {
-  border-bottom: none;
-}
-
-.detail-row-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.detail-icon-circle {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.icon-green-circle { background: #ecfdf5; color: #10b981; }
-.icon-blue-circle { background: #eff6ff; color: #2563eb; }
-.icon-gray-circle { background: #f1f5f9; color: #475569; }
-
-.detail-text-col {
-  display: flex;
-  flex-direction: column;
-}
-
-.detail-title {
-  font-weight: 600;
-  color: var(--text-main);
-}
-
-.detail-date {
-  font-size: 11px;
-  color: var(--text-muted);
-}
-
-.detail-km-badge {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: #1e293b;
-}
-
-.service-history-card {
-  background: #ffffff;
-  border-radius: 16px;
-  border: 1px solid var(--border-color);
-  padding: 14px 16px;
-  box-shadow: var(--shadow-card);
-}
-
-.service-history-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border-subtle);
-  cursor: pointer;
-}
-
-.service-history-row:last-child {
-  border-bottom: none;
-}
-
-.history-cost-tag {
-  font-size: 13px;
-  font-weight: 700;
-  color: #0f172a;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-/* --------------------------------------------------------------------------
-   Mobile Bottom Navigation Bar
-   -------------------------------------------------------------------------- */
+/* Fixed Mobile Bottom Navigation Bar */
 .mobile-bottom-nav {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  height: 68px;
-  background: #ffffff;
-  border-top: 1px solid var(--border-color);
+  height: 70px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(226, 232, 240, 0.8);
   display: flex;
   align-items: center;
   justify-content: space-around;
-  padding: 0 10px;
+  padding: 0 8px 10px 8px;
   z-index: 100;
 }
 
@@ -703,18 +807,49 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   background: transparent;
   border: none;
   color: #94a3b8;
-  font-size: 11px;
-  font-weight: 500;
+  font-size: 10.5px;
+  font-weight: 600;
   cursor: pointer;
-  padding: 6px 12px;
-  transition: color 0.15s;
+  padding: 6px 10px;
+  transition: all 0.15s ease;
+  border-radius: 10px;
 }
 
 .bottom-nav-item.active {
   color: #2563eb;
-  font-weight: 700;
+  font-weight: 800;
+  transform: translateY(-1px);
+}
+
+
+/* ==========================================================================
+   FLAGSHIP TITANIUM MOBILE CHASSIS & ULTRA-PREMIUM TOUCHES
+   ========================================================================== */
+.mobile-device-frame {
+  box-shadow: 
+    0 40px 100px -20px rgba(0, 0, 0, 0.92),
+    0 0 0 1px rgba(255, 255, 255, 0.22),
+    0 0 0 10px #1e293b,
+    0 0 0 13px #0f172a,
+    0 0 40px rgba(37, 99, 235, 0.15) !important;
+  border-radius: 52px !important;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.dynamic-island {
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.mobile-bottom-nav {
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05) !important;
+}
+
+.bottom-nav-item.active {
+  color: #2563eb !important;
+  background: rgba(37, 99, 235, 0.08) !important;
 }

@@ -10,6 +10,30 @@ export default function AdminLayout() {
   // Determine page meta from path
   const getPageMeta = () => {
     const path = location.pathname;
+    if (path.includes('admins')) {
+      return {
+        title: 'Admin Management',
+        subtitle: 'Super Admin: Provision and configure administrator credentials'
+      };
+    }
+    if (path.includes('stores')) {
+      return {
+        title: 'Store & Workshop Locations',
+        subtitle: 'Super Admin: Configure workshop branches, service bays and geofences'
+      };
+    }
+    if (path.includes('branding')) {
+      return {
+        title: 'Logo Change & Branding',
+        subtitle: 'Super Admin: Customize corporate logo, brand colors and system identity'
+      };
+    }
+    if (path.includes('pending-services')) {
+      return {
+        title: 'Service Pending Monitoring',
+        subtitle: 'Monitor overdue and pending vehicle maintenance across all branches'
+      };
+    }
     if (path.includes('all-pages')) {
       return {
         title: 'All Pages Overview',
@@ -42,8 +66,8 @@ export default function AdminLayout() {
     }
     if (path.includes('users')) {
       return {
-        title: 'Users',
-        subtitle: 'Add, edit and manage system users'
+        title: 'User Management',
+        subtitle: 'Admin: Create customer, technician, and advisor user accounts'
       };
     }
     if (path.includes('manage-brands')) {
@@ -55,7 +79,7 @@ export default function AdminLayout() {
     if (path.includes('settings')) {
       return {
         title: 'Settings',
-        subtitle: 'System configuration and service settings'
+        subtitle: 'General preferences and notification settings'
       };
     }
     if (path.includes('profile')) {

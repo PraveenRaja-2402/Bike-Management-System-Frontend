@@ -609,3 +609,577 @@ export const mockCustomerAlerts = [
     isRead: true
   }
 ];
+
+
+export const mockAuthCredentials = [
+  {
+    id: 1,
+    email: "superadmin@bikeservice.com",
+    aliases: ["superadmin@bikeservicepro.com", "superadmin"],
+    password: "SuperAdmin@2026!",
+    name: "Alexander Vance",
+    role: "super_admin",
+    roleLabel: "Super Admin",
+    badge: "Super Admin (Root)",
+    avatar: "AV",
+    phone: "9876543200",
+    assignedBranch: "All Branches",
+    permissions: ["Full Access", "Logo & Branding", "Store Management", "Admin Creation", "Financials", "Audit Logs"]
+  },
+  {
+    id: 2,
+    email: "admin@bikeservice.com",
+    aliases: ["vikram.admin@bikeservice.com", "admin"],
+    password: "Admin@Ops2026!",
+    name: "Vikram Raman",
+    role: "admin",
+    roleLabel: "Operations Admin",
+    badge: "Operations Admin",
+    avatar: "VR",
+    phone: "9845112233",
+    assignedBranch: "Salem Central Mega Hub",
+    permissions: ["User Creation", "Job Cards", "Live Tracking", "Service Dispatch", "Customer Accounts"]
+  },
+  {
+    id: 3,
+    email: "meena.admin@bikeservice.com",
+    aliases: ["meena"],
+    password: "Meena@Admin2026!",
+    name: "Meenakshi Sundaram",
+    role: "admin",
+    roleLabel: "Branch Admin",
+    badge: "Branch Admin",
+    avatar: "MS",
+    phone: "9789334455",
+    assignedBranch: "Fairlands Express Workshop",
+    permissions: ["User Creation", "Job Cards", "Live Tracking"]
+  }
+];
+
+export const mockAdmins = [
+  {
+    id: 1,
+    name: "Alexander Vance",
+    email: "superadmin@bikeservice.com",
+    phone: "9876543200",
+    role: "Super Admin",
+    status: "Active",
+    assignedBranch: "All Branches",
+    permissions: ["Full Access", "Logo & Branding", "Store Management", "Admin Creation", "Financials"],
+    lastLogin: "Today, 10:45 AM"
+  },
+  {
+    id: 2,
+    name: "Vikram Raman",
+    email: "vikram.admin@bikeservice.com",
+    phone: "9845112233",
+    role: "Admin",
+    status: "Active",
+    assignedBranch: "Salem Central Mega Hub",
+    permissions: ["User Creation", "Job Cards", "Service Dispatch", "Customer Accounts"],
+    lastLogin: "Today, 09:12 AM"
+  },
+  {
+    id: 3,
+    name: "Meenakshi Sundaram",
+    email: "meena.admin@bikeservice.com",
+    phone: "9789334455",
+    role: "Admin",
+    status: "Active",
+    assignedBranch: "Fairlands Express Workshop",
+    permissions: ["User Creation", "Job Cards", "Live Tracking"],
+    lastLogin: "Yesterday, 05:30 PM"
+  },
+  {
+    id: 4,
+    name: "Rajesh Kannan",
+    email: "rajesh.admin@bikeservice.com",
+    phone: "9944556677",
+    role: "Admin",
+    status: "Inactive",
+    assignedBranch: "Attur Bypass Quick Care",
+    permissions: ["User Creation", "Job Cards"],
+    lastLogin: "01 Nov 2026"
+  }
+];
+
+export const mockStoreLocations = [
+  {
+    id: 1,
+    name: "Salem Central Mega Hub",
+    code: "STR-001",
+    address: "123, Anna Nagar Main Road, Salem - 636001",
+    phone: "0427-2445566",
+    manager: "Vikram Raman",
+    lat: 11.6643,
+    lng: 78.1460,
+    serviceBays: 8,
+    operatingHours: "08:30 AM - 08:00 PM (Mon-Sat)",
+    status: "Active",
+    geofenceRadiusMeters: 400,
+    activeJobsCount: 14,
+    availableTechnicians: 6
+  },
+  {
+    id: 2,
+    name: "Fairlands Express Workshop",
+    code: "STR-002",
+    address: "45, Fairlands Main Road, Near Reliance Mart, Salem - 636016",
+    phone: "0427-2334411",
+    manager: "Meenakshi Sundaram",
+    lat: 11.6692,
+    lng: 78.1524,
+    serviceBays: 4,
+    operatingHours: "09:00 AM - 07:30 PM (Mon-Sat)",
+    status: "Active",
+    geofenceRadiusMeters: 300,
+    activeJobsCount: 8,
+    availableTechnicians: 3
+  },
+  {
+    id: 3,
+    name: "Attur Bypass Quick Care Hub",
+    code: "STR-003",
+    address: "NH-79, Attur Bypass Junction, Salem - 636102",
+    phone: "0427-2556677",
+    manager: "Karthik Service Manager",
+    lat: 11.6625,
+    lng: 78.1740,
+    serviceBays: 6,
+    operatingHours: "08:00 AM - 09:00 PM (Daily)",
+    status: "Active",
+    geofenceRadiusMeters: 500,
+    activeJobsCount: 9,
+    availableTechnicians: 4
+  },
+  {
+    id: 4,
+    name: "Omalur Expressway Service Hub",
+    code: "STR-004",
+    address: "18, Omalur Main Road, Opp Toll Gate, Salem - 636304",
+    phone: "0427-2889900",
+    manager: "Anitha Workshop Lead",
+    lat: 11.6820,
+    lng: 78.1325,
+    serviceBays: 5,
+    operatingHours: "08:30 AM - 08:00 PM (Mon-Sat)",
+    status: "Active",
+    geofenceRadiusMeters: 350,
+    activeJobsCount: 5,
+    availableTechnicians: 3
+  }
+];
+
+export const initialBranding = {
+  companyName: "Bike Service Pro",
+  tagline: "Smart IoT Fleet & Bike Care Center",
+  logoType: "preset", // 'preset' or 'custom'
+  selectedPreset: "modern", // 'modern', 'sport', 'apex', 'shield'
+  customLogoUrl: "",
+  primaryColor: "#2563eb",
+  accentColor: "#3b82f6",
+  supportPhone: "1800-425-BIKE",
+  supportEmail: "support@bikeservicepro.com"
+};
+
+export const mockCustomerFines = [
+  {
+    id: 1,
+    challanNo: "TN-SLM-2026-99214",
+    offense: "Speed Limit Exceeded (62 km/h in 40 km/h zone)",
+    location: "Salem Fort Junction, Salem",
+    dateTime: "02 Nov 2026, 04:15 PM",
+    amount: 1000,
+    status: "Unpaid",
+    issuingAuthority: "Salem City Traffic Police",
+    vehicleNo: "TN 30 AB 1234",
+    cameraCode: "CAM-04A-FORT",
+    dueDate: "22 Nov 2026"
+  },
+  {
+    id: 2,
+    challanNo: "TN-SLM-2026-88102",
+    offense: "Riding Without Standard Certified Helmet",
+    location: "5 Roads Junction, Salem",
+    dateTime: "24 Oct 2026, 11:20 AM",
+    amount: 500,
+    status: "Unpaid",
+    issuingAuthority: "Salem Traffic Police Zone 2",
+    vehicleNo: "TN 30 AB 1234",
+    cameraCode: "CAM-12B-5ROADS",
+    dueDate: "14 Nov 2026"
+  },
+  {
+    id: 3,
+    challanNo: "TN-SLM-2026-64119",
+    offense: "Red Light Signal Jumping Violation",
+    location: "New Bus Stand Junction, Salem",
+    dateTime: "15 Sep 2026, 06:40 PM",
+    amount: 1000,
+    status: "Paid",
+    paidOn: "16 Sep 2026, 10:15 AM",
+    paymentRef: "UPI-4288192001",
+    issuingAuthority: "Salem City Traffic Police",
+    vehicleNo: "TN 30 AB 1234",
+    cameraCode: "CAM-09C-NBS"
+  }
+];
+
+export const initialMembership = {
+  customerName: "Bharath",
+  regNo: "TN 30 AB 1234",
+  bikeModel: "Yamaha FZ-S (Connected IoT Edition)",
+  purchasedBranch: "Salem Central Mega Hub",
+  purchaseDate: "12 Jan 2026",
+  gpsEquipped: true,
+  gpsImei: "864192053189201",
+  tier: "Gold VIP",
+  pointsBalance: 1250,
+  monetaryValue: 1250, // ₹1 = 1 point
+  sameBranchPrivilege: true,
+  privilegeSummary: "Earned on GPS bike purchase. Redeemable for instant service invoice discounts exclusively when visiting Salem Central Mega Hub.",
+  benefits: [
+    "Exclusive discounts on periodic services at Salem Central Mega Hub",
+    "1,000 Points GPS onboarding welcome bonus credited on delivery",
+    "Free doorstep pick & drop within 10 km from Salem Central Hub",
+    "Zero labor charge on 18-point safety audit during service visits"
+  ],
+  transactions: [
+    {
+      id: 1,
+      title: "GPS-Equipped Bike Purchase Bonus (Salem Central Mega Hub)",
+      points: 1000,
+      type: "earned",
+      date: "12 Jan 2026",
+      balanceAfter: 1000,
+      badge: "GPS Purchase Bonus"
+    },
+    {
+      id: 2,
+      title: "1st Periodic Service Completed at Salem Central Mega Hub",
+      points: 150,
+      type: "earned",
+      date: "12 Apr 2026",
+      balanceAfter: 1150,
+      badge: "Same-Branch Visit"
+    },
+    {
+      id: 3,
+      title: "On-Time Service Maintenance Bonus",
+      points: 100,
+      type: "earned",
+      date: "12 Apr 2026",
+      balanceAfter: 1250,
+      badge: "Loyalty Bonus"
+    }
+  ],
+  availableDiscounts: [
+    {
+      id: 1,
+      title: "General Periodic Service (Save ₹500)",
+      serviceTitle: "General Periodic Service",
+      category: "Full Service",
+      originalPrice: 1250,
+      pointsRequired: 500,
+      pointsCost: 500,
+      discountAmount: 500,
+      finalPrice: 750,
+      applicableBranch: "Salem Central Mega Hub",
+      desc: "Comprehensive 18-point safety audit, synthetic oil top-up, spark plug check & chain lubrication.",
+      voucherPrefix: "HUB-GPS-GEN500",
+      code: "GEN500"
+    },
+    {
+      id: 2,
+      title: "Synthetic Engine Oil & Filter Service (Save ₹350)",
+      serviceTitle: "Synthetic Engine Oil & Filter Change",
+      category: "Oil Care",
+      originalPrice: 850,
+      pointsRequired: 350,
+      pointsCost: 350,
+      discountAmount: 350,
+      finalPrice: 500,
+      applicableBranch: "Salem Central Mega Hub",
+      desc: "Motul 7100 100% Synthetic 10W40 oil replacement + OEM Yamaha oil filter.",
+      voucherPrefix: "HUB-GPS-OIL350",
+      code: "OIL350"
+    },
+    {
+      id: 3,
+      title: "Brake Pad & Caliper Overhaul (Save ₹250)",
+      serviceTitle: "Brake Pad & Hydraulic Caliper Overhaul",
+      category: "Braking",
+      originalPrice: 600,
+      pointsRequired: 250,
+      pointsCost: 250,
+      discountAmount: 250,
+      finalPrice: 350,
+      applicableBranch: "Salem Central Mega Hub",
+      desc: "Front & rear disc pad cleaning, DOT 4 hydraulic fluid bleed, and piston lube.",
+      voucherPrefix: "HUB-GPS-BRK250",
+      code: "BRK250"
+    },
+    {
+      id: 4,
+      title: "Major Engine Tuning & Valve Clearance (Save ₹1,000)",
+      serviceTitle: "Major Engine Tuning & ECU Scan",
+      category: "Major Overhaul",
+      originalPrice: 2400,
+      pointsRequired: 1000,
+      pointsCost: 1000,
+      discountAmount: 1000,
+      finalPrice: 1400,
+      applicableBranch: "Salem Central Mega Hub",
+      desc: "Throttle body de-carb, tappet adjustment, ECU sensor diagnostics & dyno testing.",
+      voucherPrefix: "HUB-GPS-TUNE1000",
+      code: "TUNE1000"
+    }
+  ],
+  availableRewards: [
+    {
+      id: 1,
+      title: "General Periodic Service (Save ₹500)",
+      serviceTitle: "General Periodic Service",
+      pointsCost: 500,
+      pointsRequired: 500,
+      discountAmount: 500,
+      originalPrice: 1250,
+      finalPrice: 750,
+      applicableBranch: "Salem Central Mega Hub",
+      category: "Service Discount",
+      code: "GEN500",
+      desc: "Pay ₹750 instead of ₹1,250 on your next service at Salem Central Mega Hub."
+    },
+    {
+      id: 2,
+      title: "Synthetic Engine Oil Service (Save ₹350)",
+      serviceTitle: "Synthetic Engine Oil & Filter Change",
+      pointsCost: 350,
+      pointsRequired: 350,
+      discountAmount: 350,
+      originalPrice: 850,
+      finalPrice: 500,
+      applicableBranch: "Salem Central Mega Hub",
+      category: "Service Discount",
+      code: "OIL350",
+      desc: "Pay ₹500 instead of ₹850 with Motul 7100 Synthetic oil at Salem Central Mega Hub."
+    },
+    {
+      id: 3,
+      title: "Brake Pad Overhaul (Save ₹250)",
+      serviceTitle: "Brake Pad & Caliper Overhaul",
+      pointsCost: 250,
+      pointsRequired: 250,
+      discountAmount: 250,
+      originalPrice: 600,
+      finalPrice: 350,
+      applicableBranch: "Salem Central Mega Hub",
+      category: "Service Discount",
+      code: "BRK250",
+      desc: "Pay ₹350 instead of ₹600 for front & rear disc brake service."
+    },
+    {
+      id: 4,
+      title: "Major Engine Tuning (Save ₹1,000)",
+      serviceTitle: "Major Engine Tuning & ECU Scan",
+      pointsCost: 1000,
+      pointsRequired: 1000,
+      discountAmount: 1000,
+      originalPrice: 2400,
+      finalPrice: 1400,
+      applicableBranch: "Salem Central Mega Hub",
+      category: "Service Discount",
+      code: "TUNE1000",
+      desc: "Pay ₹1,400 instead of ₹2,400 for comprehensive valve adjustment & ECU diagnostic."
+    }
+  ]
+};
+
+export const mockRoutePlaybackTrip = {
+  tripTitle: "Morning Commute • Fairlands to Anna Park",
+  date: "Today, 08:30 AM",
+  totalDistance: "8.4 km",
+  duration: "18 mins",
+  avgSpeed: "32 km/h",
+  topSpeed: "54 km/h",
+  idleTime: "2.5 mins",
+  points: [
+    { lat: 11.6692, lng: 78.1524, speed: "0 km/h", time: "08:30 AM", label: "Trip Start (Fairlands Main Rd)" },
+    { lat: 11.6705, lng: 78.1538, speed: "28 km/h", time: "08:32 AM", label: "Fairlands Circle" },
+    { lat: 11.6720, lng: 78.1560, speed: "38 km/h", time: "08:34 AM", label: "Sarada College Road" },
+    { lat: 11.6745, lng: 78.1610, speed: "45 km/h", time: "08:37 AM", label: "Hasthampatti Roundabout" },
+    { lat: 11.6728, lng: 78.1635, speed: "52 km/h", time: "08:40 AM", label: "Cherry Road Straight" },
+    { lat: 11.6690, lng: 78.1610, speed: "54 km/h", time: "08:42 AM", label: "Collectorate Junction (Top Speed)" },
+    { lat: 11.6660, lng: 78.1550, speed: "36 km/h", time: "08:44 AM", label: "Four Roads Connector" },
+    { lat: 11.6643, lng: 78.1460, speed: "18 km/h", time: "08:46 AM", label: "Approaching Anna Park" },
+    { lat: 11.6635, lng: 78.1450, speed: "0 km/h", time: "08:48 AM", label: "Trip End (Anna Park Salem)" }
+  ]
+};
+
+export const mockCustomerGeofences = [
+  {
+    id: "geo-1",
+    name: "Home Safe Zone",
+    location: "Fairlands Residence, Salem",
+    lat: 11.6692,
+    lng: 78.1524,
+    radiusMeters: 250,
+    status: "Inside",
+    alertOnExit: true,
+    alertOnEnter: true,
+    color: "#10b981"
+  },
+  {
+    id: "geo-2",
+    name: "Office Safe Zone",
+    location: "Salem IT Park / Omalur Rd",
+    lat: 11.6820,
+    lng: 78.1325,
+    radiusMeters: 350,
+    status: "Outside",
+    alertOnExit: true,
+    alertOnEnter: true,
+    color: "#3b82f6"
+  },
+  {
+    id: "geo-3",
+    name: "Service Mega Hub Safe Zone",
+    location: "Salem Central Workshop",
+    lat: 11.6643,
+    lng: 78.1460,
+    radiusMeters: 400,
+    status: "Outside",
+    alertOnExit: false,
+    alertOnEnter: true,
+    color: "#f59e0b"
+  }
+];
+
+export const mockPendingServices = [
+  {
+    id: 1,
+    regNo: "TN 30 AB 1234",
+    brand: "Yamaha",
+    model: "Yamaha FZ-S",
+    customer: "Bharath",
+    phone: "9876543210",
+    serviceDueDays: -4, // Overdue 4 days
+    status: "Critical Overdue",
+    urgencyColor: "red",
+    lastServiceDate: "12 Apr 2026",
+    odometerCurrent: "14,820 km",
+    odometerDueAt: "15,000 km",
+    estimatedCost: "₹1,450",
+    serviceCategory: "Major Periodic Service",
+    recommendedPackage: "Engine Tune + Full Fluids + Brake Pad Check",
+    stage: "Pending Customer Booking",
+    lastNotified: "Yesterday, 10:30 AM",
+    storeBranch: "Salem Central Mega Hub",
+    notes: "Odometer exceeded interval by 450 km. Engine oil past service life."
+  },
+  {
+    id: 2,
+    regNo: "TN 11 U 7890",
+    brand: "Bajaj",
+    model: "Bajaj Pulsar",
+    customer: "Suresh",
+    phone: "9090909090",
+    serviceDueDays: -12, // Overdue 12 days
+    status: "Critical Overdue",
+    urgencyColor: "red",
+    lastServiceDate: "12 Jan 2026",
+    odometerCurrent: "26,900 km",
+    odometerDueAt: "27,500 km",
+    estimatedCost: "₹3,400",
+    serviceCategory: "Engine & Valve Check",
+    recommendedPackage: "White smoke inspection + Carb clean + Oil flush",
+    stage: "Pending Customer Booking",
+    lastNotified: "2 days ago",
+    storeBranch: "Omalur Expressway Service Hub",
+    notes: "Customer reported engine smoke. High priority call required."
+  },
+  {
+    id: 3,
+    regNo: "TN 28 CD 5678",
+    brand: "Honda",
+    model: "Honda Activa",
+    customer: "Priya",
+    phone: "9876543210",
+    serviceDueDays: 3,
+    status: "Due in 3 Days",
+    urgencyColor: "amber",
+    lastServiceDate: "15 Apr 2026",
+    odometerCurrent: "11,850 km",
+    odometerDueAt: "12,000 km",
+    estimatedCost: "₹850",
+    serviceCategory: "General Periodic Service",
+    recommendedPackage: "Drive belt inspection + Air filter + Synthetic Oil",
+    stage: "Pending Slot Confirmation",
+    lastNotified: "Today, 08:15 AM",
+    storeBranch: "Fairlands Express Workshop",
+    notes: "Customer accepted tentative slot on 18 Oct."
+  },
+  {
+    id: 4,
+    regNo: "KA 03 MH 9921",
+    brand: "KTM",
+    model: "KTM Duke 250",
+    customer: "Arun",
+    phone: "9845123456",
+    serviceDueDays: 5,
+    status: "Due in 5 Days",
+    urgencyColor: "amber",
+    lastServiceDate: "20 Mar 2026",
+    odometerCurrent: "11,900 km",
+    odometerDueAt: "12,500 km",
+    estimatedCost: "₹2,800",
+    serviceCategory: "Chain & Brake Overhaul",
+    recommendedPackage: "Brass sprocket kit + Motul 300V Oil + Coolant flush",
+    stage: "Pending Parts Arrival",
+    lastNotified: "3 days ago",
+    storeBranch: "Attur Bypass Quick Care Hub",
+    notes: "Sprocket assembly ordered from KTM regional hub."
+  },
+  {
+    id: 5,
+    regNo: "TN 45 EF 9012",
+    brand: "TVS",
+    model: "TVS Apache",
+    customer: "Mani",
+    phone: "9123456780",
+    serviceDueDays: 11,
+    status: "Upcoming in 11 Days",
+    urgencyColor: "blue",
+    lastServiceDate: "10 Jan 2026",
+    odometerCurrent: "18,400 km",
+    odometerDueAt: "19,000 km",
+    estimatedCost: "₹1,200",
+    serviceCategory: "Periodic Maintenance",
+    recommendedPackage: "Spark plug + Disc pads + Throttle body clean",
+    stage: "Reminder Scheduled",
+    lastNotified: "Not sent yet",
+    storeBranch: "Salem Central Mega Hub",
+    notes: "Auto-reminder scheduled for dispatch 7 days prior."
+  },
+  {
+    id: 6,
+    regNo: "TN 30 GH 3456",
+    brand: "Royal Enfield",
+    model: "Royal Enfield Classic",
+    customer: "Karthik",
+    phone: "9988776655",
+    serviceDueDays: 14,
+    status: "Upcoming in 14 Days",
+    urgencyColor: "blue",
+    lastServiceDate: "05 Apr 2026",
+    odometerCurrent: "10,650 km",
+    odometerDueAt: "11,000 km",
+    estimatedCost: "₹2,100",
+    serviceCategory: "General Service + Valve clearance",
+    recommendedPackage: "Tappet adjustment + Fork oil check + Clutch adjustment",
+    stage: "Reminder Scheduled",
+    lastNotified: "Not sent yet",
+    storeBranch: "Fairlands Express Workshop",
+    notes: "Customer prefers weekend morning drop-off."
+  }
+];

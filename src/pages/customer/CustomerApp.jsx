@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Menu, 
@@ -23,46 +23,197 @@ import {
   AlertTriangle,
   ArrowRight,
   Sparkles,
-  Navigation
+  Navigation,
+  DollarSign,
+  Play,
+  Pause,
+  RotateCcw,
+  FastForward,
+  Award,
+  Gift,
+  ShieldAlert,
+  Compass,
+  Lock,
+  Unlock,
+  Volume2,
+  Check,
+  Zap,
+  Battery,
+  Fuel,
+  Activity,
+  QrCode,
+  Coins,
+  Tag,
+  Store,
+  Percent,
+  BadgePercent
 } from 'lucide-react';
 import BrandLogo from '../../components/common/BrandLogo';
 import LeafletMap from '../../components/common/LeafletMap';
 import Modal from '../../components/common/Modal';
+import { useApp } from '../../context/AppContext';
+import DynamicBrandLogo from '../../components/common/DynamicBrandLogo';
 import { 
-  mockBikes, 
   mockCustomerServiceHistory, 
-  mockCustomerAlerts 
+  mockCustomerAlerts,
+  mockRoutePlaybackTrip
 } from '../../data/mockData';
 
 export default function CustomerApp() {
   const navigate = useNavigate();
-  const bharathBike = mockBikes[0]; // Yamaha FZ-S (TN 30 AB 1234)
+  const { 
+    branding, 
+    bikesList, 
+    customerFines, 
+    payFine, 
+    membership, 
+    redeemReward, 
+    earnPoints, 
+    geofences, 
+    toggleGeofenceAlert 
+  } = useApp();
 
-  // Current active view: 'home', 'bike', 'service', 'profile', 'live-location', 'alerts', 'service-history'
+  const bharathBike = bikesList[0]; // Yamaha FZ-S (TN 30 AB 1234)
+
+  // Navigation tab: 'home', 'bike', 'distance', 'playback', 'geolocation', 'fines', 'membership', 'service', 'service-history', 'alerts', 'profile'
   const [activeTab, setActiveTab] = useState('home');
+
+  // Distance mode: 'weekly' or 'monthly'
+  const [distanceMode, setDistanceMode] = useState('weekly');
+  const [selectedDayDetail, setSelectedDayDetail] = useState(null);
+
+  // Route playback player state
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1); // 1x, 2x, 4x
+  const [currentPlaybackIndex, setCurrentPlaybackIndex] = useState(0);
+  const playbackTimerRef = useRef(null);
+
+  // Fines / Challan payment modal
+  const [selectedFineForPay, setSelectedFineForPay] = useState(null);
+  const [payMethod, setPayMethod] = useState('UPI');
+  const [paymentSuccessToast, setPaymentSuccessToast] = useState('');
+
+  // Rewards redemption modal
+  const [selectedRewardToRedeem, setSelectedRewardToRedeem] = useState(null);
+  const [redeemedVoucher, setRedeemedVoucher] = useState(null);
+
+  // Bike remote lock state
+  const [isEngineLocked, setIsEngineLocked] = useState(false);
+
+  // Service Booking Modal
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [bookingSuccessMsg, setBookingSuccessMsg] = useState('');
   const [bookingForm, setBookingForm] = useState({
+    branch: 'Salem Central Mega Hub',
     serviceType: 'General Periodic Service',
+    baseCost: 1250,
     preferredDate: '2026-10-12',
     timeSlot: '10:00 AM - 12:00 PM',
     doorstepPickup: true,
+    applyBranchPointsDiscount: true,
+    discountPoints: 500,
+    discountAmount: 500,
     notes: 'Please check rear brake pad squeak and lubricate chain.'
   });
+
+  const unpaidFines = customerFines.filter(f => f.status === 'Unpaid');
+  const totalUnpaidFineAmount = unpaidFines.reduce((sum, f) => sum + f.amount, 0);
+
+  // Playback player loop
+  useEffect(() => {
+    if (isPlaying) {
+      playbackTimerRef.current = setInterval(() => {
+        setCurrentPlaybackIndex(prev => {
+          if (prev >= mockRoutePlaybackTrip.points.length - 1) {
+            setIsPlaying(false);
+            return prev;
+          }
+          return prev + 1;
+        });
+      }, 1000 / playbackSpeed);
+    } else {
+      if (playbackTimerRef.current) clearInterval(playbackTimerRef.current);
+    }
+    return () => {
+      if (playbackTimerRef.current) clearInterval(playbackTimerRef.current);
+    };
+  }, [isPlaying, playbackSpeed]);
+
+  const handleTogglePlay = () => {
+    if (currentPlaybackIndex >= mockRoutePlaybackTrip.points.length - 1) {
+      setCurrentPlaybackIndex(0);
+    }
+    setIsPlaying(!isPlaying);
+  };
+
+  const handleResetPlayback = () => {
+    setIsPlaying(false);
+    setCurrentPlaybackIndex(0);
+  };
+
+  const handlePayFineSubmit = (e) => {
+    e.preventDefault();
+    if (!selectedFineForPay) return;
+
+    payFine(selectedFineForPay.id, `${payMethod}-${Date.now().toString().slice(-6)}`);
+    setPaymentSuccessToast(`Fine payment of ₹${selectedFineForPay.amount} for Challan #${selectedFineForPay.challanNo} successful!`);
+    setSelectedFineForPay(null);
+    setTimeout(() => setPaymentSuccessToast(''), 4500);
+  };
+
+  const handleRedeemClick = (reward) => {
+    const res = redeemReward(reward);
+    if (res.success) {
+      setRedeemedVoucher({ reward, code: res.voucherCode });
+      setSelectedRewardToRedeem(null);
+    } else {
+      alert(res.message);
+    }
+  };
 
   const handleBookService = (e) => {
     e.preventDefault();
     setBookingModalOpen(false);
-    setBookingSuccessMsg(`Service booked successfully for ${bookingForm.preferredDate}! Our advisor will contact you.`);
-    setTimeout(() => setBookingSuccessMsg(''), 5000);
+
+    const isSameBranch = bookingForm.branch === 'Salem Central Mega Hub';
+    const canApplyDiscount = isSameBranch && bookingForm.applyBranchPointsDiscount && membership.pointsBalance >= bookingForm.discountPoints;
+
+    if (canApplyDiscount) {
+      earnPoints(-bookingForm.discountPoints, `Redeemed: ₹${bookingForm.discountAmount} Discount on ${bookingForm.serviceType} (Salem Central Mega Hub)`);
+      const finalPayable = bookingForm.baseCost - bookingForm.discountAmount;
+      setBookingSuccessMsg(`Service booked at Salem Central Mega Hub! ₹${bookingForm.discountAmount} same-branch GPS discount applied (${bookingForm.discountPoints} pts redeemed). Total to pay: ₹${finalPayable}.`);
+    } else {
+      setBookingSuccessMsg(`Service booked at ${bookingForm.branch} for ${bookingForm.preferredDate}! Total: ₹${bookingForm.baseCost}.`);
+    }
+
+    setTimeout(() => setBookingSuccessMsg(''), 6000);
   };
+
+  // Weekly & Monthly chart data
+  const weeklyData = [
+    { day: 'Mon', km: 18, heightPct: 45, trips: 2, duration: '42m' },
+    { day: 'Tue', km: 24, heightPct: 60, trips: 3, duration: '55m' },
+    { day: 'Wed', km: 16, heightPct: 40, trips: 2, duration: '35m' },
+    { day: 'Thu', km: 28, heightPct: 70, trips: 4, duration: '1h 10m' },
+    { day: 'Fri', km: 34, heightPct: 88, isMax: true, trips: 5, duration: '1h 24m' },
+    { day: 'Sat', km: 12, heightPct: 30, trips: 1, duration: '25m' },
+    { day: 'Sun', km: 20, heightPct: 50, trips: 2, duration: '48m' }
+  ];
+
+  const monthlyData = [
+    { label: 'Week 1', km: 135, heightPct: 65, avg: '19.2 km/day' },
+    { label: 'Week 2', km: 155, heightPct: 75, avg: '22.1 km/day' },
+    { label: 'Week 3', km: 140, heightPct: 68, avg: '20.0 km/day' },
+    { label: 'Week 4', km: 180, heightPct: 90, isMax: true, avg: '25.7 km/day' }
+  ];
 
   return (
     <div className="customer-view-wrapper">
       {/* Top bar controls for desktop users to return to Admin */}
       <div className="customer-top-bar-controls">
         <div className="customer-mode-badge">
-          <span>📱 Customer App Preview</span>
+          <Sparkles size={14} />
+          <span>Porsche Design • IoT Telemetry v2.4</span>
         </div>
         <button
           type="button"
@@ -73,27 +224,36 @@ export default function CustomerApp() {
         </button>
       </div>
 
-      {/* Mobile Device Mockup Frame */}
+      {/* Flagship Mobile Device Mockup Frame (iPhone 16 Pro Form Factor) */}
       <div className="mobile-device-frame">
         
+        {/* Dynamic Island */}
+        <div className="dynamic-island">
+          <div className="dynamic-island-camera" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', display: 'inline-block', boxShadow: '0 0 6px #10b981' }} />
+            <span style={{ fontSize: '9px', fontWeight: 800, color: '#ffffff', letterSpacing: '0.3px' }}>
+              {isEngineLocked ? 'SECURED' : 'CONNECTED'}
+            </span>
+          </div>
+          <div className="dynamic-island-sensor" />
+        </div>
+
         {/* iOS Status Bar */}
-        <div className={`mobile-status-bar ${activeTab === 'home' ? 'light-text' : 'dark-text'}`}>
+        <div className={`mobile-status-bar ${activeTab === 'home' || activeTab === 'playback' ? 'light-text' : 'dark-text'}`}>
           <span>9:41</span>
           <div className="status-bar-icons">
-            {/* Cellular signal */}
             <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor">
               <rect x="0" y="8" width="3" height="3" rx="0.5" />
               <rect x="4.5" y="5.5" width="3" height="5.5" rx="0.5" />
               <rect x="9" y="3" width="3" height="8" rx="0.5" />
               <rect x="13.5" y="0" width="3" height="11" rx="0.5" />
             </svg>
-            {/* Wifi */}
             <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor">
               <path d="M7.5 3C9.7 3 11.7 3.9 13.1 5.3L14.5 3.9C12.7 2.1 10.2 1 7.5 1C4.8 1 2.3 2.1 0.5 3.9L1.9 5.3C3.3 3.9 5.3 3 7.5 3Z" />
               <path d="M7.5 6.5C8.8 6.5 10 7 10.9 7.9L12.3 6.5C11.1 5.3 9.4 4.5 7.5 4.5C5.6 4.5 3.9 5.3 2.7 6.5L4.1 7.9C5 7 6.2 6.5 7.5 6.5Z" />
               <circle cx="7.5" cy="9.5" r="1.5" />
             </svg>
-            {/* Battery */}
             <svg width="22" height="11" viewBox="0 0 22 11" fill="currentColor">
               <rect x="0.5" y="0.5" width="19" height="10" rx="2.5" fill="none" stroke="currentColor" />
               <rect x="2" y="2" width="16" height="7" rx="1.5" />
@@ -102,27 +262,27 @@ export default function CustomerApp() {
           </div>
         </div>
 
-        {/* Global Toast if booking created */}
-        {bookingSuccessMsg && (
+        {/* Global Toast if booking created or fine paid */}
+        {(bookingSuccessMsg || paymentSuccessToast) && (
           <div style={{
             position: 'absolute',
-            top: '50px',
-            left: '12px',
-            right: '12px',
+            top: '56px',
+            left: '14px',
+            right: '14px',
             zIndex: 1000,
             background: '#ecfdf5',
             border: '1px solid #10b981',
             color: '#065f46',
-            padding: '10px 14px',
-            borderRadius: '10px',
+            padding: '12px 14px',
+            borderRadius: '14px',
             fontSize: '12px',
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+            boxShadow: '0 8px 20px rgba(0,0,0,0.15)'
           }}>
             <CheckCircle2 size={16} />
-            <span>{bookingSuccessMsg}</span>
+            <span>{bookingSuccessMsg || paymentSuccessToast}</span>
           </div>
         )}
 
@@ -130,279 +290,1205 @@ export default function CustomerApp() {
         <div className="mobile-screen-content">
           
           {/* =================================================================
-              SCREEN 1: HOME (Matching Design 1 Left Screen)
+              SCREEN 1: HOME (Ultra-Premium Automotive View)
               ================================================================= */}
           {activeTab === 'home' && (
             <div className="customer-home-screen">
-              {/* Blue Header Section */}
+              {/* Deep Sapphire Header with Dynamic Branding */}
               <div className="home-header-bg">
                 <div className="home-nav-row">
-                  <button type="button" className="mobile-icon-btn" aria-label="Menu">
-                    <Menu size={22} />
-                  </button>
-                  <button 
-                    type="button" 
-                    className="mobile-icon-btn" 
-                    onClick={() => setActiveTab('alerts')}
-                    aria-label="Alerts"
-                    style={{ position: 'relative' }}
-                  >
-                    <Bell size={20} />
-                    <span style={{
-                      position: 'absolute',
-                      top: 4,
-                      right: 4,
-                      width: 8,
-                      height: 8,
-                      borderRadius: '50%',
-                      background: '#ef4444'
-                    }} />
-                  </button>
-                </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <DynamicBrandLogo size={24} />
+                    <span style={{ fontSize: '13px', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.2px' }}>
+                      {branding.companyName}
+                    </span>
+                  </div>
 
-                <div className="home-user-greeting">
-                  <h2 className="user-name-title">Hi Bharath</h2>
-                  <div className="bike-safe-status">
-                    <span>Your Bike is Safe</span>
-                    <span className="bike-safe-dot" />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <button 
+                      type="button" 
+                      className="mobile-icon-btn" 
+                      onClick={() => setActiveTab('alerts')}
+                      aria-label="Alerts"
+                      style={{ position: 'relative' }}
+                    >
+                      <Bell size={18} />
+                      <span style={{
+                        position: 'absolute',
+                        top: 6,
+                        right: 6,
+                        width: 7,
+                        height: 7,
+                        borderRadius: '50%',
+                        background: '#ef4444',
+                        boxShadow: '0 0 6px #ef4444'
+                      }} />
+                    </button>
                   </div>
                 </div>
 
-                {/* Bike Selector Card */}
+                <div className="home-user-greeting">
+                  <span style={{ fontSize: '12px', color: '#93c5fd', fontWeight: 600 }}>Salem, TN • 28°C Clear ☀️</span>
+                  <h2 className="user-name-title">Hello, Bharath</h2>
+                  <div className="bike-safe-status">
+                    <span className="bike-safe-dot" />
+                    <span>Live GPS Telemetry Active • Safe Zone</span>
+                  </div>
+                </div>
+
+                {/* Vehicle Selector Card with Live Telemetry Chips */}
                 <div className="bike-selector-card" onClick={() => setActiveTab('bike')}>
                   <BrandLogo brand="Yamaha" size={44} />
                   <div className="bike-card-info">
                     <div className="bike-card-reg-row">
                       <span>{bharathBike.regNo}</span>
-                      <ChevronDown size={18} color="#64748b" />
+                      <ChevronDown size={17} color="#64748b" />
                     </div>
                     <span className="bike-card-model">{bharathBike.model}</span>
                   </div>
                   <ChevronRight size={20} className="bike-chevron-right" />
                 </div>
+
+                {/* 3 Live Telemetry Stat Pills (Battery, Fuel, Speed) */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  gap: '8px',
+                  marginTop: '12px'
+                }}>
+                  <div style={{
+                    background: 'rgba(255, 255, 255, 0.12)',
+                    backdropFilter: 'blur(8px)',
+                    borderRadius: '12px',
+                    padding: '8px 10px',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}>
+                    <Battery size={16} color="#34d399" />
+                    <div>
+                      <div style={{ fontSize: '9px', opacity: 0.8, textTransform: 'uppercase' }}>Battery</div>
+                      <div style={{ fontSize: '12px', fontWeight: 800 }}>{bharathBike.battery}</div>
+                    </div>
+                  </div>
+
+                  <div style={{
+                    background: 'rgba(255, 255, 255, 0.12)',
+                    backdropFilter: 'blur(8px)',
+                    borderRadius: '12px',
+                    padding: '8px 10px',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}>
+                    <Fuel size={16} color="#fbbf24" />
+                    <div>
+                      <div style={{ fontSize: '9px', opacity: 0.8, textTransform: 'uppercase' }}>Fuel</div>
+                      <div style={{ fontSize: '12px', fontWeight: 800 }}>{bharathBike.fuel}</div>
+                    </div>
+                  </div>
+
+                  <div style={{
+                    background: 'rgba(255, 255, 255, 0.12)',
+                    backdropFilter: 'blur(8px)',
+                    borderRadius: '12px',
+                    padding: '8px 10px',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}>
+                    <Zap size={16} color="#38bdf8" />
+                    <div>
+                      <div style={{ fontSize: '9px', opacity: 0.8, textTransform: 'uppercase' }}>Status</div>
+                      <div style={{ fontSize: '12px', fontWeight: 800 }}>{bharathBike.status}</div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              {/* 4 Quick Action Buttons */}
+              {/* Priority Alert Banners: Traffic Fines & Membership Points */}
+              <div style={{ padding: '14px 16px 0 16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                
+                {/* Traffic Fine Banner */}
+                {unpaidFines.length > 0 && (
+                  <div 
+                    onClick={() => setActiveTab('fines')}
+                    style={{
+                      background: 'linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%)',
+                      border: '1px solid #fecdd3',
+                      borderRadius: '14px',
+                      padding: '12px 14px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 6px rgba(225, 29, 72, 0.08)'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div style={{ width: 34, height: 34, borderRadius: '10px', background: '#e11d48', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <ShieldAlert size={18} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '13px', fontWeight: 800, color: '#9f1239' }}>
+                          {unpaidFines.length} Traffic Challans Due
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#be123c' }}>
+                          Total Fine: ₹{totalUnpaidFineAmount} • Tap for 1-Click UPI Payment
+                        </div>
+                      </div>
+                    </div>
+                    <ChevronRight size={18} color="#e11d48" />
+                  </div>
+                )}
+
+                {/* GPS Bike Purchase & Branch Loyalty Banner */}
+                <div 
+                  onClick={() => setActiveTab('membership')}
+                  style={{
+                    background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+                    border: '1px solid rgba(245, 158, 11, 0.45)',
+                    borderRadius: '16px',
+                    padding: '13px 15px',
+                    color: '#ffffff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 16px rgba(15, 23, 42, 0.25)'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{
+                      width: 38,
+                      height: 38,
+                      borderRadius: '11px',
+                      background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                      color: '#ffffff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 4px 12px rgba(245, 158, 11, 0.35)',
+                      flexShrink: 0
+                    }}>
+                      <Coins size={20} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '13px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span>Salem Central Mega Hub</span>
+                        <span style={{ fontSize: '10px', background: 'rgba(245, 158, 11, 0.2)', color: '#fbbf24', border: '1px solid rgba(245, 158, 11, 0.5)', padding: '1px 6px', borderRadius: '4px', fontWeight: 900 }}>
+                          {membership.pointsBalance} PTS
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>
+                        GPS Bike Privilege: Save up to <strong style={{ color: '#fbbf24' }}>₹{membership.monetaryValue}</strong> on services
+                      </div>
+                    </div>
+                  </div>
+                  <ChevronRight size={18} color="#fbbf24" />
+                </div>
+              </div>
+
+              {/* Quick Actions Dock: Fines, Distance, Playback, Geo Location */}
               <div className="home-quick-actions-grid">
                 <button 
                   type="button" 
                   className="quick-action-item"
-                  onClick={() => setActiveTab('live-location')}
+                  onClick={() => setActiveTab('fines')}
                 >
-                  <div className="action-icon-box action-tracking">
-                    <MapPin size={24} />
+                  <div className="action-icon-box" style={{ background: 'linear-gradient(135deg, #f43f5e, #e11d48)' }}>
+                    <DollarSign size={22} />
                   </div>
-                  <span className="action-label">Live Tracking</span>
+                  <span className="action-label">Fines</span>
                 </button>
 
                 <button 
                   type="button" 
                   className="quick-action-item"
-                  onClick={() => setActiveTab('service')}
+                  onClick={() => setActiveTab('distance')}
                 >
-                  <div className="action-icon-box action-service">
-                    <Wrench size={24} />
+                  <div className="action-icon-box" style={{ background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)' }}>
+                    <Navigation size={22} />
                   </div>
-                  <span className="action-label">Service</span>
+                  <span className="action-label">Distance</span>
                 </button>
 
                 <button 
                   type="button" 
                   className="quick-action-item"
-                  onClick={() => setActiveTab('service-history')}
+                  onClick={() => setActiveTab('playback')}
                 >
-                  <div className="action-icon-box action-history">
-                    <Clock size={24} />
+                  <div className="action-icon-box" style={{ background: 'linear-gradient(135deg, #d946ef, #a21caf)' }}>
+                    <Play size={22} />
                   </div>
-                  <span className="action-label">History</span>
+                  <span className="action-label">Playback</span>
                 </button>
 
                 <button 
                   type="button" 
                   className="quick-action-item"
-                  onClick={() => setActiveTab('alerts')}
+                  onClick={() => setActiveTab('geolocation')}
                 >
-                  <div className="action-icon-box action-alerts">
-                    <Bell size={24} />
+                  <div className="action-icon-box" style={{ background: 'linear-gradient(135deg, #10b981, #047857)' }}>
+                    <Compass size={22} />
                   </div>
-                  <span className="action-label">Alerts</span>
+                  <span className="action-label">Geo Location</span>
                 </button>
               </div>
 
-              {/* Live Location Section */}
+              {/* Live Location Section with Interactive Map */}
               <div className="home-section-container">
                 <div className="section-head-row">
-                  <span className="section-title-bold">Live Location</span>
+                  <span className="section-title-bold">Live Vehicle Location</span>
                   <button 
                     type="button" 
                     className="section-link-blue"
-                    onClick={() => setActiveTab('live-location')}
+                    onClick={() => setActiveTab('geolocation')}
                   >
-                    View Full Map
+                    Safe Zones &rarr;
                   </button>
                 </div>
 
-                {/* Live Location Interactive Map Preview */}
                 <div className="home-map-card">
                   <LeafletMap
                     bikes={[bharathBike]}
                     selectedBike={bharathBike}
-                    height="200px"
+                    height="190px"
                     showControls={false}
                   />
                 </div>
 
-                {/* Location Details Info Card */}
                 <div className="location-info-card">
                   <div className="location-info-row">
                     <div className="location-info-icon-wrap">
-                      <MapPin size={16} />
+                      <Clock size={16} />
                     </div>
                     <div className="location-info-texts">
-                      <span className="location-info-label">Last Updated</span>
+                      <span className="location-info-label">Signal Telemetry</span>
                       <span className="location-info-val">{bharathBike.lastUpdated}</span>
                     </div>
                   </div>
 
-                  <div className="location-info-row" onClick={() => setActiveTab('live-location')}>
+                  <div className="location-info-row" onClick={() => setActiveTab('geolocation')}>
                     <div className="location-info-icon-wrap">
-                      <Navigation size={16} />
+                      <MapPin size={16} />
                     </div>
                     <div className="location-info-texts">
-                      <span className="location-info-label">Last Parked Location</span>
+                      <span className="location-info-label">Parked Coordinates</span>
                       <span className="location-info-val">{bharathBike.lastLocation}</span>
                     </div>
                     <ChevronRight size={18} color="#94a3b8" />
                   </div>
                 </div>
               </div>
+
+              {/* Next Service Due Highlight Card */}
+              <div style={{ padding: '0 18px 18px 18px' }}>
+                <div style={{
+                  background: '#ffffff',
+                  borderRadius: '18px',
+                  border: '1px solid #e2e8f0',
+                  padding: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ width: 44, height: 44, borderRadius: '12px', background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Wrench size={22} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#0f172a' }}>Next Scheduled Service</div>
+                      <div style={{ fontSize: '11.5px', color: '#64748b' }}>
+                        Due on <strong>{bharathBike.nextService}</strong> (in {bharathBike.daysLeft} days)
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    style={{ padding: '8px 14px', fontSize: '12px' }}
+                    onClick={() => setActiveTab('service')}
+                  >
+                    Details
+                  </button>
+                </div>
+              </div>
+
             </div>
           )}
 
           {/* =================================================================
-              SCREEN 2: BIKE DETAILS (Matching Design 1 Center Screen)
+              SCREEN 2: FINES & E-CHALLANS (Requirement: fine)
               ================================================================= */}
-          {activeTab === 'bike' && (
-            <div className="customer-bike-details-screen">
+          {activeTab === 'fines' && (
+            <div className="customer-fines-screen">
               <div className="subscreen-header">
+                <button type="button" className="subscreen-back-btn" onClick={() => setActiveTab('home')}>
+                  <ArrowLeft size={20} />
+                </button>
+                <span className="subscreen-title">Traffic Fines & Challans</span>
+                <div style={{ width: 32 }} />
+              </div>
+
+              <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                {/* Total Fine Summary Box */}
+                <div style={{
+                  background: unpaidFines.length > 0 ? 'linear-gradient(135deg, #e11d48 0%, #be123c 100%)' : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                  color: '#ffffff',
+                  borderRadius: '20px',
+                  padding: '20px',
+                  boxShadow: '0 10px 25px rgba(225, 29, 72, 0.3)',
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}>
+                  <div style={{ fontSize: '11.5px', opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    Registration: {bharathBike.regNo}
+                  </div>
+                  <div style={{ fontSize: '32px', fontWeight: 900, margin: '4px 0', letterSpacing: '-0.5px' }}>
+                    ₹{totalUnpaidFineAmount}
+                  </div>
+                  <div style={{ fontSize: '12px', opacity: 0.9, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    {unpaidFines.length > 0 ? (
+                      <>
+                        <AlertTriangle size={14} />
+                        <span>{unpaidFines.length} pending traffic violations awaiting clearance</span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 size={14} />
+                        <span>All challans settled! Clean riding record.</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* Challans list */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: '13.5px', fontWeight: 800, color: '#0f172a' }}>Official Challan Records</span>
+                    <span style={{ fontSize: '11px', color: '#64748b' }}>Salem Traffic Police Portal</span>
+                  </div>
+
+                  {customerFines.map((fine) => {
+                    const isUnpaid = fine.status === 'Unpaid';
+
+                    return (
+                      <div key={fine.id} className={`challan-item-card ${isUnpaid ? 'unpaid' : 'paid'}`}>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                          <div>
+                            <span style={{
+                              fontSize: '11px',
+                              fontWeight: 800,
+                              color: isUnpaid ? '#e11d48' : '#059669',
+                              background: isUnpaid ? '#ffe4e6' : '#ecfdf5',
+                              padding: '2px 8px',
+                              borderRadius: '6px'
+                            }}>
+                              {fine.challanNo}
+                            </span>
+                            <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#0f172a', marginTop: '6px' }}>
+                              {fine.offense}
+                            </div>
+                          </div>
+                          <span style={{ fontSize: '18px', fontWeight: 900, color: '#0f172a' }}>
+                            ₹{fine.amount}
+                          </span>
+                        </div>
+
+                        <div style={{ fontSize: '11.5px', color: '#475569', display: 'flex', flexDirection: 'column', gap: '3px', background: '#f8fafc', padding: '10px 12px', borderRadius: '10px' }}>
+                          <div>📍 <strong>Location:</strong> {fine.location}</div>
+                          <div>🕒 <strong>Date & Time:</strong> {fine.dateTime}</div>
+                          <div>🏛️ <strong>Authority:</strong> {fine.issuingAuthority}</div>
+                          {fine.paidOn && (
+                            <div style={{ color: '#059669', fontWeight: 700, marginTop: '2px' }}>
+                              ✓ Settled on {fine.paidOn} • Ref: {fine.paymentRef}
+                            </div>
+                          )}
+                        </div>
+
+                        {isUnpaid && (
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #f1f5f9', paddingTop: '10px' }}>
+                            <span style={{ fontSize: '11px', color: '#e11d48', fontWeight: 600 }}>Due: {fine.dueDate}</span>
+                            <button
+                              type="button"
+                              className="btn-primary"
+                              style={{ padding: '7px 16px', fontSize: '12px', background: '#e11d48', borderColor: '#e11d48' }}
+                              onClick={() => setSelectedFineForPay(fine)}
+                            >
+                              <CreditCard size={13} /> Pay ₹{fine.amount} Online
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* =================================================================
+              SCREEN 3: DISTANCE (WEEKLY / MONTHLY) (Requirement: distance)
+              ================================================================= */}
+          {activeTab === 'distance' && (
+            <div className="customer-distance-screen">
+              <div className="subscreen-header">
+                <button type="button" className="subscreen-back-btn" onClick={() => setActiveTab('home')}>
+                  <ArrowLeft size={20} />
+                </button>
+                <span className="subscreen-title">Distance & Telemetry</span>
+                <div style={{ width: 32 }} />
+              </div>
+
+              <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                {/* Switcher Pill: Weekly vs Monthly */}
+                <div style={{
+                  background: '#e2e8f0',
+                  borderRadius: '14px',
+                  padding: '4px',
+                  display: 'flex',
+                  gap: '4px'
+                }}>
+                  <button
+                    type="button"
+                    onClick={() => setDistanceMode('weekly')}
+                    style={{
+                      flex: 1,
+                      border: 'none',
+                      padding: '9px',
+                      borderRadius: '10px',
+                      fontSize: '13px',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      background: distanceMode === 'weekly' ? '#ffffff' : 'transparent',
+                      color: distanceMode === 'weekly' ? '#2563eb' : '#64748b',
+                      boxShadow: distanceMode === 'weekly' ? '0 2px 6px rgba(0,0,0,0.08)' : 'none'
+                    }}
+                  >
+                    📅 Weekly Distance
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setDistanceMode('monthly')}
+                    style={{
+                      flex: 1,
+                      border: 'none',
+                      padding: '9px',
+                      borderRadius: '10px',
+                      fontSize: '13px',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      background: distanceMode === 'monthly' ? '#ffffff' : 'transparent',
+                      color: distanceMode === 'monthly' ? '#2563eb' : '#64748b',
+                      boxShadow: distanceMode === 'monthly' ? '0 2px 6px rgba(0,0,0,0.08)' : 'none'
+                    }}
+                  >
+                    📆 Monthly Distance
+                  </button>
+                </div>
+
+                {/* Big Distance Stat Highlight Card */}
+                <div style={{
+                  background: '#ffffff',
+                  borderRadius: '20px',
+                  border: '1px solid #e2e8f0',
+                  padding: '20px',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.04)'
+                }}>
+                  <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                    {distanceMode === 'weekly' ? 'Past 7 Days Odometer Trend' : 'October 2026 Fleet Distance'}
+                  </div>
+                  <div style={{ fontSize: '36px', fontWeight: 900, color: '#0f172a', margin: '4px 0', letterSpacing: '-0.8px' }}>
+                    {distanceMode === 'weekly' ? '142 km' : '580 km'}
+                  </div>
+                  <div style={{ fontSize: '12.5px', color: '#10b981', fontWeight: 700 }}>
+                    {distanceMode === 'weekly' ? '↑ 12% vs previous 7 days (Avg: 20.2 km/day)' : '↑ 8% vs September (520 km total)'}
+                  </div>
+
+                  {/* Interactive Bar Chart Visualization */}
+                  <div style={{ marginTop: '20px', borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#94a3b8', marginBottom: '10px' }}>
+                      <span>{distanceMode === 'weekly' ? 'Daily Kilometer Distribution' : 'Weekly Progression (Oct 2026)'}</span>
+                      <span>Tap bar for stats</span>
+                    </div>
+
+                    <div className="distance-bar-chart">
+                      {distanceMode === 'weekly' ? (
+                        weeklyData.map((item, idx) => (
+                          <div 
+                            key={idx} 
+                            className="distance-bar-col"
+                            onClick={() => setSelectedDayDetail(item)}
+                            style={{ cursor: 'pointer' }}
+                          >
+                            <span className="distance-bar-val">{item.km}k</span>
+                            <div
+                              className={`distance-bar-fill ${item.isMax ? 'active' : ''}`}
+                              style={{ height: `${item.heightPct}%` }}
+                            />
+                            <span className="distance-bar-label">{item.day}</span>
+                          </div>
+                        ))
+                      ) : (
+                        monthlyData.map((item, idx) => (
+                          <div key={idx} className="distance-bar-col">
+                            <span className="distance-bar-val">{item.km}k</span>
+                            <div
+                              className={`distance-bar-fill ${item.isMax ? 'active' : ''}`}
+                              style={{ height: `${item.heightPct}%` }}
+                            />
+                            <span className="distance-bar-label">{item.label}</span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Ride Metrics Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
+                  <div style={{ background: '#ffffff', borderRadius: '14px', padding: '14px', border: '1px solid #e2e8f0' }}>
+                    <span style={{ fontSize: '11px', color: '#64748b', display: 'block', fontWeight: 600 }}>Average Speed</span>
+                    <strong style={{ fontSize: '17px', color: '#0f172a' }}>32.4 km/h</strong>
+                  </div>
+
+                  <div style={{ background: '#ffffff', borderRadius: '14px', padding: '14px', border: '1px solid #e2e8f0' }}>
+                    <span style={{ fontSize: '11px', color: '#64748b', display: 'block', fontWeight: 600 }}>Fuel Efficiency</span>
+                    <strong style={{ fontSize: '17px', color: '#2563eb' }}>48.5 km/L</strong>
+                  </div>
+
+                  <div style={{ background: '#ffffff', borderRadius: '14px', padding: '14px', border: '1px solid #e2e8f0' }}>
+                    <span style={{ fontSize: '11px', color: '#64748b', display: 'block', fontWeight: 600 }}>Peak Velocity</span>
+                    <strong style={{ fontSize: '17px', color: '#0f172a' }}>62 km/h</strong>
+                  </div>
+
+                  <div style={{ background: '#ffffff', borderRadius: '14px', padding: '14px', border: '1px solid #e2e8f0' }}>
+                    <span style={{ fontSize: '11px', color: '#64748b', display: 'block', fontWeight: 600 }}>Eco Riding Score</span>
+                    <strong style={{ fontSize: '17px', color: '#10b981' }}>88 / 100</strong>
+                  </div>
+                </div>
+
+                {/* Route Playback Shortcut Banner */}
+                <div 
+                  onClick={() => setActiveTab('playback')}
+                  style={{
+                    background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+                    border: '1px solid #bfdbfe',
+                    borderRadius: '16px',
+                    padding: '14px 18px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ width: 38, height: 38, borderRadius: '10px', background: '#2563eb', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Play size={20} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#1e3a8a' }}>Trip Route Playback</div>
+                      <div style={{ fontSize: '11px', color: '#2563eb' }}>Replay morning route with speedometer HUD</div>
+                    </div>
+                  </div>
+                  <ChevronRight size={18} color="#2563eb" />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* =================================================================
+              SCREEN 4: PLAY BACK (Requirement: play back)
+              ================================================================= */}
+          {activeTab === 'playback' && (
+            <div className="customer-playback-screen" style={{ height: '100%', position: 'relative' }}>
+              <div className="subscreen-header" style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 1001, background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(10px)' }}>
+                <button type="button" className="subscreen-back-btn" onClick={() => setActiveTab('home')}>
+                  <ArrowLeft size={20} />
+                </button>
+                <span className="subscreen-title">Trip Route Playback</span>
                 <button 
                   type="button" 
                   className="subscreen-back-btn"
-                  onClick={() => setActiveTab('home')}
+                  onClick={handleResetPlayback}
+                  title="Reset to Start"
                 >
-                  <ArrowLeft size={20} />
-                </button>
-                <span className="subscreen-title">Bike Details</span>
-                <button type="button" className="subscreen-back-btn">
-                  <MoreVertical size={20} />
+                  <RotateCcw size={18} />
                 </button>
               </div>
 
-              {/* Hero Bike Info */}
-              <div className="bike-details-hero">
-                <div className="bike-hero-logo">
-                  <BrandLogo brand="Yamaha" size={72} />
-                </div>
-                <div className="bike-hero-reg-row">
-                  <span>{bharathBike.regNo}</span>
-                  <Edit2 size={16} color="#2563eb" style={{ cursor: 'pointer' }} />
-                </div>
-                <span className="bike-hero-model">{bharathBike.model}</span>
-                <span className="bike-hero-purchased">Purchased on {bharathBike.purchasedDate}</span>
+              {/* Full Interactive Playback Map */}
+              <div style={{ height: '100%', width: '100%' }}>
+                <LeafletMap
+                  playbackRoute={mockRoutePlaybackTrip.points}
+                  playbackIndex={currentPlaybackIndex}
+                  height="100%"
+                  showControls={false}
+                />
               </div>
 
-              {/* Distance Metrics: 7 Days vs 1 Month */}
-              <div className="bike-distance-stats-row">
-                <div className="distance-stat-card">
-                  <div className="stat-card-top-icon stat-icon-blue">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <line x1="18" y1="20" x2="18" y2="10" />
-                      <line x1="12" y1="20" x2="12" y2="4" />
-                      <line x1="6" y1="20" x2="6" y2="14" />
-                    </svg>
+              {/* Futuristic Automotive HUD Overlay */}
+              <div className="playback-hud-card">
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                  <div>
+                    <div style={{ fontSize: '13.5px', fontWeight: 800, letterSpacing: '-0.2px' }}>
+                      {mockRoutePlaybackTrip.tripTitle}
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <MapPin size={12} color="#38bdf8" />
+                      <span>{mockRoutePlaybackTrip.points[currentPlaybackIndex]?.label || 'Route Trajectory'}</span>
+                    </div>
                   </div>
-                  <span className="stat-card-label">7 Days Distance</span>
-                  <span className="stat-card-value">{bharathBike.sevenDaysDistance}</span>
-                  <span className="stat-card-trend">{bharathBike.sevenDaysChange}</span>
+
+                  {/* Circular Tachometer Speed Badge */}
+                  <div style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: '50%',
+                    background: 'radial-gradient(circle, #1e293b 0%, #0f172a 100%)',
+                    border: '2px solid #38bdf8',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 0 12px rgba(56, 189, 248, 0.4)'
+                  }}>
+                    <span style={{ fontSize: '12px', fontWeight: 900, color: '#ffffff', lineHeight: 1 }}>
+                      {(mockRoutePlaybackTrip.points[currentPlaybackIndex]?.speed || '0').replace(' km/h', '')}
+                    </span>
+                    <span style={{ fontSize: '7.5px', color: '#38bdf8', fontWeight: 700 }}>KM/H</span>
+                  </div>
                 </div>
 
-                <div className="distance-stat-card">
-                  <div className="stat-card-top-icon stat-icon-purple">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <line x1="18" y1="20" x2="18" y2="6" />
-                      <line x1="12" y1="20" x2="12" y2="12" />
-                      <line x1="6" y1="20" x2="6" y2="16" />
-                    </svg>
-                  </div>
-                  <span className="stat-card-label">1 Month Distance</span>
-                  <span className="stat-card-value">{bharathBike.oneMonthDistance}</span>
-                  <span className="stat-card-trend">{bharathBike.oneMonthChange}</span>
-                </div>
-              </div>
+                {/* Scrubber slider */}
+                <input
+                  type="range"
+                  min="0"
+                  max={mockRoutePlaybackTrip.points.length - 1}
+                  value={currentPlaybackIndex}
+                  onChange={(e) => {
+                    setCurrentPlaybackIndex(parseInt(e.target.value, 10));
+                    setIsPlaying(false);
+                  }}
+                  className="playback-scrubber"
+                />
 
-              {/* Action List Cards matching Design 1 */}
-              <div className="bike-action-list">
-                <div className="bike-action-card-item" onClick={() => setActiveTab('live-location')}>
-                  <div className="bike-action-icon-box bike-action-icon-blue">
-                    <MapPin size={20} />
-                  </div>
-                  <div className="bike-action-text-wrap">
-                    <span className="bike-action-title">Live Location</span>
-                    <span className="bike-action-sub">View current bike location</span>
-                  </div>
-                  <ChevronRight size={18} color="#94a3b8" />
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#94a3b8', marginTop: '6px' }}>
+                  <span>{mockRoutePlaybackTrip.points[0]?.time}</span>
+                  <span>Checkpoint {currentPlaybackIndex + 1} / {mockRoutePlaybackTrip.points.length}</span>
+                  <span>{mockRoutePlaybackTrip.points[mockRoutePlaybackTrip.points.length - 1]?.time}</span>
                 </div>
 
-                <div className="bike-action-card-item" onClick={() => setActiveTab('service-history')}>
-                  <div className="bike-action-icon-box bike-action-icon-dark">
-                    <Clock size={20} />
-                  </div>
-                  <div className="bike-action-text-wrap">
-                    <span className="bike-action-title">Ride History</span>
-                    <span className="bike-action-sub">View previous trips</span>
-                  </div>
-                  <ChevronRight size={18} color="#94a3b8" />
-                </div>
+                {/* Player Controls Dock */}
+                <div className="playback-controls-row">
+                  {/* Speed toggle pill */}
+                  <button
+                    type="button"
+                    onClick={() => setPlaybackSpeed(playbackSpeed === 1 ? 2 : playbackSpeed === 2 ? 4 : 1)}
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.12)',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      color: '#ffffff',
+                      padding: '7px 14px',
+                      borderRadius: '10px',
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {playbackSpeed}x SPEED
+                  </button>
 
-                <div className="bike-action-card-item" onClick={() => alert('Location link copied to clipboard: https://bikeservice.app/track/TN30AB1234 (Mock action)')}>
-                  <div className="bike-action-icon-box bike-action-icon-blue">
-                    <Share2 size={20} />
+                  {/* Big Play / Pause button */}
+                  <button
+                    type="button"
+                    className="playback-play-btn"
+                    onClick={handleTogglePlay}
+                    title={isPlaying ? "Pause" : "Play"}
+                  >
+                    {isPlaying ? <Pause size={22} /> : <Play size={22} style={{ marginLeft: 2 }} />}
+                  </button>
+
+                  {/* Trip Statistics */}
+                  <div style={{ fontSize: '11px', color: '#cbd5e1', textAlign: 'right' }}>
+                    <div style={{ fontWeight: 800, color: '#ffffff' }}>{mockRoutePlaybackTrip.totalDistance}</div>
+                    <div style={{ fontSize: '10px', color: '#94a3b8' }}>Top: {mockRoutePlaybackTrip.topSpeed}</div>
                   </div>
-                  <div className="bike-action-text-wrap">
-                    <span className="bike-action-title">Share Location</span>
-                    <span className="bike-action-sub">Share live location</span>
-                  </div>
-                  <ChevronRight size={18} color="#94a3b8" />
                 </div>
               </div>
             </div>
           )}
 
           {/* =================================================================
-              SCREEN 3: SERVICE (Matching Design 1 Right Screen)
+              SCREEN 5: GEO LOCATION & GEOFENCE (Requirement: geo location)
+              ================================================================= */}
+          {activeTab === 'geolocation' && (
+            <div className="customer-geolocation-screen">
+              <div className="subscreen-header">
+                <button type="button" className="subscreen-back-btn" onClick={() => setActiveTab('home')}>
+                  <ArrowLeft size={20} />
+                </button>
+                <span className="subscreen-title">Geo Location & Safe Zones</span>
+                <div style={{ width: 32 }} />
+              </div>
+
+              <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                {/* Real-time Map with Geofences */}
+                <div style={{ borderRadius: '18px', overflow: 'hidden', height: '220px', border: '1px solid #e2e8f0', boxShadow: '0 4px 14px rgba(0,0,0,0.06)' }}>
+                  <LeafletMap
+                    bikes={[bharathBike]}
+                    selectedBike={bharathBike}
+                    geofences={geofences}
+                    height="100%"
+                    showControls={false}
+                  />
+                </div>
+
+                {/* Distance to Bike Compass Card */}
+                <div style={{
+                  background: 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%)',
+                  borderRadius: '18px',
+                  padding: '16px 18px',
+                  color: '#ffffff',
+                  boxShadow: '0 8px 24px rgba(37, 99, 235, 0.3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Compass size={24} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '11px', opacity: 0.85, fontWeight: 600 }}>Proximity To Your Bike</div>
+                      <div style={{ fontSize: '22px', fontWeight: 900 }}>1.2 km away</div>
+                      <div style={{ fontSize: '11px', opacity: 0.85 }}>Anna Park, Salem Central</div>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    style={{
+                      background: '#ffffff',
+                      color: '#2563eb',
+                      border: 'none',
+                      padding: '9px 16px',
+                      borderRadius: '12px',
+                      fontSize: '12px',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
+                    }}
+                    onClick={() => alert(`Starting GPS directions to ${bharathBike.regNo} at Anna Park, Salem...`)}
+                  >
+                    Directions
+                  </button>
+                </div>
+
+                {/* Anti-Theft Security Controls */}
+                <div style={{ background: '#ffffff', borderRadius: '18px', border: '1px solid #e2e8f0', padding: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+                  <span style={{ fontSize: '13.5px', fontWeight: 800, color: '#0f172a', display: 'block', marginBottom: '12px' }}>
+                    Remote Bike Security Controls
+                  </span>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsEngineLocked(!isEngineLocked);
+                        alert(isEngineLocked ? 'Engine unlocked successfully.' : 'Remote Immobilizer Activated! Engine is securely locked.');
+                      }}
+                      style={{
+                        padding: '14px',
+                        borderRadius: '14px',
+                        border: isEngineLocked ? '1.5px solid #ef4444' : '1px solid #e2e8f0',
+                        background: isEngineLocked ? '#fef2f2' : '#f8fafc',
+                        color: isEngineLocked ? '#dc2626' : '#0f172a',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '6px',
+                        cursor: 'pointer',
+                        fontWeight: 800,
+                        fontSize: '12px'
+                      }}
+                    >
+                      {isEngineLocked ? <Lock size={22} color="#dc2626" /> : <Unlock size={22} color="#64748b" />}
+                      <span>{isEngineLocked ? 'Engine Locked' : 'Lock Engine'}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => alert('Bike horn beeped 3 times & indicators flashed! (Anti-theft locator)')}
+                      style={{
+                        padding: '14px',
+                        borderRadius: '14px',
+                        border: '1px solid #e2e8f0',
+                        background: '#f8fafc',
+                        color: '#0f172a',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '6px',
+                        cursor: 'pointer',
+                        fontWeight: 800,
+                        fontSize: '12px'
+                      }}
+                    >
+                      <Volume2 size={22} color="#2563eb" />
+                      <span>Find Bike (Beep)</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Geofence Safe Zones List */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <span style={{ fontSize: '13.5px', fontWeight: 800, color: '#0f172a' }}>Configured Safe Zones</span>
+
+                  {geofences.map((gf) => (
+                    <div key={gf.id} className="geofence-item-card">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <span style={{ width: 14, height: 14, borderRadius: '50%', background: gf.color, boxShadow: `0 0 8px ${gf.color}` }} />
+                        <div>
+                          <div style={{ fontSize: '13px', fontWeight: 800, color: '#0f172a' }}>{gf.name}</div>
+                          <div style={{ fontSize: '11px', color: '#64748b' }}>{gf.location} • {gf.radiusMeters}m radius</div>
+                        </div>
+                      </div>
+
+                      <div style={{ textAlign: 'right' }}>
+                        <span style={{
+                          fontSize: '11px',
+                          fontWeight: 800,
+                          padding: '4px 10px',
+                          borderRadius: '8px',
+                          background: gf.status === 'Inside' ? '#ecfdf5' : '#f1f5f9',
+                          color: gf.status === 'Inside' ? '#059669' : '#64748b'
+                        }}>
+                          {gf.status}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* =================================================================
+              SCREEN 6: BRANCH LOYALTY POINTS & SERVICE DISCOUNTS
+              ================================================================= */}
+          {activeTab === 'membership' && (
+            <div className="customer-membership-screen">
+              <div className="subscreen-header">
+                <button type="button" className="subscreen-back-btn" onClick={() => setActiveTab('home')}>
+                  <ArrowLeft size={20} />
+                </button>
+                <span className="subscreen-title">Branch Loyalty Points</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <Store size={16} color="#2563eb" />
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#2563eb' }}>Salem Central</span>
+                </div>
+              </div>
+
+              <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                
+                {/* Branch Loyalty Ledger Hero Card (Clean & Modern, NO fake credit card) */}
+                <div className="branch-loyalty-hero-card">
+                  {/* Top Branch Affinity Row */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Store size={15} color="#38bdf8" />
+                      <span style={{ fontSize: '12px', fontWeight: 800, color: '#f1f5f9' }}>
+                        {membership.purchasedBranch || "Salem Central Mega Hub"}
+                      </span>
+                    </div>
+                    <span style={{
+                      background: 'rgba(16, 185, 129, 0.16)',
+                      color: '#34d399',
+                      border: '1px solid rgba(16, 185, 129, 0.4)',
+                      padding: '2px 8px',
+                      borderRadius: '9999px',
+                      fontSize: '10px',
+                      fontWeight: 800,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}>
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#34d399' }} />
+                      Same-Branch Discount Active
+                    </span>
+                  </div>
+
+                  {/* Main Points Counter */}
+                  <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.6px', color: '#94a3b8', fontWeight: 700 }}>
+                    Available Loyalty Balance
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', margin: '4px 0 6px 0' }}>
+                    <span style={{ fontSize: '38px', fontWeight: 900, color: '#fbbf24', letterSpacing: '-1px', lineHeight: 1 }}>
+                      {membership.pointsBalance}
+                    </span>
+                    <span style={{ fontSize: '16px', fontWeight: 700, color: '#cbd5e1' }}>Points</span>
+                  </div>
+                  <div style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    background: 'rgba(251, 191, 36, 0.12)',
+                    border: '1px solid rgba(251, 191, 36, 0.3)',
+                    padding: '4px 10px',
+                    borderRadius: '8px',
+                    fontSize: '11.5px',
+                    color: '#fbbf24',
+                    fontWeight: 700,
+                    marginBottom: '16px'
+                  }}>
+                    <BadgePercent size={14} />
+                    <span>Worth ₹{membership.monetaryValue} Instant Cash Discount on Next Service</span>
+                  </div>
+
+                  {/* Business Model Explanation Card */}
+                  <div style={{
+                    background: 'rgba(255, 255, 255, 0.06)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: '12px',
+                    padding: '12px 14px',
+                    fontSize: '11.5px',
+                    lineHeight: 1.5,
+                    color: '#cbd5e1'
+                  }}>
+                    <div style={{ fontWeight: 800, color: '#ffffff', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Coins size={14} color="#fbbf24" />
+                      <span>How Your GPS Purchase Points Work:</span>
+                    </div>
+                    <ul style={{ margin: '4px 0 0 0', paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <li><strong>Earned On Purchase:</strong> You received 1,000 Points upon buying your GPS-equipped Yamaha FZ-S.</li>
+                      <li><strong>Same-Branch Discount:</strong> When visiting <strong>Salem Central Mega Hub</strong>, redeem these points for direct deductions on your service bill!</li>
+                      <li><strong>Repeat Visits:</strong> Every completed service at Salem Central Hub credits an additional <strong>+150 Points</strong> back to you.</li>
+                    </ul>
+                  </div>
+
+                  {/* Quick Action Button */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBookingForm(prev => ({
+                        ...prev,
+                        branch: 'Salem Central Mega Hub',
+                        applyBranchPointsDiscount: true
+                      }));
+                      setBookingModalOpen(true);
+                    }}
+                    style={{
+                      marginTop: '14px',
+                      width: '100%',
+                      padding: '11px',
+                      borderRadius: '12px',
+                      background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+                      color: '#ffffff',
+                      border: 'none',
+                      fontWeight: 800,
+                      fontSize: '12.5px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      boxShadow: '0 4px 14px rgba(37, 99, 235, 0.35)'
+                    }}
+                  >
+                    <Wrench size={15} />
+                    <span>Book Service with Points Discount</span>
+                  </button>
+                </div>
+
+                {/* Available Same-Branch Service Discounts */}
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '10px' }}>
+                    <span style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>
+                      Salem Central Hub Service Discounts
+                    </span>
+                    <span style={{ fontSize: '11px', color: '#64748b' }}>
+                      1 Point = ₹1 Discount
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {(membership.availableDiscounts || membership.availableRewards).map((discount) => (
+                      <div
+                        key={discount.id}
+                        style={{
+                          background: '#ffffff',
+                          borderRadius: '16px',
+                          border: '1px solid #e2e8f0',
+                          padding: '14px 16px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '10px',
+                          boxShadow: '0 2px 6px rgba(0,0,0,0.03)'
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+                          <div>
+                            <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#0f172a' }}>
+                              {discount.serviceTitle || discount.title}
+                            </div>
+                            <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                              {discount.desc}
+                            </div>
+                          </div>
+                          <span style={{
+                            background: '#f1f5f9',
+                            color: '#475569',
+                            padding: '3px 8px',
+                            borderRadius: '6px',
+                            fontSize: '10.5px',
+                            fontWeight: 700,
+                            whiteSpace: 'nowrap'
+                          }}>
+                            {discount.category}
+                          </span>
+                        </div>
+
+                        {/* Pricing and Points Bar */}
+                        <div style={{
+                          background: '#f8fafc',
+                          borderRadius: '10px',
+                          padding: '10px 12px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          border: '1px solid #f1f5f9'
+                        }}>
+                          <div>
+                            <div style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700 }}>
+                              Workshop Rate
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                              <span style={{ fontSize: '12px', color: '#94a3b8', textDecoration: 'line-through' }}>
+                                ₹{discount.originalPrice || (discount.finalPrice ? discount.finalPrice + discount.discountAmount : 1250)}
+                              </span>
+                              <span style={{ fontSize: '16px', fontWeight: 900, color: '#059669' }}>
+                                ₹{discount.finalPrice || 750}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div style={{ textAlign: 'right' }}>
+                            <span style={{
+                              fontSize: '11px',
+                              fontWeight: 800,
+                              color: '#b45309',
+                              background: '#fef3c7',
+                              padding: '3px 8px',
+                              borderRadius: '6px',
+                              display: 'inline-block'
+                            }}>
+                              Save ₹{discount.discountAmount || 500} ({discount.pointsRequired || discount.pointsCost} Pts)
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Action Row */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontSize: '10.5px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <Store size={12} color="#64748b" />
+                            <span>Valid at Salem Central Mega Hub</span>
+                          </span>
+
+                          <button
+                            type="button"
+                            className="btn-primary"
+                            style={{
+                              padding: '7px 14px',
+                              fontSize: '12px',
+                              whiteSpace: 'nowrap',
+                              background: membership.pointsBalance >= (discount.pointsRequired || discount.pointsCost) ? '#2563eb' : '#94a3b8'
+                            }}
+                            onClick={() => handleRedeemClick(discount)}
+                            disabled={membership.pointsBalance < (discount.pointsRequired || discount.pointsCost)}
+                          >
+                            Redeem & Apply
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Points Activity Ledger */}
+                <div>
+                  <span style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a', display: 'block', marginBottom: '10px' }}>
+                    Points Activity Log
+                  </span>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {membership.transactions.map((tx) => (
+                      <div
+                        key={tx.id}
+                        style={{
+                          background: '#ffffff',
+                          borderRadius: '12px',
+                          border: '1px solid #f1f5f9',
+                          padding: '12px 14px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between'
+                        }}
+                      >
+                        <div>
+                          <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#0f172a' }}>{tx.title}</div>
+                          <div style={{ fontSize: '11px', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                            <span>{tx.date}</span>
+                            {tx.badge && (
+                              <span style={{ background: '#eff6ff', color: '#2563eb', padding: '1px 6px', borderRadius: '4px', fontSize: '9.5px', fontWeight: 700 }}>
+                                {tx.badge}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <span style={{
+                            fontSize: '13.5px',
+                            fontWeight: 900,
+                            color: tx.points > 0 ? '#10b981' : '#ef4444'
+                          }}>
+                            {tx.points > 0 ? `+${tx.points}` : tx.points} Pts
+                          </span>
+                          <div style={{ fontSize: '10px', color: '#94a3b8' }}>
+                            Bal: {tx.balanceAfter}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          )}
+
+          {/* =================================================================
+              SCREEN 7: SERVICE (Existing + VIP Booking)
               ================================================================= */}
           {activeTab === 'service' && (
             <div className="customer-service-screen">
               <div className="subscreen-header">
-                <button 
-                  type="button" 
-                  className="subscreen-back-btn"
-                  onClick={() => setActiveTab('home')}
-                >
+                <button type="button" className="subscreen-back-btn" onClick={() => setActiveTab('home')}>
                   <ArrowLeft size={20} />
                 </button>
-                <span className="subscreen-title">Service</span>
-                <button 
-                  type="button" 
-                  className="subscreen-back-btn"
-                  onClick={() => setActiveTab('alerts')}
-                >
+                <span className="subscreen-title">Service Management</span>
+                <button type="button" className="subscreen-back-btn" onClick={() => setActiveTab('alerts')}>
                   <Bell size={20} />
                 </button>
               </div>
 
               <div className="service-screen-container">
-                {/* Bike Card Pill */}
                 <div className="service-bike-header-card" onClick={() => setActiveTab('bike')}>
                   <BrandLogo brand="Yamaha" size={38} />
                   <div style={{ flex: 1 }}>
@@ -412,7 +1498,6 @@ export default function CustomerApp() {
                   <ChevronRight size={18} color="#94a3b8" />
                 </div>
 
-                {/* Next Service Due Highlight Card */}
                 <div className="service-due-highlight-card">
                   <div className="due-card-header-row">
                     <div className="wrench-blue-box">
@@ -430,11 +1515,10 @@ export default function CustomerApp() {
                     className="book-service-btn-full"
                     onClick={() => setBookingModalOpen(true)}
                   >
-                    Book Service
+                    Book Service Slot
                   </button>
                 </div>
 
-                {/* Service Details Card matching Design 1 */}
                 <div className="service-details-card">
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                     <span style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>Service Details</span>
@@ -480,7 +1564,6 @@ export default function CustomerApp() {
                   </div>
                 </div>
 
-                {/* Service History list matching Design 1 */}
                 <div className="service-history-card">
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                     <span style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>Service History</span>
@@ -493,173 +1576,109 @@ export default function CustomerApp() {
                     </button>
                   </div>
 
-                  {mockCustomerServiceHistory.slice(0, 3).map((item) => {
-                    const isGeneral = item.serviceType.includes('General');
-                    const isOil = item.serviceType.includes('Oil');
-
-                    return (
-                      <div 
-                        key={item.id} 
-                        className="service-history-row"
-                        onClick={() => alert(`Service details for ${item.serviceType}: ₹${item.cost} on ${item.date}`)}
-                      >
-                        <div className="detail-row-left">
-                          <div className={`detail-icon-circle ${isGeneral ? 'icon-blue-circle' : isOil ? 'icon-green-circle' : 'icon-gray-circle'}`}>
-                            {isGeneral ? <Wrench size={15} /> : isOil ? <Droplet size={15} /> : <Disc size={15} />}
-                          </div>
-                          <div className="detail-text-col">
-                            <span className="detail-title">{item.serviceType}</span>
-                            <span className="detail-date">{item.date}</span>
-                          </div>
+                  {mockCustomerServiceHistory.slice(0, 3).map((item) => (
+                    <div key={item.id} className="service-history-row">
+                      <div className="detail-row-left">
+                        <div className="detail-icon-circle icon-blue-circle">
+                          <Wrench size={15} />
                         </div>
-                        <span className="history-cost-tag">
-                          {item.cost} <ChevronRight size={15} color="#94a3b8" />
-                        </span>
+                        <div className="detail-text-col">
+                          <span className="detail-title">{item.serviceType}</span>
+                          <span className="detail-date">{item.date}</span>
+                        </div>
                       </div>
-                    );
-                  })}
+                      <span className="history-cost-tag">{item.cost}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
           )}
 
           {/* =================================================================
-              SCREEN 4: FULL LIVE LOCATION
+              SCREEN 8: BIKE DETAILS
               ================================================================= */}
-          {activeTab === 'live-location' && (
-            <div className="customer-full-map-screen">
+          {activeTab === 'bike' && (
+            <div className="customer-bike-details-screen">
               <div className="subscreen-header">
                 <button type="button" className="subscreen-back-btn" onClick={() => setActiveTab('home')}>
                   <ArrowLeft size={20} />
                 </button>
-                <span className="subscreen-title">Live Tracking</span>
-                <div style={{ width: 24 }} />
+                <span className="subscreen-title">Vehicle Specifications</span>
+                <div style={{ width: 32 }} />
               </div>
 
-              <div style={{ height: 'calc(100% - 54px)', position: 'relative' }}>
-                <LeafletMap
-                  bikes={[bharathBike]}
-                  selectedBike={bharathBike}
-                  height="100%"
-                />
+              <div className="bike-details-hero">
+                <div className="bike-hero-logo">
+                  <BrandLogo brand="Yamaha" size={72} />
+                </div>
+                <div className="bike-hero-reg-row">
+                  <span>{bharathBike.regNo}</span>
+                  <Edit2 size={16} color="#2563eb" style={{ cursor: 'pointer' }} />
+                </div>
+                <span className="bike-hero-model">{bharathBike.model}</span>
+                <span className="bike-hero-purchased">Purchased on {bharathBike.purchasedDate}</span>
+              </div>
 
-                <div style={{
-                  position: 'absolute',
-                  bottom: '16px',
-                  left: '14px',
-                  right: '14px',
-                  background: '#ffffff',
-                  borderRadius: '16px',
-                  padding: '14px 18px',
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
-                  zIndex: 1000
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <div>
-                      <span style={{ fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>{bharathBike.regNo}</span>
-                      <span style={{ display: 'block', fontSize: '12px', color: '#64748b' }}>{bharathBike.model}</span>
-                    </div>
-                    <span style={{
-                      background: '#ecfdf5',
-                      color: '#059669',
-                      padding: '4px 10px',
-                      borderRadius: '9999px',
-                      fontSize: '12px',
-                      fontWeight: 600
-                    }}>
-                      Speed: {bharathBike.speed}
-                    </span>
+              <div className="bike-distance-stats-row">
+                <div className="distance-stat-card" onClick={() => { setDistanceMode('weekly'); setActiveTab('distance'); }}>
+                  <div className="stat-card-top-icon stat-icon-blue">
+                    <Navigation size={18} />
                   </div>
+                  <span className="stat-card-label">7 Days Distance</span>
+                  <span className="stat-card-value">{bharathBike.sevenDaysDistance}</span>
+                  <span className="stat-card-trend">{bharathBike.sevenDaysChange}</span>
+                </div>
 
-                  <div style={{ fontSize: '12px', color: '#475569', display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                    <div>📍 Location: {bharathBike.lastLocation}</div>
-                    <div>🕒 Updated: {bharathBike.lastUpdated}</div>
-                    <div>🔋 Battery: {bharathBike.battery} | ⛽ Fuel: {bharathBike.fuel}</div>
+                <div className="distance-stat-card" onClick={() => { setDistanceMode('monthly'); setActiveTab('distance'); }}>
+                  <div className="stat-card-top-icon stat-icon-purple">
+                    <Calendar size={18} />
                   </div>
+                  <span className="stat-card-label">1 Month Distance</span>
+                  <span className="stat-card-value">{bharathBike.oneMonthDistance}</span>
+                  <span className="stat-card-trend">{bharathBike.oneMonthChange}</span>
+                </div>
+              </div>
+
+              <div className="bike-action-list">
+                <div className="bike-action-card-item" onClick={() => setActiveTab('geolocation')}>
+                  <div className="bike-action-icon-box bike-action-icon-blue">
+                    <MapPin size={20} />
+                  </div>
+                  <div className="bike-action-text-wrap">
+                    <span className="bike-action-title">Geo Location</span>
+                    <span className="bike-action-sub">View live location and safe zones</span>
+                  </div>
+                  <ChevronRight size={18} color="#94a3b8" />
+                </div>
+
+                <div className="bike-action-card-item" onClick={() => setActiveTab('playback')}>
+                  <div className="bike-action-icon-box bike-action-icon-dark">
+                    <Play size={20} />
+                  </div>
+                  <div className="bike-action-text-wrap">
+                    <span className="bike-action-title">Trip Playback</span>
+                    <span className="bike-action-sub">Replay route trips on map</span>
+                  </div>
+                  <ChevronRight size={18} color="#94a3b8" />
+                </div>
+
+                <div className="bike-action-card-item" onClick={() => setActiveTab('fines')}>
+                  <div className="bike-action-icon-box" style={{ background: '#ffe4e6', color: '#e11d48' }}>
+                    <ShieldAlert size={20} />
+                  </div>
+                  <div className="bike-action-text-wrap">
+                    <span className="bike-action-title">Traffic Fines</span>
+                    <span className="bike-action-sub">{unpaidFines.length} Pending violations</span>
+                  </div>
+                  <ChevronRight size={18} color="#94a3b8" />
                 </div>
               </div>
             </div>
           )}
 
           {/* =================================================================
-              SCREEN 5: SERVICE HISTORY
-              ================================================================= */}
-          {activeTab === 'service-history' && (
-            <div className="customer-history-screen">
-              <div className="subscreen-header">
-                <button type="button" className="subscreen-back-btn" onClick={() => setActiveTab('service')}>
-                  <ArrowLeft size={20} />
-                </button>
-                <span className="subscreen-title">Service Records</span>
-                <div style={{ width: 24 }} />
-              </div>
-
-              <div style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {mockCustomerServiceHistory.map((item) => (
-                  <div 
-                    key={item.id} 
-                    style={{
-                      background: '#ffffff',
-                      borderRadius: '14px',
-                      border: '1px solid #e2e8f0',
-                      padding: '14px 16px',
-                      boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                      <span style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>{item.serviceType}</span>
-                      <span style={{ fontSize: '14px', fontWeight: 700, color: '#2563eb' }}>{item.cost}</span>
-                    </div>
-                    <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '8px' }}>
-                      {item.date} • Odometer: {item.odometer}
-                    </div>
-                    <p style={{ fontSize: '12px', color: '#475569', background: '#f8fafc', padding: '8px 10px', borderRadius: '6px' }}>
-                      {item.notes}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* =================================================================
-              SCREEN 6: ALERTS
-              ================================================================= */}
-          {activeTab === 'alerts' && (
-            <div className="customer-alerts-screen">
-              <div className="subscreen-header">
-                <button type="button" className="subscreen-back-btn" onClick={() => setActiveTab('home')}>
-                  <ArrowLeft size={20} />
-                </button>
-                <span className="subscreen-title">Alerts & Notices</span>
-                <div style={{ width: 24 }} />
-              </div>
-
-              <div style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {mockCustomerAlerts.map((al) => (
-                  <div 
-                    key={al.id}
-                    style={{
-                      background: '#ffffff',
-                      borderRadius: '12px',
-                      border: '1px solid #e2e8f0',
-                      padding: '12px 14px',
-                      boxShadow: '0 2px 4px rgba(0,0,0,0.03)'
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                      <span style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a' }}>{al.title}</span>
-                      <span style={{ fontSize: '10px', color: '#94a3b8' }}>{al.time}</span>
-                    </div>
-                    <p style={{ fontSize: '12px', color: '#64748b' }}>{al.message}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* =================================================================
-              SCREEN 7: PROFILE
+              SCREEN 9: PROFILE
               ================================================================= */}
           {activeTab === 'profile' && (
             <div className="customer-profile-screen">
@@ -668,40 +1687,46 @@ export default function CustomerApp() {
                   <ArrowLeft size={20} />
                 </button>
                 <span className="subscreen-title">Account Profile</span>
-                <div style={{ width: 24 }} />
+                <div style={{ width: 32 }} />
               </div>
 
               <div style={{ padding: '20px 18px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', background: '#ffffff', padding: '16px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
-                  <div style={{ width: 54, height: 54, borderRadius: '50%', background: '#2563eb', color: '#fff', fontSize: '22px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', background: '#ffffff', padding: '16px', borderRadius: '18px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
+                  <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', color: '#fff', fontSize: '22px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     B
                   </div>
                   <div>
-                    <div style={{ fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>Bharath</div>
+                    <div style={{ fontSize: '17px', fontWeight: 800, color: '#0f172a' }}>Bharath</div>
                     <div style={{ fontSize: '12px', color: '#64748b' }}>+91 98765 43210</div>
-                    <div style={{ fontSize: '11px', color: '#10b981', fontWeight: 600 }}>Active Customer Since 2024</div>
+                    <div style={{ fontSize: '11.5px', color: '#f59e0b', fontWeight: 800, marginTop: '2px' }}>
+                      ⭐ GPS Loyalty Member ({membership.pointsBalance} Points)
+                    </div>
                   </div>
                 </div>
 
-                <div style={{ background: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '13px' }}>
+                <div style={{ background: '#ffffff', borderRadius: '18px', border: '1px solid #e2e8f0', padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '13px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '10px', borderBottom: '1px solid #f1f5f9' }}>
-                    <span style={{ color: '#64748b' }}>Registered Bike</span>
-                    <strong>Yamaha FZ-S (TN 30 AB 1234)</strong>
+                    <span style={{ color: '#64748b' }}>Registered Vehicle</span>
+                    <strong>Yamaha FZ-S ({bharathBike.regNo})</strong>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '10px', borderBottom: '1px solid #f1f5f9' }}>
                     <span style={{ color: '#64748b' }}>Insurance Valid Until</span>
                     <strong>15 Dec 2027</strong>
                   </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '10px', borderBottom: '1px solid #f1f5f9' }}>
+                    <span style={{ color: '#64748b' }}>Assigned Service Hub</span>
+                    <strong>Salem Central Mega Hub</strong>
+                  </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#64748b' }}>Emergency Service Helpline</span>
-                    <strong style={{ color: '#2563eb' }}>1800-425-BIKE</strong>
+                    <span style={{ color: '#64748b' }}>Emergency Helpline</span>
+                    <strong style={{ color: '#2563eb' }}>{branding.supportPhone}</strong>
                   </div>
                 </div>
 
                 <button
                   type="button"
                   className="btn-primary"
-                  style={{ width: '100%', padding: '12px', borderRadius: '12px' }}
+                  style={{ width: '100%', padding: '13px', borderRadius: '14px' }}
                   onClick={() => alert('Profile settings saved! (Mock state)')}
                 >
                   Save Preferences
@@ -710,35 +1735,121 @@ export default function CustomerApp() {
             </div>
           )}
 
+          {/* =================================================================
+              SCREEN 10: ALERTS
+              ================================================================= */}
+          {activeTab === 'alerts' && (
+            <div className="customer-alerts-screen">
+              <div className="subscreen-header">
+                <button type="button" className="subscreen-back-btn" onClick={() => setActiveTab('home')}>
+                  <ArrowLeft size={20} />
+                </button>
+                <span className="subscreen-title">Alerts & Notices</span>
+                <div style={{ width: 32 }} />
+              </div>
+
+              <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {mockCustomerAlerts.map((al) => (
+                  <div 
+                    key={al.id}
+                    style={{
+                      background: '#ffffff',
+                      borderRadius: '14px',
+                      border: '1px solid #e2e8f0',
+                      padding: '14px',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.03)'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                      <span style={{ fontSize: '13.5px', fontWeight: 800, color: '#0f172a' }}>{al.title}</span>
+                      <span style={{ fontSize: '10px', color: '#94a3b8' }}>{al.time}</span>
+                    </div>
+                    <p style={{ fontSize: '12px', color: '#64748b', margin: 0 }}>{al.message}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* =================================================================
+              SCREEN 11: SERVICE HISTORY
+              ================================================================= */}
+          {activeTab === 'service-history' && (
+            <div className="customer-history-screen">
+              <div className="subscreen-header">
+                <button type="button" className="subscreen-back-btn" onClick={() => setActiveTab('service')}>
+                  <ArrowLeft size={20} />
+                </button>
+                <span className="subscreen-title">Service Records</span>
+                <div style={{ width: 32 }} />
+              </div>
+
+              <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {mockCustomerServiceHistory.map((item) => (
+                  <div 
+                    key={item.id} 
+                    style={{
+                      background: '#ffffff',
+                      borderRadius: '16px',
+                      border: '1px solid #e2e8f0',
+                      padding: '14px 16px',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                      <span style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>{item.serviceType}</span>
+                      <span style={{ fontSize: '14px', fontWeight: 800, color: '#2563eb' }}>{item.cost}</span>
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '8px' }}>
+                      {item.date} • Odometer: {item.odometer}
+                    </div>
+                    <p style={{ fontSize: '12px', color: '#475569', background: '#f8fafc', padding: '10px 12px', borderRadius: '8px', margin: 0 }}>
+                      {item.notes}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
         </div>
 
-        {/* Fixed Mobile Bottom Navigation Bar matching Design 1 */}
+        {/* Fixed Mobile Bottom Navigation Bar */}
         <div className="mobile-bottom-nav">
           <button 
             type="button" 
             className={`bottom-nav-item ${activeTab === 'home' ? 'active' : ''}`}
             onClick={() => setActiveTab('home')}
           >
-            <Home size={20} />
+            <Home size={19} />
             <span>Home</span>
           </button>
 
           <button 
             type="button" 
-            className={`bottom-nav-item ${activeTab === 'bike' ? 'active' : ''}`}
-            onClick={() => setActiveTab('bike')}
+            className={`bottom-nav-item ${activeTab === 'distance' ? 'active' : ''}`}
+            onClick={() => setActiveTab('distance')}
           >
-            <BikeIcon size={20} />
-            <span>Bike</span>
+            <Navigation size={19} />
+            <span>Distance</span>
           </button>
 
           <button 
             type="button" 
-            className={`bottom-nav-item ${activeTab === 'service' ? 'active' : ''}`}
-            onClick={() => setActiveTab('service')}
+            className={`bottom-nav-item ${activeTab === 'playback' ? 'active' : ''}`}
+            onClick={() => setActiveTab('playback')}
           >
-            <Wrench size={20} />
-            <span>Service</span>
+            <Play size={19} />
+            <span>Playback</span>
+          </button>
+
+          <button 
+            type="button" 
+            className={`bottom-nav-item ${activeTab === 'membership' ? 'active' : ''}`}
+            onClick={() => setActiveTab('membership')}
+          >
+            <Award size={19} />
+            <span>Points</span>
           </button>
 
           <button 
@@ -746,24 +1857,175 @@ export default function CustomerApp() {
             className={`bottom-nav-item ${activeTab === 'profile' ? 'active' : ''}`}
             onClick={() => setActiveTab('profile')}
           >
-            <User size={20} />
+            <User size={19} />
             <span>Profile</span>
           </button>
         </div>
 
+        {/* Bottom iOS Home Indicator */}
+        <div className="mobile-home-indicator-bar" />
       </div>
+
+      {/* Modal: Pay Fine Online */}
+      {selectedFineForPay && (
+        <Modal
+          isOpen={Boolean(selectedFineForPay)}
+          onClose={() => setSelectedFineForPay(null)}
+          title={`Pay Traffic Fine • ₹${selectedFineForPay.amount}`}
+        >
+          <form onSubmit={handlePayFineSubmit}>
+            <div style={{ background: '#fff1f2', border: '1px solid #fecdd3', padding: '14px', borderRadius: '12px', marginBottom: '16px' }}>
+              <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#9f1239' }}>{selectedFineForPay.offense}</div>
+              <div style={{ fontSize: '11px', color: '#be123c', marginTop: '3px' }}>
+                Challan #{selectedFineForPay.challanNo} • {selectedFineForPay.location}
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Payment Method</label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                {['UPI (GPay/PhonePe)', 'Debit Card', 'NetBanking'].map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => setPayMethod(m)}
+                    style={{
+                      padding: '10px 6px',
+                      borderRadius: '10px',
+                      border: payMethod === m ? '2px solid #2563eb' : '1px solid #cbd5e1',
+                      background: payMethod === m ? '#eff6ff' : '#ffffff',
+                      color: payMethod === m ? '#2563eb' : '#475569',
+                      fontWeight: 700,
+                      fontSize: '11px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {m}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Payer UPI ID / Account</label>
+              <input
+                type="text"
+                className="form-input no-left-icon"
+                defaultValue="bharath@okaxis"
+                required
+              />
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '18px' }}>
+              <button type="button" className="btn-secondary" onClick={() => setSelectedFineForPay(null)}>
+                Cancel
+              </button>
+              <button type="submit" className="btn-primary" style={{ background: '#e11d48', borderColor: '#e11d48' }}>
+                Authorize Pay ₹{selectedFineForPay.amount}
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* Modal: Redeemed Voucher Code Popup */}
+      {redeemedVoucher && (
+        <Modal
+          isOpen={Boolean(redeemedVoucher)}
+          onClose={() => setRedeemedVoucher(null)}
+          title="Branch Service Discount Voucher"
+        >
+          <div style={{ textAlign: 'center', padding: '10px 0' }}>
+            <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#ecfdf5', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+              <Check size={30} />
+            </div>
+
+            <h4 style={{ fontSize: '17px', fontWeight: 900, color: '#0f172a', margin: '0 0 6px' }}>
+              {redeemedVoucher.reward.serviceTitle || redeemedVoucher.reward.title}
+            </h4>
+            <div style={{ fontSize: '13px', fontWeight: 800, color: '#059669', marginBottom: '8px' }}>
+              Instant ₹{redeemedVoucher.reward.discountAmount || 500} Cash Discount Applied
+            </div>
+            <p style={{ fontSize: '12px', color: '#64748b', margin: '0 0 16px', lineHeight: 1.5 }}>
+              Valid exclusively at <strong>Salem Central Mega Hub</strong> for Yamaha FZ-S (TN 30 AB 1234). Present this digital coupon code at the service reception desk:
+            </p>
+
+            <div style={{
+              background: '#f8fafc',
+              border: '2px dashed #2563eb',
+              borderRadius: '14px',
+              padding: '16px',
+              fontSize: '22px',
+              fontWeight: 900,
+              color: '#2563eb',
+              letterSpacing: '2px',
+              marginBottom: '18px'
+            }}>
+              {redeemedVoucher.code}
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <button
+                type="button"
+                className="btn-primary"
+                style={{ width: '100%', padding: '12px', fontWeight: 800 }}
+                onClick={() => {
+                  setBookingForm(prev => ({
+                    ...prev,
+                    branch: 'Salem Central Mega Hub',
+                    serviceType: redeemedVoucher.reward.serviceTitle || prev.serviceType,
+                    baseCost: redeemedVoucher.reward.originalPrice || prev.baseCost,
+                    discountAmount: redeemedVoucher.reward.discountAmount || prev.discountAmount,
+                    discountPoints: redeemedVoucher.reward.pointsCost || prev.discountPoints,
+                    applyBranchPointsDiscount: true
+                  }));
+                  setRedeemedVoucher(null);
+                  setBookingModalOpen(true);
+                }}
+              >
+                <Wrench size={16} /> Book Service with this Discount Now
+              </button>
+
+              <button
+                type="button"
+                className="btn-secondary"
+                style={{ width: '100%', padding: '10px' }}
+                onClick={() => setRedeemedVoucher(null)}
+              >
+                Done & Return to Points
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
 
       {/* Modal: Book Service Form */}
       <Modal
         isOpen={bookingModalOpen}
         onClose={() => setBookingModalOpen(false)}
         title="Book Service Appointment"
-        maxWidth="480px"
+        maxWidth="500px"
       >
         <form onSubmit={handleBookService}>
-          <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '14px', fontSize: '13px' }}>
-            <div>Vehicle: <strong>Yamaha FZ-S ({bharathBike.regNo})</strong></div>
-            <div>Owner: <strong>Bharath</strong> (9876543210)</div>
+          <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '14px', fontSize: '13px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+              <span>Vehicle: <strong>Yamaha FZ-S ({bharathBike.regNo})</strong></span>
+              <span style={{ color: '#10b981', fontWeight: 700, fontSize: '11px' }}>● GPS Module Online</span>
+            </div>
+            <div>Registered Owner: <strong>Bharath</strong> (9876543210)</div>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Service Workshop Branch *</label>
+            <select
+              className="form-input no-left-icon"
+              value={bookingForm.branch}
+              onChange={(e) => setBookingForm({ ...bookingForm, branch: e.target.value })}
+            >
+              <option value="Salem Central Mega Hub">Salem Central Mega Hub (Purchased Hub • Points Eligible)</option>
+              <option value="Fairlands Express Workshop">Fairlands Express Workshop</option>
+              <option value="Omalur Expressway Service Hub">Omalur Expressway Service Hub</option>
+            </select>
           </div>
 
           <div className="form-group">
@@ -771,14 +2033,104 @@ export default function CustomerApp() {
             <select
               className="form-input no-left-icon"
               value={bookingForm.serviceType}
-              onChange={(e) => setBookingForm({ ...bookingForm, serviceType: e.target.value })}
+              onChange={(e) => {
+                const type = e.target.value;
+                let cost = 1250;
+                let disc = 500;
+                let pts = 500;
+                if (type === 'Quick Oil Change & Filter') { cost = 850; disc = 350; pts = 350; }
+                else if (type === 'Brake & Safety Inspection') { cost = 600; disc = 250; pts = 250; }
+                else if (type === 'Major Engine Tuning & Valve Clearance') { cost = 2400; disc = 1000; pts = 1000; }
+                setBookingForm({
+                  ...bookingForm,
+                  serviceType: type,
+                  baseCost: cost,
+                  discountAmount: disc,
+                  discountPoints: pts
+                });
+              }}
             >
-              <option value="General Periodic Service">General Periodic Service (₹1,250)</option>
-              <option value="Quick Oil Change">Quick Oil Change & Filter (₹850)</option>
-              <option value="Brake & Safety Inspection">Brake & Safety Inspection (₹600)</option>
-              <option value="Major Engine Tuning">Major Engine Tuning & Valve Clearance (₹2,400)</option>
+              <option value="General Periodic Service">General Periodic Service (Regular: ₹1,250)</option>
+              <option value="Quick Oil Change & Filter">Quick Oil Change & Filter (Regular: ₹850)</option>
+              <option value="Brake & Safety Inspection">Brake & Safety Inspection (Regular: ₹600)</option>
+              <option value="Major Engine Tuning & Valve Clearance">Major Engine Tuning & Valve Clearance (Regular: ₹2,400)</option>
             </select>
           </div>
+
+          {/* Same-Branch Loyalty Discount Toggle & Live Breakdown */}
+          {bookingForm.branch === 'Salem Central Mega Hub' ? (
+            <div style={{
+              background: '#f0fdf4',
+              border: '1.5px solid #bbf7d0',
+              borderRadius: '12px',
+              padding: '12px 14px',
+              marginBottom: '14px'
+            }}>
+              <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  style={{ marginTop: '3px' }}
+                  checked={bookingForm.applyBranchPointsDiscount}
+                  onChange={(e) => setBookingForm({ ...bookingForm, applyBranchPointsDiscount: e.target.checked })}
+                />
+                <div>
+                  <div style={{ fontSize: '13px', fontWeight: 800, color: '#166534' }}>
+                    Apply Same-Branch GPS Loyalty Discount (-₹{bookingForm.discountAmount})
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#15803d', marginTop: '2px' }}>
+                    Redeems {bookingForm.discountPoints} Points from your balance of {membership.pointsBalance} Points.
+                  </div>
+                </div>
+              </label>
+
+              {/* Dynamic Price Breakdown */}
+              <div style={{
+                marginTop: '10px',
+                paddingTop: '10px',
+                borderTop: '1px solid #dcfce7',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                fontSize: '12px'
+              }}>
+                <div>
+                  <span style={{ color: '#475569' }}>Standard: </span>
+                  <span style={{ textDecoration: bookingForm.applyBranchPointsDiscount ? 'line-through' : 'none', color: '#64748b' }}>
+                    ₹{bookingForm.baseCost}
+                  </span>
+                  {bookingForm.applyBranchPointsDiscount && (
+                    <span style={{ color: '#059669', fontWeight: 700, marginLeft: '6px' }}>
+                      -₹{bookingForm.discountAmount}
+                    </span>
+                  )}
+                </div>
+
+                <div style={{ textAlign: 'right' }}>
+                  <span style={{ fontSize: '11px', color: '#475569', display: 'block' }}>Net Workshop Bill:</span>
+                  <span style={{ fontSize: '18px', fontWeight: 900, color: '#166534' }}>
+                    ₹{bookingForm.applyBranchPointsDiscount ? (bookingForm.baseCost - bookingForm.discountAmount) : bookingForm.baseCost}
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ fontSize: '10.5px', color: '#15803d', marginTop: '6px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <Sparkles size={12} />
+                <span>+150 Loyalty Points will be credited on service completion at Salem Central Hub!</span>
+              </div>
+            </div>
+          ) : (
+            <div style={{
+              background: '#fef3c7',
+              border: '1px solid #fde68a',
+              borderRadius: '10px',
+              padding: '10px 12px',
+              fontSize: '11.5px',
+              color: '#92400e',
+              marginBottom: '14px'
+            }}>
+              ⚠️ Note: GPS Loyalty points discounts can only be redeemed when visiting your purchase branch (<strong>Salem Central Mega Hub</strong>).
+            </div>
+          )}
 
           <div className="form-grid-2">
             <div className="form-group">
@@ -807,24 +2159,14 @@ export default function CustomerApp() {
           </div>
 
           <div className="form-group">
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
               <input
                 type="checkbox"
                 checked={bookingForm.doorstepPickup}
                 onChange={(e) => setBookingForm({ ...bookingForm, doorstepPickup: e.target.checked })}
               />
-              <strong>Opt for Doorstep Bike Pickup & Drop (Salem city limit)</strong>
+              <span style={{ fontWeight: 600, fontSize: '13px' }}>Complimentary doorstep pickup within 10 km from Salem Central Hub</span>
             </label>
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Special Requests / Symptoms</label>
-            <textarea
-              className="form-input no-left-icon"
-              rows={2}
-              value={bookingForm.notes}
-              onChange={(e) => setBookingForm({ ...bookingForm, notes: e.target.value })}
-            />
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '16px' }}>
