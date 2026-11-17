@@ -25,6 +25,7 @@ import {
   Sparkles,
   Navigation,
   DollarSign,
+  CreditCard,
   Play,
   Pause,
   RotateCcw,
