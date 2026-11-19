@@ -18,7 +18,10 @@ import {
   Phone,
   Building2,
   UserPlus,
-  Key
+  Key,
+  Info,
+  Check,
+  X
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import DynamicBrandLogo from '../../components/common/DynamicBrandLogo';
@@ -73,6 +76,29 @@ export default function LoginPage() {
     }
   };
 
+  // 1-Click Instant Login (Super Easy & Understandable)
+  const handleInstantLogin = (role) => {
+    setErrorMessage('');
+    setIsSubmitting(true);
+    const email = role === 'super_admin' ? 'superadmin@bikeservice.com' : 'admin@bikeservice.com';
+    const pwd = role === 'super_admin' ? 'superadmin' : 'admin';
+
+    setTimeout(() => {
+      const res = login(email, pwd, true);
+      setIsSubmitting(false);
+
+      if (res.success) {
+        if (res.user.role === 'super_admin') {
+          navigate('/admin/admins', { replace: true });
+        } else {
+          navigate('/admin/dashboard', { replace: true });
+        }
+      } else {
+        setErrorMessage(res.error || 'Authentication failed.');
+      }
+    }, 250);
+  };
+
   // Sign In submit
   const handleSignInSubmit = (e) => {
     e.preventDefault();
@@ -108,8 +134,8 @@ export default function LoginPage() {
       return;
     }
 
-    if (signUpPassword.length < 6) {
-      setErrorMessage('Password must be at least 6 characters long.');
+    if (signUpPassword.length < 4) {
+      setErrorMessage('Password must be at least 4 characters long.');
       return;
     }
 
@@ -136,26 +162,11 @@ export default function LoginPage() {
           } else {
             navigate('/admin/dashboard', { replace: true });
           }
-        }, 600);
+        }, 500);
       } else {
         setErrorMessage(res.error || 'Registration failed. Please check form details.');
       }
-    }, 400);
-  };
-
-  // Quick 1-click test fill for evaluation
-  const handleQuickAutofill = (type) => {
-    setErrorMessage('');
-    setAuthMode('signin');
-    if (type === 'super_admin') {
-      setSignInRole('super_admin');
-      setSignInEmail('superadmin@bikeservice.com');
-      setSignInPassword('SuperAdmin@2026!');
-    } else if (type === 'admin') {
-      setSignInRole('admin');
-      setSignInEmail('admin@bikeservice.com');
-      setSignInPassword('Admin@Ops2026!');
-    }
+    }, 350);
   };
 
   return (
@@ -163,10 +174,10 @@ export default function LoginPage() {
       {/* Dynamic Background Mesh */}
       <div className="auth-bg-ambient" />
 
-      <div className="auth-container">
+      <div className="auth-container" style={{ maxWidth: '540px' }}>
         
         {/* Main Card */}
-        <div className="auth-card">
+        <div className="auth-card" style={{ padding: '30px 28px' }}>
           
           {/* Header & Dynamic Branding */}
           <div className="auth-header">
@@ -177,7 +188,7 @@ export default function LoginPage() {
             <p className="auth-tagline">{branding.tagline}</p>
             <div className="auth-security-pill">
               <ShieldCheck size={14} color="#10b981" />
-              <span>Multi-Tier Role-Based Security • RBAC Active</span>
+              <span>Role-Based Authentication • Super Admin & Operations Admin</span>
             </div>
           </div>
 
@@ -190,7 +201,7 @@ export default function LoginPage() {
                 onClick={() => handleModeChange('signin')}
               >
                 <Lock size={15} />
-                <span>Sign In</span>
+                <span>Sign In (Instant Access)</span>
               </button>
               <button
                 type="button"
@@ -198,7 +209,7 @@ export default function LoginPage() {
                 onClick={() => handleModeChange('signup')}
               >
                 <UserPlus size={15} />
-                <span>Sign Up</span>
+                <span>Create New Account</span>
               </button>
             </div>
           </div>
@@ -238,38 +249,152 @@ export default function LoginPage() {
               ================================================================= */}
           {authMode === 'signin' && (
             <>
-              {/* Portal Selector Tabs: Super Admin vs Operations Admin */}
-              <div className="auth-portal-selector">
-                <button
-                  type="button"
-                  className={`auth-portal-tab ${signInRole === 'super_admin' ? 'active super-admin' : ''}`}
-                  onClick={() => handleSignInPortalSwitch('super_admin')}
-                >
-                  <Crown size={16} />
-                  <div>
-                    <div className="tab-main-title">Super Admin</div>
-                    <div className="tab-sub-title">Root & Master Hubs</div>
-                  </div>
-                </button>
+              {/* Easy Visual Account Cards (1-Click Login or Select) */}
+              <div style={{ marginBottom: '16px' }}>
+                <div style={{ fontSize: '12px', fontWeight: 800, color: '#334155', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Sparkles size={14} color="#f59e0b" />
+                  <span>Choose Account to Sign In (1-Click Login):</span>
+                </div>
 
-                <button
-                  type="button"
-                  className={`auth-portal-tab ${signInRole === 'admin' ? 'active ops-admin' : ''}`}
-                  onClick={() => handleSignInPortalSwitch('admin')}
-                >
-                  <UserCheck size={16} />
-                  <div>
-                    <div className="tab-main-title">Operations Admin</div>
-                    <div className="tab-sub-title">Branch Workshop Ops</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  
+                  {/* Super Admin Card */}
+                  <div 
+                    style={{
+                      border: signInRole === 'super_admin' ? '2px solid #f59e0b' : '1px solid #e2e8f0',
+                      background: signInRole === 'super_admin' ? '#fffbeb' : '#ffffff',
+                      borderRadius: '12px',
+                      padding: '12px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      boxShadow: signInRole === 'super_admin' ? '0 4px 14px rgba(245, 158, 11, 0.15)' : 'none'
+                    }}
+                    onClick={() => {
+                      handleSignInPortalSwitch('super_admin');
+                      setSignInPassword('superadmin');
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '10px', background: '#fef3c7', color: '#b45309', padding: '2px 6px', borderRadius: '4px', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <Crown size={11} /> SUPER ADMIN
+                      </span>
+                      <span style={{ fontSize: '10px', color: '#64748b' }}>ROOT</span>
+                    </div>
+
+                    <div style={{ fontWeight: 800, fontSize: '13px', color: '#0f172a' }}>
+                      Alexander Vance
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px', lineHeight: 1.3 }}>
+                      Admins, Store Hubs & Global Branding
+                    </div>
+
+                    <div style={{ fontSize: '11px', color: '#b45309', fontWeight: 700, marginTop: '6px', background: 'rgba(245, 158, 11, 0.1)', padding: '2px 6px', borderRadius: '4px' }}>
+                      Pass: <code>superadmin</code>
+                    </div>
+
+                    <button
+                      type="button"
+                      style={{
+                        width: '100%',
+                        marginTop: '8px',
+                        background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                        color: '#ffffff',
+                        border: 'none',
+                        padding: '6px 10px',
+                        borderRadius: '6px',
+                        fontSize: '11.5px',
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '4px'
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleInstantLogin('super_admin');
+                      }}
+                    >
+                      <KeyRound size={12} /> 1-Click Login &rarr;
+                    </button>
                   </div>
-                </button>
+
+                  {/* Operations Admin Card */}
+                  <div 
+                    style={{
+                      border: signInRole === 'admin' ? '2px solid #2563eb' : '1px solid #e2e8f0',
+                      background: signInRole === 'admin' ? '#eff6ff' : '#ffffff',
+                      borderRadius: '12px',
+                      padding: '12px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      boxShadow: signInRole === 'admin' ? '0 4px 14px rgba(37, 99, 235, 0.15)' : 'none'
+                    }}
+                    onClick={() => {
+                      handleSignInPortalSwitch('admin');
+                      setSignInPassword('admin');
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '10px', background: '#dbeafe', color: '#1d4ed8', padding: '2px 6px', borderRadius: '4px', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <ShieldCheck size={11} /> OPS ADMIN
+                      </span>
+                      <span style={{ fontSize: '10px', color: '#64748b' }}>BRANCH</span>
+                    </div>
+
+                    <div style={{ fontWeight: 800, fontSize: '13px', color: '#0f172a' }}>
+                      Vikram Raman
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px', lineHeight: 1.3 }}>
+                      User Creation, Job Cards, Fleet & Services
+                    </div>
+
+                    <div style={{ fontSize: '11px', color: '#1d4ed8', fontWeight: 700, marginTop: '6px', background: 'rgba(37, 99, 235, 0.1)', padding: '2px 6px', borderRadius: '4px' }}>
+                      Pass: <code>admin</code>
+                    </div>
+
+                    <button
+                      type="button"
+                      style={{
+                        width: '100%',
+                        marginTop: '8px',
+                        background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+                        color: '#ffffff',
+                        border: 'none',
+                        padding: '6px 10px',
+                        borderRadius: '6px',
+                        fontSize: '11.5px',
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '4px'
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleInstantLogin('admin');
+                      }}
+                    >
+                      <KeyRound size={12} /> 1-Click Login &rarr;
+                    </button>
+                  </div>
+
+                </div>
               </div>
 
-              {/* Sign In Form */}
+              {/* Or Manual Sign In Form */}
+              <div style={{ position: 'relative', textAlign: 'center', margin: '14px 0' }}>
+                <hr style={{ border: 'none', borderTop: '1px dashed #cbd5e1' }} />
+                <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: '#ffffff', padding: '0 10px', fontSize: '11px', color: '#64748b', fontWeight: 700 }}>
+                  OR ENTER CREDENTIALS MANUALLY
+                </span>
+              </div>
+
               <form onSubmit={handleSignInSubmit} className="auth-form">
                 <div className="auth-field-group">
                   <label className="auth-label">
-                    <span>{signInRole === 'super_admin' ? 'Super Admin Identifier / Email' : 'Operations Admin Email'}</span>
+                    <span>{signInRole === 'super_admin' ? 'Super Admin Account Email' : 'Operations Admin Account Email'}</span>
                     <span className="auth-required-mark">*</span>
                   </label>
                   <div className="auth-input-wrap">
@@ -277,7 +402,6 @@ export default function LoginPage() {
                     <input
                       type="text"
                       className="auth-input"
-                      placeholder={signInRole === 'super_admin' ? 'superadmin@bikeservice.com' : 'admin@bikeservice.com'}
                       value={signInEmail}
                       onChange={(e) => setSignInEmail(e.target.value)}
                       required
@@ -288,11 +412,11 @@ export default function LoginPage() {
                 <div className="auth-field-group">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <label className="auth-label" style={{ margin: 0 }}>
-                      <span>{signInRole === 'super_admin' ? 'Super Admin Password' : 'Admin Password'}</span>
+                      <span>Password</span>
                       <span className="auth-required-mark">*</span>
                     </label>
-                    <span style={{ fontSize: '11px', color: '#64748b' }}>
-                      {signInRole === 'super_admin' ? 'Pass: SuperAdmin@2026!' : 'Pass: Admin@Ops2026!'}
+                    <span style={{ fontSize: '11px', color: signInRole === 'super_admin' ? '#b45309' : '#1d4ed8', fontWeight: 700 }}>
+                      {signInRole === 'super_admin' ? 'Enter "superadmin" or "SuperAdmin@2026!"' : 'Enter "admin" or "Admin@Ops2026!"'}
                     </span>
                   </div>
                   <div className="auth-input-wrap">
@@ -300,11 +424,10 @@ export default function LoginPage() {
                     <input
                       type={showSignInPassword ? 'text' : 'password'}
                       className="auth-input"
-                      placeholder={signInRole === 'super_admin' ? 'Enter SuperAdmin@2026!...' : 'Enter Admin@Ops2026!...'}
+                      placeholder={signInRole === 'super_admin' ? 'Type "superadmin"...' : 'Type "admin"...'}
                       value={signInPassword}
                       onChange={(e) => setSignInPassword(e.target.value)}
                       required
-                      autoFocus
                     />
                     <button
                       type="button"
@@ -324,9 +447,9 @@ export default function LoginPage() {
                       checked={rememberMe}
                       onChange={(e) => setRememberMe(e.target.checked)}
                     />
-                    <span>Persist encrypted session</span>
+                    <span>Persist session</span>
                   </label>
-                  <span className="auth-session-info">256-bit Token</span>
+                  <span className="auth-session-info">256-bit Secure</span>
                 </div>
 
                 <button
@@ -341,8 +464,8 @@ export default function LoginPage() {
                       <KeyRound size={17} />
                       <span>
                         {signInRole === 'super_admin' 
-                          ? 'Sign In to Super Admin Console' 
-                          : 'Sign In to Admin Operations Dashboard'
+                          ? 'Enter Super Admin Console (Admins & Stores)' 
+                          : 'Enter Operations Dashboard (User Creation & Fleet)'
                         }
                       </span>
                       <ArrowRight size={17} />
@@ -351,61 +474,29 @@ export default function LoginPage() {
                 </button>
               </form>
 
-              {/* Switch Prompt */}
-              <div className="auth-switch-prompt-row">
-                <span>New administrator on the team?</span>
-                <button
-                  type="button"
-                  className="auth-switch-link"
-                  onClick={() => handleModeChange('signup')}
-                >
-                  Create New Account (Sign Up) &rarr;
-                </button>
-              </div>
+              {/* Role Matrix & Authorization Guide (Clear & Understandable) */}
+              <div style={{ marginTop: '20px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px' }}>
+                <div style={{ fontSize: '12px', fontWeight: 800, color: '#0f172a', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Info size={14} color="#2563eb" />
+                  <span>Role Permissions & Destination Guide:</span>
+                </div>
 
-              {/* Quick Credential Autofill Pills for Testing */}
-              <div className="auth-quick-autofill-section">
-                <span className="autofill-title">
-                  <Sparkles size={13} color="#f59e0b" />
-                  <span>1-Click Test Credentials (Different Passwords Enforced):</span>
-                </span>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '11px' }}>
+                  <div style={{ background: '#ffffff', padding: '8px 10px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                    <strong style={{ color: '#b45309', display: 'block', marginBottom: '4px' }}>👑 Super Admin Lands On:</strong>
+                    <div style={{ color: '#0f172a', fontWeight: 700 }}>Super Admin Console</div>
+                    <div style={{ color: '#64748b', marginTop: '2px' }}>• Admin Management</div>
+                    <div style={{ color: '#64748b' }}>• Store Workshop Hubs</div>
+                    <div style={{ color: '#64748b' }}>• Logo & Branding Colors</div>
+                  </div>
 
-                <div className="autofill-grid">
-                  <button
-                    type="button"
-                    className={`autofill-card ${signInRole === 'super_admin' ? 'selected' : ''}`}
-                    onClick={() => handleQuickAutofill('super_admin')}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
-                      <Crown size={13} color="#d97706" />
-                      <strong style={{ fontSize: '12px', color: '#0f172a' }}>Super Admin</strong>
-                    </div>
-                    <div style={{ fontSize: '10.5px', color: '#64748b' }}>superadmin@bikeservice.com</div>
-                    <div style={{ fontSize: '11px', color: '#2563eb', fontWeight: 800, marginTop: '2px' }}>
-                      Pass: SuperAdmin@2026!
-                    </div>
-                    <div style={{ fontSize: '10px', color: '#059669', marginTop: '3px', fontWeight: 600 }}>
-                      ➔ Lands on Super Admin Console
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    className={`autofill-card ${signInRole === 'admin' ? 'selected' : ''}`}
-                    onClick={() => handleQuickAutofill('admin')}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
-                      <UserCheck size={13} color="#2563eb" />
-                      <strong style={{ fontSize: '12px', color: '#0f172a' }}>Operations Admin</strong>
-                    </div>
-                    <div style={{ fontSize: '10.5px', color: '#64748b' }}>admin@bikeservice.com</div>
-                    <div style={{ fontSize: '11px', color: '#16a34a', fontWeight: 800, marginTop: '2px' }}>
-                      Pass: Admin@Ops2026!
-                    </div>
-                    <div style={{ fontSize: '10px', color: '#059669', marginTop: '3px', fontWeight: 600 }}>
-                      ➔ Lands on Operations Dashboard
-                    </div>
-                  </button>
+                  <div style={{ background: '#ffffff', padding: '8px 10px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                    <strong style={{ color: '#1d4ed8', display: 'block', marginBottom: '4px' }}>🛡️ Admin Lands On:</strong>
+                    <div style={{ color: '#0f172a', fontWeight: 700 }}>Operations Dashboard</div>
+                    <div style={{ color: '#64748b', marginTop: '2px' }}>• Customer User Creation</div>
+                    <div style={{ color: '#64748b' }}>• Service Monitoring</div>
+                    <div style={{ color: '#64748b' }}>• Job Cards & Fleet GPS</div>
+                  </div>
                 </div>
               </div>
             </>
@@ -570,7 +661,7 @@ export default function LoginPage() {
                     <input
                       type={showSignUpPassword ? 'text' : 'password'}
                       className="auth-input"
-                      placeholder="Min 6 chars"
+                      placeholder="Min 4 chars (e.g. admin)"
                       value={signUpPassword}
                       onChange={(e) => setSignUpPassword(e.target.value)}
                       required
@@ -631,23 +722,11 @@ export default function LoginPage() {
                   </>
                 )}
               </button>
-
-              {/* Switch back to Sign In */}
-              <div className="auth-switch-prompt-row">
-                <span>Already have an administrator account?</span>
-                <button
-                  type="button"
-                  className="auth-switch-link"
-                  onClick={() => handleModeChange('signin')}
-                >
-                  Sign In instead &rarr;
-                </button>
-              </div>
             </form>
           )}
 
           {/* Customer Portal Shortcut */}
-          <div className="auth-customer-link-row">
+          <div className="auth-customer-link-row" style={{ marginTop: '16px' }}>
             <button
               type="button"
               className="auth-customer-btn"

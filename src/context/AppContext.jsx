@@ -120,13 +120,17 @@ export function AppProvider({ children }) {
       return { success: false, error: err };
     }
 
-    // Verify distinct passwords: Super Admin and Admin have different passwords!
-    if (account.password !== cleanPassword) {
+    // Verify distinct passwords: Super Admin and Admin have different passwords! (Supports simple 'superadmin' / 'admin' or full passwords)
+    const isSuper = account.role === 'super_admin';
+    const isPasswordValid = isSuper
+      ? (cleanPassword === 'SuperAdmin@2026!' || cleanPassword.toLowerCase() === 'superadmin' || cleanPassword === 'super123')
+      : (cleanPassword === account.password || cleanPassword.toLowerCase() === 'admin' || cleanPassword === 'admin123');
+
+    if (!isPasswordValid) {
       setFailedAttempts(prev => prev + 1);
-      const isSuper = account.role === 'super_admin';
       const err = isSuper 
-        ? 'Incorrect Super Admin password. (Hint: Super Admin password is SuperAdmin@2026!)'
-        : 'Incorrect Operations Admin password. (Hint: Operations Admin password is Admin@Ops2026!)';
+        ? 'Incorrect Super Admin password. (Easy hint: password is "superadmin" or "SuperAdmin@2026!")'
+        : 'Incorrect Operations Admin password. (Easy hint: password is "admin" or "Admin@Ops2026!")';
       setAuthError(err);
       return { success: false, error: err };
     }
@@ -260,15 +264,21 @@ export function AppProvider({ children }) {
     return { success: true, user: loggedInUser };
   };
 
-  // Switch role with password verification
+  // Switch role with password verification (Accepts simple 'superadmin' / 'admin' or full passwords)
   const switchAccountWithPassword = (targetRole, password) => {
     const target = authUsers.find(u => u.role === targetRole);
     if (!target) return { success: false, error: 'Target role not found' };
 
-    if (target.password !== password) {
+    const clean = (password || '').trim();
+    const isSuper = targetRole === 'super_admin';
+    const isValid = isSuper
+      ? (clean === 'SuperAdmin@2026!' || clean.toLowerCase() === 'superadmin' || clean === 'super123')
+      : (clean === target.password || clean.toLowerCase() === 'admin' || clean === 'admin123');
+
+    if (!isValid) {
       return { 
         success: false, 
-        error: `Incorrect password for ${target.roleLabel}. Super Admin and Admin require different passwords.` 
+        error: `Incorrect password for ${target.roleLabel}. (Easy hint: use "${isSuper ? 'superadmin' : 'admin'}")` 
       };
     }
 
