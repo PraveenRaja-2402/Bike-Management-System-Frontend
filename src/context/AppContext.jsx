@@ -15,7 +15,7 @@ import {
 const AppContext = createContext(null);
 
 export function AppProvider({ children }) {
-  // Authentication & Security State
+  // Authentication & Security State (Session-scoped: fresh URL visit always requires Login first!)
   const [authUsers, setAuthUsers] = useState(() => {
     try {
       const stored = localStorage.getItem('bike_mgmt_auth_users');
@@ -27,8 +27,8 @@ export function AppProvider({ children }) {
 
   const [currentUser, setCurrentUser] = useState(() => {
     try {
-      const status = localStorage.getItem('bike_mgmt_auth_status');
-      const stored = localStorage.getItem('bike_mgmt_auth_user');
+      const status = sessionStorage.getItem('bike_mgmt_auth_status');
+      const stored = sessionStorage.getItem('bike_mgmt_auth_user');
       if (status === 'logged_in' && stored) {
         return JSON.parse(stored);
       }
@@ -39,10 +39,21 @@ export function AppProvider({ children }) {
   });
 
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    const status = localStorage.getItem('bike_mgmt_auth_status');
-    const stored = localStorage.getItem('bike_mgmt_auth_user');
+    const status = sessionStorage.getItem('bike_mgmt_auth_status');
+    const stored = sessionStorage.getItem('bike_mgmt_auth_user');
     return status === 'logged_in' && !!stored;
   });
+
+  // Ensure any stale permanent auto-login in localStorage is cleared on startup
+  useEffect(() => {
+    try {
+      localStorage.removeItem('bike_mgmt_auth_status');
+      localStorage.removeItem('bike_mgmt_auth_user');
+      localStorage.removeItem('bike_mgmt_auth_token');
+    } catch {
+      // ignore
+    }
+  }, []);
 
   const [authError, setAuthError] = useState('');
   const [failedAttempts, setFailedAttempts] = useState(0);
@@ -132,11 +143,9 @@ export function AppProvider({ children }) {
     setFailedAttempts(0);
     setAuthError('');
 
-    if (rememberMe) {
-      localStorage.setItem('bike_mgmt_auth_token', token);
-      localStorage.setItem('bike_mgmt_auth_user', JSON.stringify(loggedInUser));
-      localStorage.setItem('bike_mgmt_auth_status', 'logged_in');
-    }
+    sessionStorage.setItem('bike_mgmt_auth_token', token);
+    sessionStorage.setItem('bike_mgmt_auth_user', JSON.stringify(loggedInUser));
+    sessionStorage.setItem('bike_mgmt_auth_status', 'logged_in');
 
     return { success: true, user: loggedInUser };
   };
@@ -145,9 +154,14 @@ export function AppProvider({ children }) {
   const logout = () => {
     setIsAuthenticated(false);
     setCurrentUser(null);
-    localStorage.removeItem('bike_mgmt_auth_token');
-    localStorage.removeItem('bike_mgmt_auth_user');
-    localStorage.setItem('bike_mgmt_auth_status', 'logged_out');
+    try {
+      sessionStorage.clear();
+      localStorage.removeItem('bike_mgmt_auth_token');
+      localStorage.removeItem('bike_mgmt_auth_user');
+      localStorage.removeItem('bike_mgmt_auth_status');
+    } catch {
+      // ignore
+    }
     setAuthError('');
   };
 
@@ -239,9 +253,9 @@ export function AppProvider({ children }) {
     setFailedAttempts(0);
     setAuthError('');
 
-    localStorage.setItem('bike_mgmt_auth_token', token);
-    localStorage.setItem('bike_mgmt_auth_user', JSON.stringify(loggedInUser));
-    localStorage.setItem('bike_mgmt_auth_status', 'logged_in');
+    sessionStorage.setItem('bike_mgmt_auth_token', token);
+    sessionStorage.setItem('bike_mgmt_auth_user', JSON.stringify(loggedInUser));
+    sessionStorage.setItem('bike_mgmt_auth_status', 'logged_in');
 
     return { success: true, user: loggedInUser };
   };
@@ -261,8 +275,8 @@ export function AppProvider({ children }) {
     const updated = { ...target, lastLogin: 'Just now' };
     setCurrentUser(updated);
     setIsAuthenticated(true);
-    localStorage.setItem('bike_mgmt_auth_user', JSON.stringify(updated));
-    localStorage.setItem('bike_mgmt_auth_status', 'logged_in');
+    sessionStorage.setItem('bike_mgmt_auth_user', JSON.stringify(updated));
+    sessionStorage.setItem('bike_mgmt_auth_status', 'logged_in');
     return { success: true, user: updated };
   };
 

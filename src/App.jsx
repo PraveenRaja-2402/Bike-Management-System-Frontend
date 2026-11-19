@@ -20,30 +20,18 @@ import ProfilePage from './pages/admin/ProfilePage';
 import CustomerApp from './pages/customer/CustomerApp';
 
 function AppRoutes() {
-  const { isAuthenticated, currentUser } = useApp();
+  const { currentUser } = useApp();
   const isSuperAdmin = currentUser?.role === 'super_admin';
 
   return (
     <Routes>
-      {/* Public Authentication Route */}
-      <Route 
-        path="/login" 
-        element={
-          isAuthenticated ? (
-            <Navigate 
-              to={isSuperAdmin ? "/admin/admins" : "/admin/dashboard"} 
-              replace 
-            />
-          ) : (
-            <LoginPage />
-          )
-        } 
-      />
+      {/* 1. Public Authentication Route: Hitting /login ALWAYS renders the Login Page! */}
+      <Route path="/login" element={<LoginPage />} />
 
-      {/* Customer Mobile Interface (Public / Rider Access) */}
+      {/* 2. Customer Mobile Interface (Public / Rider Access) */}
       <Route path="/customer" element={<CustomerApp />} />
 
-      {/* Protected Admin Routes */}
+      {/* 3. Protected Admin Routes (Require Active Authenticated Session) */}
       <Route element={<ProtectedRoute />}>
         <Route path="/admin" element={<AdminLayout />}>
           <Route 
@@ -93,33 +81,9 @@ function AppRoutes() {
         </Route>
       </Route>
 
-      {/* Fallback & Root Redirects: Hitting the URL shows Login page first! */}
-      <Route 
-        path="/" 
-        element={
-          isAuthenticated ? (
-            <Navigate 
-              to={isSuperAdmin ? "/admin/admins" : "/admin/dashboard"} 
-              replace 
-            />
-          ) : (
-            <Navigate to="/login" replace />
-          )
-        } 
-      />
-      <Route 
-        path="*" 
-        element={
-          isAuthenticated ? (
-            <Navigate 
-              to={isSuperAdmin ? "/admin/admins" : "/admin/dashboard"} 
-              replace 
-            />
-          ) : (
-            <Navigate to="/login" replace />
-          )
-        } 
-      />
+      {/* 4. Root & Fallback Redirects: Hitting the URL / ALWAYS opens the Login Page first! */}
+      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
 }
