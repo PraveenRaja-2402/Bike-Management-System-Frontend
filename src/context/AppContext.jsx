@@ -27,21 +27,27 @@ export function AppProvider({ children }) {
 
   const [currentUser, setCurrentUser] = useState(() => {
     try {
+      const status = localStorage.getItem('bike_mgmt_auth_status');
       const stored = localStorage.getItem('bike_mgmt_auth_user');
-      return stored ? JSON.parse(stored) : mockAuthCredentials[0];
+      if (status === 'logged_in' && stored) {
+        return JSON.parse(stored);
+      }
+      return null;
     } catch {
-      return mockAuthCredentials[0];
+      return null;
     }
   });
 
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return localStorage.getItem('bike_mgmt_auth_status') !== 'logged_out';
+    const status = localStorage.getItem('bike_mgmt_auth_status');
+    const stored = localStorage.getItem('bike_mgmt_auth_user');
+    return status === 'logged_in' && !!stored;
   });
 
   const [authError, setAuthError] = useState('');
   const [failedAttempts, setFailedAttempts] = useState(0);
 
-  const currentRole = currentUser?.role || 'super_admin';
+  const currentRole = currentUser?.role || 'guest';
 
   // Super Admin: Admins management
   const [adminsList, setAdminsList] = useState(mockAdmins);
@@ -74,21 +80,37 @@ export function AppProvider({ children }) {
   const login = (emailOrUsername, password, rememberMe = true) => {
     setAuthError('');
     const input = (emailOrUsername || '').trim().toLowerCase();
+    const cleanPassword = (password || '').trim();
 
-    // Find account by email or aliases
-    const account = authUsers.find(u => 
-      u.email.toLowerCase() === input || 
-      (u.aliases && u.aliases.some(a => a.toLowerCase() === input))
-    );
+    if (!cleanPassword) {
+      const err = 'Please enter your password.';
+      setAuthError(err);
+      return { success: false, error: err };
+    }
+
+    // Find account by email, username, role, or aliases
+    let account = null;
+    if (input) {
+      account = authUsers.find(u => 
+        u.email.toLowerCase() === input || 
+        u.role.toLowerCase() === input ||
+        (u.aliases && u.aliases.some(a => a.toLowerCase() === input))
+      );
+    }
+
+    // Fallback: smart detect by unique password if email is blank
+    if (!account) {
+      account = authUsers.find(u => u.password === cleanPassword);
+    }
 
     if (!account) {
-      const err = 'Account not found. Please verify the email or username entered.';
+      const err = 'Account not found. Please verify the credentials entered.';
       setAuthError(err);
       return { success: false, error: err };
     }
 
     // Verify distinct passwords: Super Admin and Admin have different passwords!
-    if (account.password !== password) {
+    if (account.password !== cleanPassword) {
       setFailedAttempts(prev => prev + 1);
       const isSuper = account.role === 'super_admin';
       const err = isSuper 
@@ -122,10 +144,106 @@ export function AppProvider({ children }) {
   // Logout handler
   const logout = () => {
     setIsAuthenticated(false);
+    setCurrentUser(null);
     localStorage.removeItem('bike_mgmt_auth_token');
     localStorage.removeItem('bike_mgmt_auth_user');
     localStorage.setItem('bike_mgmt_auth_status', 'logged_out');
     setAuthError('');
+  };
+
+  // Sign up handler for new administrator registration
+  const signup = ({ name, email, phone, role = 'admin', password, assignedBranch, masterKey = '' }) => {
+    setAuthError('');
+    const cleanEmail = (email || '').trim().toLowerCase();
+    const cleanPassword = (password || '').trim();
+    const cleanName = (name || '').trim();
+
+    if (!cleanName || !cleanEmail || !cleanPassword) {
+      const err = 'Please enter your full name, email, and password.';
+      setAuthError(err);
+      return { success: false, error: err };
+    }
+
+    // Check if email already registered
+    const exists = authUsers.some(u => u.email.toLowerCase() === cleanEmail);
+    if (exists) {
+      const err = 'An account with this email already exists. Please Sign In.';
+      setAuthError(err);
+      return { success: false, error: err };
+    }
+
+    // Super Admin registration requires master key validation
+    const isSuper = role === 'super_admin';
+    if (isSuper) {
+      const validKeys = ['SUPER-ROOT-2026', 'MASTER-KEY-2026', 'ROOT'];
+      if (!masterKey || !validKeys.includes(masterKey.trim().toUpperCase())) {
+        const err = 'Super Admin registration requires a valid Master Security Key. (Demo key: SUPER-ROOT-2026)';
+        setAuthError(err);
+        return { success: false, error: err };
+      }
+    }
+
+    // Generate avatar initials
+    const initials = cleanName
+      .split(' ')
+      .map(part => part[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2) || (isSuper ? 'SA' : 'AD');
+
+    const newAccount = {
+      id: authUsers.length + 1,
+      email: cleanEmail,
+      aliases: [cleanEmail.split('@')[0]],
+      password: cleanPassword,
+      name: cleanName,
+      role: isSuper ? 'super_admin' : 'admin',
+      roleLabel: isSuper ? 'Super Admin' : 'Operations Admin',
+      badge: isSuper ? 'Super Admin (Root)' : 'Branch Operations Admin',
+      avatar: initials,
+      phone: phone ? phone.trim() : '9876543210',
+      assignedBranch: assignedBranch || (isSuper ? 'All Branches' : 'Salem Central Mega Hub'),
+      permissions: isSuper 
+        ? ["Full Access", "Logo & Branding", "Store Management", "Admin Creation"]
+        : ["User Creation", "Job Cards", "Service Dispatch", "Live Tracking"],
+      createdAt: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+    };
+
+    const updatedUsers = [...authUsers, newAccount];
+    setAuthUsers(updatedUsers);
+    localStorage.setItem('bike_mgmt_auth_users', JSON.stringify(updatedUsers));
+
+    // Also add to adminsList so they appear in Admin Management table
+    const newAdminRecord = {
+      id: adminsList.length + 1,
+      name: newAccount.name,
+      email: newAccount.email,
+      phone: newAccount.phone,
+      role: isSuper ? 'Super Admin' : 'Admin',
+      status: 'Active',
+      assignedBranch: newAccount.assignedBranch,
+      permissions: newAccount.permissions,
+      lastLogin: 'Just now'
+    };
+    setAdminsList([newAdminRecord, ...adminsList]);
+
+    // Automatically log in the newly created account
+    const token = `JWT_SESSION_${newAccount.role.toUpperCase()}_${Date.now()}`;
+    const loggedInUser = {
+      ...newAccount,
+      lastLogin: 'Just now'
+    };
+
+    setCurrentUser(loggedInUser);
+    setIsAuthenticated(true);
+    setFailedAttempts(0);
+    setAuthError('');
+
+    localStorage.setItem('bike_mgmt_auth_token', token);
+    localStorage.setItem('bike_mgmt_auth_user', JSON.stringify(loggedInUser));
+    localStorage.setItem('bike_mgmt_auth_status', 'logged_in');
+
+    return { success: true, user: loggedInUser };
   };
 
   // Switch role with password verification
@@ -345,6 +463,7 @@ export function AppProvider({ children }) {
         isAuthenticated,
         authUsers,
         login,
+        signup,
         logout,
         switchAccountWithPassword,
         authError,

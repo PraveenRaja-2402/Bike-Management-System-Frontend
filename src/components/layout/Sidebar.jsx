@@ -58,6 +58,11 @@ export default function Sidebar({ isOpen, onClose }) {
       setIsSwitchModalOpen(false);
       setSwitchPassword('');
       if (onClose) onClose();
+      if (targetRole === 'super_admin') {
+        navigate('/admin/admins');
+      } else {
+        navigate('/admin/dashboard');
+      }
     } else {
       setSwitchError(res.error || 'Authentication failed. Please verify credentials.');
     }

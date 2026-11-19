@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AppProvider } from './context/AppContext';
+import { AppProvider, useApp } from './context/AppContext';
 import AdminLayout from './components/layout/AdminLayout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import RequireSuperAdmin from './components/auth/RequireSuperAdmin';
@@ -19,63 +19,116 @@ import SettingsPage from './pages/admin/SettingsPage';
 import ProfilePage from './pages/admin/ProfilePage';
 import CustomerApp from './pages/customer/CustomerApp';
 
+function AppRoutes() {
+  const { isAuthenticated, currentUser } = useApp();
+  const isSuperAdmin = currentUser?.role === 'super_admin';
+
+  return (
+    <Routes>
+      {/* Public Authentication Route */}
+      <Route 
+        path="/login" 
+        element={
+          isAuthenticated ? (
+            <Navigate 
+              to={isSuperAdmin ? "/admin/admins" : "/admin/dashboard"} 
+              replace 
+            />
+          ) : (
+            <LoginPage />
+          )
+        } 
+      />
+
+      {/* Customer Mobile Interface (Public / Rider Access) */}
+      <Route path="/customer" element={<CustomerApp />} />
+
+      {/* Protected Admin Routes */}
+      <Route element={<ProtectedRoute />}>
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route 
+            index 
+            element={
+              <Navigate 
+                to={isSuperAdmin ? "/admin/admins" : "/admin/dashboard"} 
+                replace 
+              />
+            } 
+          />
+          <Route path="dashboard" element={<DashboardPage />} />
+          <Route path="live-tracking" element={<LiveTrackingPage />} />
+          <Route path="next-service" element={<NextServicePage />} />
+          <Route path="pending-services" element={<PendingServicePage />} />
+          <Route path="job-cards" element={<JobCardsPage />} />
+          <Route path="users" element={<UsersPage />} />
+          <Route path="manage-brands" element={<ManageBrandsPage />} />
+          <Route path="settings" element={<SettingsPage />} />
+          <Route path="profile" element={<ProfilePage />} />
+
+          {/* Super Admin Restricted Routes (Require Master Root Credentials) */}
+          <Route 
+            path="admins" 
+            element={
+              <RequireSuperAdmin moduleName="Admin Account Management">
+                <AdminManagementPage />
+              </RequireSuperAdmin>
+            } 
+          />
+          <Route 
+            path="stores" 
+            element={
+              <RequireSuperAdmin moduleName="Store Hubs & Workshop Locations">
+                <StoreLocationsPage />
+              </RequireSuperAdmin>
+            } 
+          />
+          <Route 
+            path="branding" 
+            element={
+              <RequireSuperAdmin moduleName="Logo & Dynamic Corporate Branding">
+                <BrandingPage />
+              </RequireSuperAdmin>
+            } 
+          />
+        </Route>
+      </Route>
+
+      {/* Fallback & Root Redirects: Hitting the URL shows Login page first! */}
+      <Route 
+        path="/" 
+        element={
+          isAuthenticated ? (
+            <Navigate 
+              to={isSuperAdmin ? "/admin/admins" : "/admin/dashboard"} 
+              replace 
+            />
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        } 
+      />
+      <Route 
+        path="*" 
+        element={
+          isAuthenticated ? (
+            <Navigate 
+              to={isSuperAdmin ? "/admin/admins" : "/admin/dashboard"} 
+              replace 
+            />
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        } 
+      />
+    </Routes>
+  );
+}
+
 export default function App() {
   return (
     <AppProvider>
       <BrowserRouter>
-        <Routes>
-          {/* Public Authentication Route */}
-          <Route path="/login" element={<LoginPage />} />
-
-          {/* Customer Mobile Interface (Public / Rider Access) */}
-          <Route path="/customer" element={<CustomerApp />} />
-
-          {/* Protected Admin Routes */}
-          <Route element={<ProtectedRoute />}>
-            <Route path="/admin" element={<AdminLayout />}>
-              <Route index element={<Navigate to="/admin/dashboard" replace />} />
-              <Route path="dashboard" element={<DashboardPage />} />
-              <Route path="live-tracking" element={<LiveTrackingPage />} />
-              <Route path="next-service" element={<NextServicePage />} />
-              <Route path="pending-services" element={<PendingServicePage />} />
-              <Route path="job-cards" element={<JobCardsPage />} />
-              <Route path="users" element={<UsersPage />} />
-              <Route path="manage-brands" element={<ManageBrandsPage />} />
-              <Route path="settings" element={<SettingsPage />} />
-              <Route path="profile" element={<ProfilePage />} />
-
-              {/* Super Admin Restricted Routes (Require Master Root Credentials) */}
-              <Route 
-                path="admins" 
-                element={
-                  <RequireSuperAdmin moduleName="Admin Account Management">
-                    <AdminManagementPage />
-                  </RequireSuperAdmin>
-                } 
-              />
-              <Route 
-                path="stores" 
-                element={
-                  <RequireSuperAdmin moduleName="Store Hubs & Workshop Locations">
-                    <StoreLocationsPage />
-                  </RequireSuperAdmin>
-                } 
-              />
-              <Route 
-                path="branding" 
-                element={
-                  <RequireSuperAdmin moduleName="Logo & Dynamic Corporate Branding">
-                    <BrandingPage />
-                  </RequireSuperAdmin>
-                } 
-              />
-            </Route>
-          </Route>
-
-          {/* Fallback & Root Redirects */}
-          <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
-          <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
-        </Routes>
+        <AppRoutes />
       </BrowserRouter>
     </AppProvider>
   );

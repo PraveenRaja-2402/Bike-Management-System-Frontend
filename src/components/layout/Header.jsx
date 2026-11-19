@@ -303,6 +303,11 @@ export default function Header({ onToggleSidebar, title, subtitle, breadcrumb })
           if (res.success) {
             setIsSwitchModalOpen(false);
             setSwitchPassword('');
+            if (targetRole === 'super_admin') {
+              navigate('/admin/admins');
+            } else {
+              navigate('/admin/dashboard');
+            }
           } else {
             setSwitchError(res.error || 'Authentication failed. Super Admin and Admin have different passwords.');
           }

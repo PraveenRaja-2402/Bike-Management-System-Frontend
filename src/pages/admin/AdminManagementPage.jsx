@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   ShieldCheck, 
   Search, 
@@ -13,13 +14,16 @@ import {
   Lock, 
   CheckCircle2, 
   AlertTriangle,
-  Crown
+  Crown,
+  Palette,
+  Sparkles
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import StatusBadge from '../../components/common/StatusBadge';
 import Modal from '../../components/common/Modal';
 
 export default function AdminManagementPage() {
+  const navigate = useNavigate();
   const { currentRole, switchRole, adminsList, addAdmin, updateAdmin, deleteAdmin, storesList } = useApp();
   
   const [searchQuery, setSearchQuery] = useState('');
@@ -129,6 +133,68 @@ export default function AdminManagementPage() {
 
   return (
     <div className="admin-management-page">
+      {/* Super Admin Executive Command Banner */}
+      <div style={{
+        background: 'linear-gradient(90deg, #090e1a 0%, #1e1b4b 100%)',
+        border: '1px solid rgba(245, 158, 11, 0.35)',
+        borderRadius: '16px',
+        padding: '18px 24px',
+        marginBottom: '20px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '14px',
+        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div style={{
+            width: 48,
+            height: 48,
+            borderRadius: '14px',
+            background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#fff',
+            boxShadow: '0 0 16px rgba(245, 158, 11, 0.45)'
+          }}>
+            <Crown size={26} />
+          </div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '16.5px', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.3px' }}>
+                Super Admin Console • Alexander Vance
+              </span>
+              <span style={{ fontSize: '10px', background: '#f59e0b', color: '#000', padding: '2px 8px', borderRadius: '9999px', fontWeight: 900 }}>
+                ROOT MASTER
+              </span>
+            </div>
+            <div style={{ fontSize: '12.5px', color: '#94a3b8', marginTop: '3px' }}>
+              Managing Administrator Accounts, Salem Mega Workshop Hubs, and Dynamic Corporate Branding
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button
+            type="button"
+            className="btn-secondary btn-sm"
+            style={{ background: 'rgba(255,255,255,0.08)', color: '#fff', borderColor: 'rgba(255,255,255,0.18)' }}
+            onClick={() => navigate('/admin/stores')}
+          >
+            <Building2 size={13} color="#38bdf8" /> Store Locations
+          </button>
+          <button
+            type="button"
+            className="btn-secondary btn-sm"
+            style={{ background: 'rgba(255,255,255,0.08)', color: '#fff', borderColor: 'rgba(255,255,255,0.18)' }}
+            onClick={() => navigate('/admin/branding')}
+          >
+            <Palette size={13} color="#f59e0b" /> Change Logo & Branding
+          </button>
+        </div>
+      </div>
       {/* Super Admin Notice Banner if viewing as standard admin */}
       {currentRole !== 'super_admin' && (
         <div style={{

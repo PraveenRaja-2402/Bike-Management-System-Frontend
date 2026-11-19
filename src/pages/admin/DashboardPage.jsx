@@ -29,7 +29,7 @@ import { mockStats, mockBikes, mockRecentActivities } from '../../data/mockData'
 
 export default function DashboardPage() {
   const navigate = useNavigate();
-  const { currentRole, branding, pendingServices, storesList } = useApp();
+  const { currentRole, currentUser, branding, pendingServices, storesList } = useApp();
   const [selectedBike, setSelectedBike] = useState(mockBikes[0]);
 
   const isSuperAdmin = currentRole === 'super_admin';
@@ -57,23 +57,38 @@ export default function DashboardPage() {
             width: 44,
             height: 44,
             borderRadius: '12px',
-            background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+            background: isSuperAdmin ? 'linear-gradient(135deg, #f59e0b, #d97706)' : 'linear-gradient(135deg, #2563eb, #1d4ed8)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 0 16px rgba(37, 99, 235, 0.5)'
+            boxShadow: isSuperAdmin ? '0 0 16px rgba(245, 158, 11, 0.5)' : '0 0 16px rgba(37, 99, 235, 0.5)'
           }}>
-            <Zap size={22} color="#ffffff" />
+            {isSuperAdmin ? <Crown size={22} color="#ffffff" /> : <Zap size={22} color="#ffffff" />}
           </div>
           <div>
             <div style={{ fontSize: '15px', fontWeight: 800, letterSpacing: '-0.2px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>{branding.companyName} IoT Fleet Telemetry</span>
-              <span style={{ fontSize: '10px', background: 'rgba(16, 185, 129, 0.2)', color: '#34d399', padding: '2px 8px', borderRadius: '9999px', fontWeight: 800 }}>
-                GATEWAY ONLINE
+              <span>
+                {isSuperAdmin 
+                  ? '⚡ Super Admin Master Overview' 
+                  : `🛡️ Operations Admin Dashboard • ${currentUser?.name || 'Vikram Raman'}`
+                }
+              </span>
+              <span style={{ 
+                fontSize: '10px', 
+                background: isSuperAdmin ? 'rgba(245, 158, 11, 0.25)' : 'rgba(16, 185, 129, 0.2)', 
+                color: isSuperAdmin ? '#fbbf24' : '#34d399', 
+                padding: '2px 8px', 
+                borderRadius: '9999px', 
+                fontWeight: 800 
+              }}>
+                {isSuperAdmin ? 'ROOT CLEARANCE' : 'BRANCH OPS ACTIVE'}
               </span>
             </div>
             <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>
-              Monitoring 52 connected IoT bikes across {storesList.length} Salem workshop branches • Latency: 24ms
+              {isSuperAdmin 
+                ? `Master Monitoring: 52 IoT vehicles across all ${storesList.length} Salem workshop branches` 
+                : `Assigned Branch: ${currentUser?.assignedBranch || 'Salem Central Mega Hub'} • Fleet Telemetry & Service Desk`
+              }
             </div>
           </div>
         </div>
