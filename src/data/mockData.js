@@ -363,20 +363,26 @@ export const mockJobCards = [
 export const mockUsers = [
   {
     id: 1,
-    name: "Ramesh Kumar",
-    phone: "9843212345",
-    email: "ramesh@gmail.com",
+    name: "Bharath Kumar",
+    phone: "9876543210",
+    email: "bharath@gmail.com",
     role: "Customer",
     status: "Active",
-    registeredDate: "10 Jan 2026"
+    assignedBike: "TN 30 AB 1234",
+    pin: "1234",
+    membershipPoints: 1250,
+    registeredDate: "12 Jan 2026"
   },
   {
     id: 2,
-    name: "Priya",
-    phone: "9876543210",
-    email: "priya@gmail.com",
+    name: "Sneha Reddy",
+    phone: "9845011223",
+    email: "sneha@gmail.com",
     role: "Customer",
     status: "Active",
+    assignedBike: "TN 27 BK 9021",
+    pin: "1234",
+    membershipPoints: 840,
     registeredDate: "14 Feb 2026"
   },
   {
@@ -399,21 +405,27 @@ export const mockUsers = [
   },
   {
     id: 5,
-    name: "Suresh",
-    phone: "9090909090",
-    email: "suresh@gmail.com",
+    name: "Ramesh Kumar",
+    phone: "9843212345",
+    email: "ramesh@gmail.com",
     role: "Customer",
-    status: "Inactive",
-    registeredDate: "20 May 2025"
+    status: "Active",
+    assignedBike: "TN 30 CD 9876",
+    pin: "1234",
+    membershipPoints: 620,
+    registeredDate: "10 Jan 2026"
   },
   {
     id: 6,
-    name: "Bharath",
-    phone: "9876543210",
-    email: "bharath@bikeservice.com",
+    name: "Karthik Raja",
+    phone: "9789055667",
+    email: "karthik.raja@gmail.com",
     role: "Customer",
     status: "Active",
-    registeredDate: "12 Jan 2024"
+    assignedBike: "TN 30 DE 5678",
+    pin: "1234",
+    membershipPoints: 450,
+    registeredDate: "02 Feb 2026"
   },
   {
     id: 7,

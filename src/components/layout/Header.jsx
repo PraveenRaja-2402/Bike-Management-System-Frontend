@@ -4,7 +4,6 @@ import {
   Bell, 
   ChevronDown, 
   Menu, 
-  Smartphone, 
   User, 
   Settings, 
   LogOut,
@@ -135,16 +134,6 @@ export default function Header({ onToggleSidebar, title, subtitle, breadcrumb })
           {isSuperAdmin ? <Crown size={15} color="#f59e0b" /> : <ShieldCheck size={15} color="#ffffff" />}
           <span>Switch to {isSuperAdmin ? 'Admin' : 'Super Admin'}</span>
         </button>
-
-        {/* Switcher to Customer Mobile App */}
-        <Link 
-          to="/customer" 
-          className="header-customer-switch-btn"
-          title="Open interactive customer mobile view"
-        >
-          <Smartphone size={16} />
-          <span>Mobile View</span>
-        </Link>
 
         {/* Notifications */}
         <div className="header-popover-wrap" ref={notifRef}>

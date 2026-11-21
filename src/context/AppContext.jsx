@@ -72,6 +72,66 @@ export function AppProvider({ children }) {
   // Admin & Super Admin: Users creation & management
   const [usersList, setUsersList] = useState(mockUsers);
 
+  // Customer Rider Session (Stored in sessionStorage)
+  const [currentCustomer, setCurrentCustomer] = useState(() => {
+    try {
+      const stored = sessionStorage.getItem('bike_mgmt_customer_user');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const loginCustomer = (phoneOrEmail, pinOrPassword) => {
+    const input = (phoneOrEmail || '').trim().replace(/[\s\-\+]/g, '').replace(/^91/, '').toLowerCase();
+    const cleanPin = (pinOrPassword || '').trim();
+
+    if (!input) {
+      return { success: false, error: 'Please enter your registered mobile number.' };
+    }
+
+    const customer = usersList.find((u) => {
+      const uPhone = (u.phone || '').trim().replace(/[\s\-\+]/g, '').replace(/^91/, '');
+      const uEmail = (u.email || '').toLowerCase().trim();
+      return (uPhone === input || uEmail === input);
+    });
+
+    if (!customer) {
+      return { 
+        success: false, 
+        error: 'No rider account found with this phone number. Please contact your workshop manager.' 
+      };
+    }
+
+    const validPins = [
+      customer.pin, 
+      customer.password, 
+      '1234',
+      (customer.phone || '').slice(-4)
+    ].filter(Boolean);
+
+    if (cleanPin && !validPins.includes(cleanPin)) {
+      return { 
+        success: false, 
+        error: 'Incorrect security PIN. Default is 1234 or verify with your workshop manager.' 
+      };
+    }
+
+    setCurrentCustomer(customer);
+    try {
+      sessionStorage.setItem('bike_mgmt_customer_user', JSON.stringify(customer));
+    } catch {}
+
+    return { success: true, customer };
+  };
+
+  const logoutCustomer = () => {
+    setCurrentCustomer(null);
+    try {
+      sessionStorage.removeItem('bike_mgmt_customer_user');
+    } catch {}
+  };
+
   // Bikes fleet
   const [bikesList, setBikesList] = useState(mockBikes);
 
@@ -366,6 +426,9 @@ export function AppProvider({ children }) {
       email: userData.email,
       role: userData.role || "Customer",
       status: userData.status || "Active",
+      assignedBike: userData.assignedBike || (bikesList[0]?.regNo || "TN 30 AB 1234"),
+      pin: userData.pin || "1234",
+      membershipPoints: userData.initialPoints || 250,
       registeredDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
     };
     setUsersList([newUser, ...usersList]);
@@ -510,6 +573,9 @@ export function AppProvider({ children }) {
         addUser,
         updateUser,
         deleteUser,
+        currentCustomer,
+        loginCustomer,
+        logoutCustomer,
         bikesList,
         customerFines,
         payFine,

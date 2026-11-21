@@ -13,7 +13,11 @@ import {
   CheckCircle2, 
   Award,
   Bike,
-  Sparkles
+  Sparkles,
+  Smartphone,
+  Copy,
+  ExternalLink,
+  Check
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import StatusBadge from '../../components/common/StatusBadge';
@@ -31,6 +35,8 @@ export default function UsersPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [viewModalUser, setViewModalUser] = useState(null);
+  const [shareModalUser, setShareModalUser] = useState(null);
+  const [copiedInvite, setCopiedInvite] = useState(false);
   const [successToast, setSuccessToast] = useState('');
 
   const [formData, setFormData] = useState({
@@ -40,6 +46,7 @@ export default function UsersPage() {
     role: 'Customer',
     status: 'Active',
     assignedBike: 'TN 30 AB 1234',
+    pin: '1234',
     initialPoints: 200
   });
 
@@ -61,6 +68,7 @@ export default function UsersPage() {
       role: defaultRole,
       status: 'Active',
       assignedBike: bikesList[0]?.regNo || 'TN 30 AB 1234',
+      pin: '1234',
       initialPoints: defaultRole === 'Customer' ? 250 : 0
     });
     setIsAddModalOpen(true);
@@ -268,6 +276,28 @@ export default function UsersPage() {
                     </td>
                     <td style={{ textAlign: 'center' }}>
                       <div className="table-actions" style={{ justifyContent: 'center' }}>
+                        {isCustomer && (
+                          <button 
+                            type="button" 
+                            className="btn-outline-blue btn-sm"
+                            style={{ 
+                              display: 'inline-flex', 
+                              alignItems: 'center', 
+                              gap: '4px', 
+                              background: '#ecfdf5', 
+                              borderColor: '#10b981', 
+                              color: '#065f46',
+                              fontWeight: 700
+                            }}
+                            onClick={() => {
+                              setShareModalUser(user);
+                              setCopiedInvite(false);
+                            }}
+                            title="Share Customer Mobile App link and login credentials"
+                          >
+                            <Smartphone size={12} /> Mobile Access
+                          </button>
+                        )}
                         <button 
                           type="button" 
                           className="btn-outline-blue btn-sm"
@@ -394,7 +424,7 @@ export default function UsersPage() {
             <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0', marginTop: '10px' }}>
               <div style={{ fontSize: '12px', fontWeight: 700, color: '#0f172a', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <Sparkles size={14} color="#f59e0b" />
-                <span>Customer Loyalty & Vehicle Setup</span>
+                <span>Customer Loyalty & Mobile App Credentials</span>
               </div>
               <div className="form-grid-2">
                 <div>
@@ -418,6 +448,27 @@ export default function UsersPage() {
                     ))}
                   </select>
                 </div>
+              </div>
+
+              <div style={{ marginTop: '10px' }}>
+                <label style={{ fontSize: '11px', color: '#64748b', display: 'block', marginBottom: '4px' }}>
+                  Mobile App Security PIN (4 Digits)
+                </label>
+                <input
+                  type="text"
+                  maxLength={6}
+                  className="form-input no-left-icon"
+                  value={formData.pin || '1234'}
+                  onChange={(e) => setFormData({ ...formData, pin: e.target.value })}
+                  placeholder="1234"
+                />
+              </div>
+
+              <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '6px', padding: '8px 10px', marginTop: '10px', fontSize: '11.5px', color: '#1e40af', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Smartphone size={14} style={{ flexShrink: 0 }} />
+                <span>
+                  The customer will use this Phone Number and PIN to log in to their separate mobile web app at <strong>/customer</strong>.
+                </span>
               </div>
             </div>
           )}
@@ -550,6 +601,79 @@ export default function UsersPage() {
           <div style={{ textAlign: 'right', marginTop: '16px' }}>
             <button type="button" className="btn-primary" onClick={() => setViewModalUser(null)}>
               Close
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {/* Modal: Share Customer Mobile App Credentials */}
+      {shareModalUser && (
+        <Modal
+          isOpen={Boolean(shareModalUser)}
+          onClose={() => setShareModalUser(null)}
+          title={`Customer Mobile App Access: ${shareModalUser.name}`}
+        >
+          <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+              <Smartphone size={18} color="#2563eb" />
+              <strong style={{ fontSize: '13.5px', color: '#0f172a' }}>Separate Rider Mobile Application</strong>
+            </div>
+            <p style={{ margin: 0, fontSize: '12px', color: '#64748b', lineHeight: 1.5 }}>
+              The customer can open this dedicated, responsive mobile web app on their personal smartphone to track their bike, check service records, and view trip playback.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
+            <div style={{ background: '#eff6ff', padding: '12px 14px', borderRadius: '8px', border: '1px solid #bfdbfe' }}>
+              <span style={{ fontSize: '11px', color: '#1e40af', fontWeight: 700, display: 'block', marginBottom: '4px' }}>
+                SEPARATE CUSTOMER URL:
+              </span>
+              <code style={{ fontSize: '13px', color: '#1d4ed8', fontWeight: 800, wordBreak: 'break-all' }}>
+                {window.location.origin}/customer
+              </code>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div style={{ background: '#f1f5f9', padding: '10px 12px', borderRadius: '8px' }}>
+                <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>Login Mobile Number</span>
+                <strong style={{ fontSize: '14px', color: '#0f172a' }}>{shareModalUser.phone}</strong>
+              </div>
+              <div style={{ background: '#f1f5f9', padding: '10px 12px', borderRadius: '8px' }}>
+                <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>Security PIN</span>
+                <strong style={{ fontSize: '14px', color: '#0f172a' }}>{shareModalUser.pin || '1234'}</strong>
+              </div>
+            </div>
+
+            <div style={{ background: '#f8fafc', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+              <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>Linked Vehicle</span>
+              <strong style={{ fontSize: '13px', color: '#0f172a' }}>{shareModalUser.assignedBike || 'TN 30 AB 1234'}</strong>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', paddingTop: '14px', borderTop: '1px solid #e2e8f0' }}>
+            <a
+              href="/customer"
+              target="_blank"
+              rel="noreferrer"
+              className="btn-secondary"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px', textDecoration: 'none' }}
+            >
+              <ExternalLink size={13} /> Open Mobile URL
+            </a>
+
+            <button
+              type="button"
+              className="btn-primary"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+              onClick={() => {
+                const msg = `Hi ${shareModalUser.name}, you can now track your bike and service history on our mobile app! URL: ${window.location.origin}/customer | Phone: ${shareModalUser.phone} | PIN: ${shareModalUser.pin || '1234'}`;
+                navigator.clipboard.writeText(msg);
+                setCopiedInvite(true);
+                setTimeout(() => setCopiedInvite(false), 3000);
+              }}
+            >
+              {copiedInvite ? <Check size={14} /> : <Copy size={14} />}
+              <span>{copiedInvite ? 'Copied Invitation!' : 'Copy Mobile Invite'}</span>
             </button>
           </div>
         </Modal>

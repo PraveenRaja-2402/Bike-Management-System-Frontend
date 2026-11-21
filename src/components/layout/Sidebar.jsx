@@ -9,7 +9,6 @@ import {
   Users, 
   Tag, 
   Settings, 
-  Smartphone,
   X,
   Crown,
   ShieldCheck,
@@ -233,17 +232,6 @@ export default function Sidebar({ isOpen, onClose }) {
               </NavLink>
             );
           })}
-
-          <div className="nav-section-title" style={{ marginTop: '16px' }}>CUSTOMER MOBILE INTERFACE</div>
-          <NavLink
-            to="/customer"
-            onClick={onClose}
-            className={({ isActive }) => `sidebar-nav-item customer-link ${isActive ? 'active' : ''}`}
-          >
-            <Smartphone size={18} className="nav-item-icon" />
-            <span className="nav-item-label">Customer Mobile App</span>
-            <span className="customer-badge-live">Live</span>
-          </NavLink>
         </nav>
 
         {/* Footer info & Logout */}

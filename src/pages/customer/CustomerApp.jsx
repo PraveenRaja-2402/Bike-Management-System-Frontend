@@ -47,7 +47,10 @@ import {
   Tag,
   Store,
   Percent,
-  BadgePercent
+  BadgePercent,
+  LogOut,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import BrandLogo from '../../components/common/BrandLogo';
 import LeafletMap from '../../components/common/LeafletMap';
@@ -71,10 +74,38 @@ export default function CustomerApp() {
     redeemReward, 
     earnPoints, 
     geofences, 
-    toggleGeofenceAlert 
+    toggleGeofenceAlert,
+    currentCustomer,
+    loginCustomer,
+    logoutCustomer
   } = useApp();
 
-  const bharathBike = bikesList[0]; // Yamaha FZ-S (TN 30 AB 1234)
+  // Rider's assigned bike (matches assignedBike from customer profile or defaults to first bike)
+  const bharathBike = currentCustomer 
+    ? (bikesList.find(b => b.regNo === currentCustomer.assignedBike || (b.customer && currentCustomer.name && b.customer.toLowerCase().includes(currentCustomer.name.toLowerCase().split(' ')[0]))) || bikesList[0])
+    : bikesList[0];
+
+  // Rider Login State
+  const [customerLoginError, setCustomerLoginError] = useState('');
+  const [loginPhone, setLoginPhone] = useState('');
+  const [loginPin, setLoginPin] = useState('');
+  const [showLoginPin, setShowLoginPin] = useState(false);
+
+  const handleCustomerLoginSubmit = (e) => {
+    e.preventDefault();
+    setCustomerLoginError('');
+    const res = loginCustomer(loginPhone, loginPin);
+    if (!res.success) {
+      setCustomerLoginError(res.error);
+    }
+  };
+
+  const handleQuickCustomerSelect = (ph, pn) => {
+    setCustomerLoginError('');
+    setLoginPhone(ph);
+    setLoginPin(pn);
+    loginCustomer(ph, pn);
+  };
 
   // Navigation tab: 'home', 'bike', 'distance', 'playback', 'geolocation', 'fines', 'membership', 'service', 'service-history', 'alerts', 'profile'
   const [activeTab, setActiveTab] = useState('home');
@@ -210,27 +241,129 @@ export default function CustomerApp() {
 
   return (
     <div className="customer-view-wrapper">
-      {/* Top bar controls for desktop users to return to Admin */}
-      <div className="customer-top-bar-controls">
-        <div className="customer-mode-badge">
-          <Sparkles size={14} />
-          <span>Porsche Design • IoT Telemetry v2.4</span>
-        </div>
-        <button
-          type="button"
-          className="customer-back-to-admin"
-          onClick={() => navigate('/admin/dashboard')}
-        >
-          <ArrowLeft size={14} /> Back to Admin Panel
-        </button>
-      </div>
-
-      {/* Flagship Mobile Device Mockup Frame (iPhone 16 Pro Form Factor) */}
+      {/* Standalone Mobile Device Viewport */}
       <div className="mobile-device-frame">
-        
-        {/* Dynamic Island */}
-        <div className="dynamic-island">
-          <div className="dynamic-island-camera" />
+        {!currentCustomer ? (
+          <div className="rider-login-container">
+            {/* Top Branding */}
+            <div className="rider-login-header">
+              <div className="rider-logo-circle">
+                <DynamicBrandLogo size={36} />
+              </div>
+              <h2 className="rider-portal-title">{branding.companyName}</h2>
+              <span className="rider-portal-badge">📱 Customer Mobile Portal</span>
+              <p className="rider-portal-subtitle">
+                Access your bike's live GPS telemetry, service history, and road assistance directly on your smartphone.
+              </p>
+            </div>
+
+            {/* Error Alert */}
+            {customerLoginError && (
+              <div className="rider-login-error">
+                <AlertTriangle size={16} />
+                <span>{customerLoginError}</span>
+              </div>
+            )}
+
+            {/* Login Form */}
+            <form onSubmit={handleCustomerLoginSubmit} className="rider-login-form">
+              <div>
+                <label className="rider-form-label">Registered Mobile Number</label>
+                <div className="rider-input-group">
+                  <span className="rider-input-prefix">+91</span>
+                  <input
+                    type="tel"
+                    className="rider-input-field"
+                    placeholder="e.g. 98765 43210"
+                    value={loginPhone}
+                    onChange={(e) => setLoginPhone(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <label className="rider-form-label">4-Digit Security PIN</label>
+                  <span style={{ fontSize: '11px', color: '#64748b' }}>Default: 1234</span>
+                </div>
+                <div className="rider-input-group">
+                  <Lock size={16} className="rider-input-icon" />
+                  <input
+                    type={showLoginPin ? "text" : "password"}
+                    maxLength={6}
+                    className="rider-input-field"
+                    placeholder="••••"
+                    value={loginPin}
+                    onChange={(e) => setLoginPin(e.target.value)}
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="rider-input-toggle"
+                    onClick={() => setShowLoginPin(!showLoginPin)}
+                  >
+                    {showLoginPin ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+
+              <button type="submit" className="rider-submit-btn">
+                <span>Sign In to My Bike</span>
+                <ArrowRight size={16} />
+              </button>
+            </form>
+
+            {/* 1-Tap Quick Demo Riders */}
+            <div className="quick-demo-section">
+              <div className="quick-demo-title">
+                <span>⚡ 1-Tap Instant Rider Login (Demo)</span>
+              </div>
+              <div className="quick-demo-cards">
+                <button
+                  type="button"
+                  className="quick-demo-card"
+                  onClick={() => handleQuickCustomerSelect('9876543210', '1234')}
+                >
+                  <div className="quick-demo-avatar">BK</div>
+                  <div className="quick-demo-info">
+                    <div className="quick-demo-name">Bharath Kumar</div>
+                    <div className="quick-demo-bike">Yamaha FZ-S • TN 30 AB 1234</div>
+                  </div>
+                  <span className="quick-demo-pin">PIN: 1234</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="quick-demo-card"
+                  onClick={() => handleQuickCustomerSelect('9845011223', '1234')}
+                >
+                  <div className="quick-demo-avatar" style={{ background: '#7c3aed' }}>SR</div>
+                  <div className="quick-demo-info">
+                    <div className="quick-demo-name">Sneha Reddy</div>
+                    <div className="quick-demo-bike">Hunter 350 • TN 27 BK 9021</div>
+                  </div>
+                  <span className="quick-demo-pin">PIN: 1234</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Workshop Handover Notice */}
+            <div className="rider-help-notice">
+              <ShieldCheck size={16} color="#059669" />
+              <div>
+                <strong>Account created by your service workshop?</strong>
+                <p>
+                  Your account credentials are provided by your workshop service manager upon vehicle drop-off.
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Dynamic Island */}
+            <div className="dynamic-island">
+              <div className="dynamic-island-camera" />
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', display: 'inline-block', boxShadow: '0 0 6px #10b981' }} />
             <span style={{ fontSize: '9px', fontWeight: 800, color: '#ffffff', letterSpacing: '0.3px' }}>
@@ -1694,13 +1827,13 @@ export default function CustomerApp() {
               <div style={{ padding: '20px 18px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '14px', background: '#ffffff', padding: '16px', borderRadius: '18px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
                   <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', color: '#fff', fontSize: '22px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    B
+                    {currentCustomer?.name ? currentCustomer.name.charAt(0).toUpperCase() : 'B'}
                   </div>
                   <div>
-                    <div style={{ fontSize: '17px', fontWeight: 800, color: '#0f172a' }}>Bharath</div>
-                    <div style={{ fontSize: '12px', color: '#64748b' }}>+91 98765 43210</div>
+                    <div style={{ fontSize: '17px', fontWeight: 800, color: '#0f172a' }}>{currentCustomer?.name || 'Bharath Kumar'}</div>
+                    <div style={{ fontSize: '12px', color: '#64748b' }}>{currentCustomer?.phone || '+91 98765 43210'}</div>
                     <div style={{ fontSize: '11.5px', color: '#f59e0b', fontWeight: 800, marginTop: '2px' }}>
-                      ⭐ GPS Loyalty Member ({membership.pointsBalance} Points)
+                      ⭐ GPS Loyalty Member ({currentCustomer?.membershipPoints || membership.pointsBalance} Points)
                     </div>
                   </div>
                 </div>
@@ -1708,7 +1841,7 @@ export default function CustomerApp() {
                 <div style={{ background: '#ffffff', borderRadius: '18px', border: '1px solid #e2e8f0', padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '13px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '10px', borderBottom: '1px solid #f1f5f9' }}>
                     <span style={{ color: '#64748b' }}>Registered Vehicle</span>
-                    <strong>Yamaha FZ-S ({bharathBike.regNo})</strong>
+                    <strong>{bharathBike.model} ({bharathBike.regNo})</strong>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '10px', borderBottom: '1px solid #f1f5f9' }}>
                     <span style={{ color: '#64748b' }}>Insurance Valid Until</span>
@@ -1726,11 +1859,27 @@ export default function CustomerApp() {
 
                 <button
                   type="button"
-                  className="btn-primary"
-                  style={{ width: '100%', padding: '13px', borderRadius: '14px' }}
-                  onClick={() => alert('Profile settings saved! (Mock state)')}
+                  style={{
+                    width: '100%',
+                    padding: '13px',
+                    borderRadius: '14px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    background: '#fee2e2',
+                    color: '#dc2626',
+                    border: '1px solid #fecdd3',
+                    fontSize: '13.5px',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => {
+                    logoutCustomer();
+                    setActiveTab('home');
+                  }}
                 >
-                  Save Preferences
+                  <LogOut size={16} /> Log Out of Rider App
                 </button>
               </div>
             </div>
@@ -1865,7 +2014,9 @@ export default function CustomerApp() {
 
         {/* Bottom iOS Home Indicator */}
         <div className="mobile-home-indicator-bar" />
-      </div>
+      </>
+    )}
+  </div>
 
       {/* Modal: Pay Fine Online */}
       {selectedFineForPay && (
