@@ -6,8 +6,12 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import RequireSuperAdmin from './components/auth/RequireSuperAdmin';
 import LoginPage from './pages/auth/LoginPage';
 import DashboardPage from './pages/admin/DashboardPage';
-import LiveTrackingPage from './pages/admin/LiveTrackingPage';
+import BikesPage from './pages/admin/BikesPage';
+import ServiceTrackingPage from './pages/admin/ServiceTrackingPage';
+import RepairHistoryPage from './pages/admin/RepairHistoryPage';
 import NextServicePage from './pages/admin/NextServicePage';
+import ReportsPage from './pages/admin/ReportsPage';
+import LiveTrackingPage from './pages/admin/LiveTrackingPage';
 import PendingServicePage from './pages/admin/PendingServicePage';
 import JobCardsPage from './pages/admin/JobCardsPage';
 import UsersPage from './pages/admin/UsersPage';
@@ -44,8 +48,16 @@ function AppRoutes() {
             } 
           />
           <Route path="dashboard" element={<DashboardPage />} />
-          <Route path="live-tracking" element={<LiveTrackingPage />} />
+          
+          {/* Bike Repair & Service Alert System Modules */}
+          <Route path="bikes" element={<BikesPage />} />
+          <Route path="services" element={<ServiceTrackingPage />} />
+          <Route path="repairs" element={<RepairHistoryPage />} />
           <Route path="next-service" element={<NextServicePage />} />
+          <Route path="reports" element={<ReportsPage />} />
+
+          {/* Fleet Telemetry & Operations */}
+          <Route path="live-tracking" element={<LiveTrackingPage />} />
           <Route path="pending-services" element={<PendingServicePage />} />
           <Route path="job-cards" element={<JobCardsPage />} />
           <Route path="users" element={<UsersPage />} />

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Bike, 
@@ -19,24 +19,103 @@ import {
   AlertTriangle,
   TrendingUp,
   Sparkles,
-  Zap
+  Zap,
+  Wrench,
+  Download,
+  FileText,
+  Calendar,
+  DollarSign
 } from 'lucide-react';
 import MetricCard from '../../components/common/MetricCard';
 import LeafletMap from '../../components/common/LeafletMap';
 import StatusBadge from '../../components/common/StatusBadge';
 import { useApp } from '../../context/AppContext';
-import { mockStats, mockBikes, mockRecentActivities } from '../../data/mockData';
+import { mockStats, mockBikes } from '../../data/mockData';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
-  const { currentRole, currentUser, branding, pendingServices, storesList } = useApp();
+  const { 
+    currentRole, 
+    currentUser, 
+    branding, 
+    storesList,
+    bikesList,
+    serviceRecords,
+    repairRecords,
+    serviceIntervals,
+    exportDatabaseBackup
+  } = useApp();
+
   const [selectedBike, setSelectedBike] = useState(mockBikes[0]);
 
   const isSuperAdmin = currentRole === 'super_admin';
-  const criticalOverdueServices = pendingServices.filter(s => s.serviceDueDays < 0);
+
+  // Calculate live counts from real state
+  const { overdueCount, upcomingCount, totalRegisteredBikes, totalServicesCount } = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let over = 0;
+    let upc = 0;
+
+    bikesList.forEach(b => {
+      const curKm = parseInt(b.currentKm, 10) || 0;
+      const nextKm = parseInt(b.nextServiceKm, 10) || (curKm + 3000);
+      const kmRemaining = nextKm - curKm;
+
+      let daysRemaining = 999;
+      if (b.nextServiceDate) {
+        const nextDate = new Date(b.nextServiceDate);
+        nextDate.setHours(0, 0, 0, 0);
+        daysRemaining = Math.ceil((nextDate - today) / (1000 * 60 * 60 * 24));
+      }
+
+      if (kmRemaining <= 0 || daysRemaining < 0) {
+        over += 1;
+      } else if (kmRemaining <= 500 || daysRemaining <= 15) {
+        upc += 1;
+      }
+    });
+
+    return {
+      overdueCount: over,
+      upcomingCount: upc,
+      totalRegisteredBikes: bikesList.length,
+      totalServicesCount: serviceRecords.length
+    };
+  }, [bikesList, serviceRecords]);
+
+  // Recent service & repair activities combined
+  const recentServiceActivities = useMemo(() => {
+    const srv = serviceRecords.map(s => ({
+      id: s.id,
+      date: s.serviceDate,
+      regNo: s.regNo,
+      owner: s.ownerName,
+      type: 'Service',
+      detail: s.serviceType || 'Periodic Maintenance',
+      cost: s.serviceCost,
+      technician: s.technician || 'Mani'
+    }));
+
+    const rep = repairRecords.map(r => ({
+      id: r.id,
+      date: r.repairDate,
+      regNo: r.regNo,
+      owner: r.ownerName,
+      type: 'Repair',
+      detail: r.repairDetails || 'Mechanical Repair',
+      cost: r.totalCost,
+      technician: r.technician || 'Mani'
+    }));
+
+    return [...srv, ...rep]
+      .sort((a, b) => new Date(b.date) - new Date(a.date))
+      .slice(0, 6);
+  }, [serviceRecords, repairRecords]);
 
   return (
-    <div className="dashboard-page">
+    <div className="dashboard-page" style={{ paddingBottom: '32px' }}>
       {/* Top Telemetry Gateway Status Bar */}
       <div style={{
         background: 'linear-gradient(90deg, #070c18 0%, #0f172a 100%)',
@@ -86,8 +165,8 @@ export default function DashboardPage() {
             </div>
             <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>
               {isSuperAdmin 
-                ? `Master Monitoring: 52 IoT vehicles across all ${storesList.length} Salem workshop branches` 
-                : `Assigned Branch: ${currentUser?.assignedBranch || 'Salem Central Mega Hub'} • Fleet Telemetry & Service Desk`
+                ? `Master Monitoring: ${totalRegisteredBikes} Registered Bikes • ${storesList.length} Salem workshop branches` 
+                : `Assigned Branch: ${currentUser?.assignedBranch || 'Salem Central Mega Hub'} • Bike Repair & Service Alert System`
               }
             </div>
           </div>
@@ -125,8 +204,8 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Critical Service Pending Alert Banner */}
-      {criticalOverdueServices.length > 0 && (
+      {/* Critical Overdue Alert Banner if overdue bikes exist */}
+      {overdueCount > 0 && (
         <div style={{
           background: 'linear-gradient(90deg, #fff1f2 0%, #fee2e2 100%)',
           border: '1px solid #fca5a5',
@@ -143,10 +222,10 @@ export default function DashboardPage() {
             <AlertTriangle size={20} color="#dc2626" />
             <div>
               <strong style={{ color: '#991b1b', fontSize: '13.5px' }}>
-                Service Pending Action Required:
+                Service Alerts Action Required:
               </strong>
               <span style={{ color: '#b91c1c', fontSize: '13px', marginLeft: '6px' }}>
-                {criticalOverdueServices.length} bikes are critically overdue for periodic maintenance.
+                {overdueCount} bikes are currently overdue for periodic service. Send WhatsApp/SMS reminders immediately.
               </span>
             </div>
           </div>
@@ -154,61 +233,223 @@ export default function DashboardPage() {
           <button
             type="button"
             className="btn-danger btn-sm"
-            onClick={() => navigate('/admin/pending-services')}
+            onClick={() => navigate('/admin/next-service')}
           >
-            View Service Monitoring &rarr;
+            Dispatch Reminders &rarr;
           </button>
         </div>
       )}
 
-      {/* 4 Metric Cards */}
-      <div className="metrics-row">
+      {/* 5 Core Required Metrics Row */}
+      <div className="metrics-row" style={{ marginBottom: '20px' }}>
         <MetricCard
-          title="Total Connected Bikes"
-          value={mockStats.totalBikes}
+          title="Total Registered Bikes"
+          value={totalRegisteredBikes}
           icon={Bike}
           color="blue"
-          trend="+12% MoM"
-          trendType="up"
-          subtitle="All active IoT units"
-          onClick={() => navigate('/admin/live-tracking')}
-        />
-        <MetricCard
-          title="Online & Moving Now"
-          value={mockStats.onlineNow}
-          icon={Wifi}
-          color="green"
-          trend="73% Active"
-          trendType="up"
-          subtitle="Live telemetry streaming"
-          onClick={() => navigate('/admin/live-tracking')}
-        />
-        <MetricCard
-          title="Service Pending / Due"
-          value={pendingServices.length}
-          icon={AlertCircle}
-          color="amber"
-          trend={`${criticalOverdueServices.length} Overdue`}
-          trendType="warning"
-          subtitle="Requires branch booking"
-          onClick={() => navigate('/admin/pending-services')}
-        />
-        <MetricCard
-          title="Offline Vehicles"
-          value={mockStats.offlineBikes}
-          icon={WifiOff}
-          color="red"
-          trend="Idle Safe"
+          trend="In Database"
           trendType="neutral"
-          subtitle="Parked or standby mode"
-          onClick={() => navigate('/admin/live-tracking')}
+          subtitle="All customer bike profiles"
+          onClick={() => navigate('/admin/bikes')}
+        />
+        <MetricCard
+          title="Total Services Completed"
+          value={totalServicesCount}
+          icon={CheckCircle2}
+          color="green"
+          trend="Lifetime Logged"
+          trendType="up"
+          subtitle="All maintenance records"
+          onClick={() => navigate('/admin/services')}
+        />
+        <MetricCard
+          title="Upcoming Services"
+          value={upcomingCount}
+          icon={Clock}
+          color="amber"
+          trend="≤ 500 km / 15d"
+          trendType="warning"
+          subtitle="Due for maintenance soon"
+          onClick={() => navigate('/admin/next-service')}
+        />
+        <MetricCard
+          title="Overdue Services"
+          value={overdueCount}
+          icon={AlertCircle}
+          color="red"
+          trend={overdueCount > 0 ? "Action Required" : "Zero Overdue"}
+          trendType={overdueCount > 0 ? "warning" : "up"}
+          subtitle="KM or date exceeded"
+          onClick={() => navigate('/admin/next-service')}
         />
       </div>
 
-      {/* Main Grid: Live Location Map + Recent Activities */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '24px', marginBottom: '24px' }}>
+      {/* Fast Operational Action Bar */}
+      <div style={{
+        background: '#ffffff',
+        border: '1px solid #e2e8f0',
+        borderRadius: '12px',
+        padding: '14px 18px',
+        marginBottom: '24px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '12px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Sparkles size={16} color="#2563eb" />
+          <span style={{ fontSize: '13.5px', fontWeight: 700, color: '#1e293b' }}>
+            System Quick Actions:
+          </span>
+        </div>
+
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <button 
+            type="button" 
+            className="btn-primary btn-sm"
+            onClick={() => navigate('/admin/bikes')}
+          >
+            <Plus size={14} /> Register Bike
+          </button>
+          <button 
+            type="button" 
+            className="btn-secondary btn-sm"
+            onClick={() => navigate('/admin/services')}
+          >
+            <Wrench size={14} color="#0284c7" /> Log Service
+          </button>
+          <button 
+            type="button" 
+            className="btn-secondary btn-sm"
+            onClick={() => navigate('/admin/repairs')}
+          >
+            <Wrench size={14} color="#ea580c" /> Log Repair
+          </button>
+          <button 
+            type="button" 
+            className="btn-secondary btn-sm"
+            onClick={() => navigate('/admin/next-service')}
+          >
+            <Clock size={14} color="#d97706" /> Reminders
+          </button>
+          <button 
+            type="button" 
+            className="btn-secondary btn-sm"
+            onClick={() => navigate('/admin/reports')}
+          >
+            <FileText size={14} color="#059669" /> Reports
+          </button>
+          <button 
+            type="button" 
+            className="btn-secondary btn-sm"
+            onClick={exportDatabaseBackup}
+            title="Download JSON backup to PC or USB pendrive"
+          >
+            <Download size={14} color="#7c3aed" /> Backup (JSON)
+          </button>
+        </div>
+      </div>
+
+      {/* Main Grid: Recent Service Activities + Fleet Map */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '24px', marginBottom: '24px' }}>
         
-        {/* Left: Bike Live Location Map */}
+        {/* Left: Recent Service Activities (Required Dashboard Feature #5) */}
+        <div className="card">
+          <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="card-title">
+              <Clock size={18} color="#2563eb" />
+              <span>Recent Service & Repair Activities</span>
+            </div>
+            <button 
+              type="button" 
+              className="btn-outline-blue"
+              onClick={() => navigate('/admin/services')}
+            >
+              View All Services &rarr;
+            </button>
+          </div>
+
+          <div className="card-body" style={{ padding: '0' }}>
+            {recentServiceActivities.length === 0 ? (
+              <div style={{ padding: '30px', textAlign: 'center', color: '#94a3b8' }}>
+                No recent service activities logged yet.
+              </div>
+            ) : (
+              <div className="activity-list-container" style={{ display: 'flex', flexDirection: 'column' }}>
+                {recentServiceActivities.map((act) => {
+                  const isService = act.type === 'Service';
+                  return (
+                    <div 
+                      key={act.id} 
+                      style={{
+                        padding: '12px 18px',
+                        borderBottom: '1px solid #f1f5f9',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '12px'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: '8px',
+                          background: isService ? '#e0f2fe' : '#ffedd5',
+                          color: isService ? '#0369a1' : '#c2410c',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontWeight: 700,
+                          fontSize: '11px',
+                          flexShrink: 0
+                        }}>
+                          {isService ? 'SRV' : 'REP'}
+                        </div>
+
+                        <div>
+                          <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0f172a' }}>
+                            {act.regNo} <span style={{ fontWeight: 500, color: '#64748b' }}>• {act.owner}</span>
+                          </div>
+                          <div style={{ fontSize: '12px', color: '#475569', marginTop: '1px' }}>
+                            {act.detail} • Tech: {act.technician}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontWeight: 800, color: '#059669', fontSize: '13.5px' }}>
+                          ₹{act.cost?.toLocaleString()}
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#94a3b8' }}>
+                          {act.date}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            <div style={{ padding: '12px 18px', background: '#f8fafc', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '12px', color: '#64748b' }}>
+                Stored locally in browser • Auto-synced
+              </span>
+              <button
+                type="button"
+                className="btn-link"
+                style={{ fontSize: '12.5px', fontWeight: 700, color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer' }}
+                onClick={() => navigate('/admin/reports')}
+              >
+                View Full Reports &rarr;
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Right: Real-Time Fleet Radar Map */}
         <div className="card">
           <div className="card-header">
             <div className="card-title">
@@ -220,172 +461,38 @@ export default function DashboardPage() {
               className="btn-outline-blue"
               onClick={() => navigate('/admin/live-tracking')}
             >
-              Full Screen Map <ExternalLink size={12} style={{ marginLeft: 4 }} />
+              Full Screen <ExternalLink size={12} style={{ marginLeft: 4 }} />
             </button>
           </div>
 
-          <div className="card-body" style={{ padding: '16px' }}>
-            {/* Active Telemetry Chip */}
-            {selectedBike && (
-              <div style={{
-                background: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderRadius: '12px',
-                padding: '12px 16px',
-                marginBottom: '14px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: '8px'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: '10px',
-                    background: '#eff6ff',
-                    color: '#2563eb',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: 'bold',
-                    fontSize: '14px'
-                  }}>
-                    🏍️
-                  </div>
-                  <div>
-                    <span style={{ fontWeight: 800, fontSize: '14.5px', color: '#0f172a' }}>{selectedBike.regNo}</span>
-                    <span style={{ marginLeft: '8px', color: '#64748b', fontSize: '12px' }}>{selectedBike.model}</span>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span style={{ fontSize: '12.5px', color: '#475569' }}>
-                    Speed: <strong style={{ color: '#0f172a' }}>{selectedBike.speed}</strong>
-                  </span>
-                  <StatusBadge status={selectedBike.status} />
-                </div>
-              </div>
-            )}
-
-            {/* Interactive Leaflet Map */}
+          <div className="card-body" style={{ padding: '14px' }}>
             <LeafletMap 
               bikes={mockBikes} 
               selectedBike={selectedBike}
               onSelectBike={setSelectedBike}
-              height="370px"
+              height="330px"
             />
-          </div>
-        </div>
-
-        {/* Right: Recent Activities */}
-        <div className="card">
-          <div className="card-header">
-            <div className="card-title">
-              <Clock size={18} color="#2563eb" />
-              <span>Live Fleet Signals</span>
-            </div>
-            <span style={{ fontSize: '11px', color: '#64748b' }}>Salem Region Telemetry</span>
-          </div>
-
-          <div className="card-body" style={{ padding: '0' }}>
-            <div className="activity-list-container" style={{ display: 'flex', flexDirection: 'column' }}>
-              {mockRecentActivities.map((act) => {
-                const isMoving = act.type === 'moving';
-                const isCompleted = act.type === 'completed';
-                const isOffline = act.type === 'offline';
-
-                return (
-                  <div 
-                    key={act.id} 
-                    style={{
-                      padding: '14px 18px',
-                      borderBottom: '1px solid #f1f5f9',
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      gap: '12px',
-                      transition: 'background 0.15s'
-                    }}
-                  >
-                    <div style={{
-                      width: 34,
-                      height: 34,
-                      borderRadius: '10px',
-                      background: isMoving ? '#ecfdf5' : isCompleted ? '#eff6ff' : isOffline ? '#fef2f2' : '#f8fafc',
-                      color: isMoving ? '#10b981' : isCompleted ? '#2563eb' : isOffline ? '#ef4444' : '#64748b',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0
-                    }}>
-                      {isMoving ? <MapPin size={16} /> : isCompleted ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
-                    </div>
-
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '13px', fontWeight: 700, color: '#1e293b' }}>
-                        {act.title}
-                      </div>
-                      <div style={{ fontSize: '11.5px', color: '#94a3b8', marginTop: '2px' }}>
-                        {act.time}
-                      </div>
-                    </div>
-
-                    <StatusBadge status={act.status} />
-                  </div>
-                );
-              })}
-            </div>
-
-            <div style={{ padding: '16px 18px', background: '#f8fafc', borderTop: '1px solid #e2e8f0' }}>
-              <div style={{ fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '10px' }}>
-                Operational Shortcuts
-              </div>
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                <button 
-                  type="button" 
-                  className="btn-primary btn-sm"
-                  onClick={() => navigate('/admin/job-cards')}
-                >
-                  <Plus size={14} /> New Job Card
-                </button>
-                <button 
-                  type="button" 
-                  className="btn-secondary btn-sm"
-                  onClick={() => navigate('/admin/pending-services')}
-                >
-                  <AlertCircle size={14} color="#d97706" /> Service Monitor
-                </button>
-                <button 
-                  type="button" 
-                  className="btn-secondary btn-sm"
-                  onClick={() => navigate('/admin/users')}
-                >
-                  + Add User
-                </button>
-              </div>
-            </div>
           </div>
         </div>
 
       </div>
 
-      {/* Secondary Row: Upcoming Services & Open Job Cards Preview */}
+      {/* Secondary Row: Upcoming Services & Registered Bikes Quick Table */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
         
-        {/* Next Service Summary */}
+        {/* Next Service Due Summary */}
         <div className="card">
           <div className="card-header">
             <div className="card-title">
               <AlertCircle size={18} color="#d97706" />
-              <span>Service Pending Monitoring Preview</span>
+              <span>Upcoming & Overdue Service Reminders</span>
             </div>
             <button 
               type="button" 
               className="btn-outline-blue"
-              onClick={() => navigate('/admin/pending-services')}
+              onClick={() => navigate('/admin/next-service')}
             >
-              Full Monitor <ArrowRight size={13} style={{ marginLeft: 2 }} />
+              All Reminders <ArrowRight size={13} style={{ marginLeft: 2 }} />
             </button>
           </div>
           <div className="card-body" style={{ padding: 0 }}>
@@ -394,70 +501,84 @@ export default function DashboardPage() {
                 <tr>
                   <th>Reg No</th>
                   <th>Customer</th>
-                  <th>Due Status</th>
-                  <th>Est Cost</th>
-                  <th>Action</th>
+                  <th>Current KM</th>
+                  <th>Target KM</th>
+                  <th>Status</th>
                 </tr>
               </thead>
               <tbody>
-                {pendingServices.slice(0, 4).map((b) => (
-                  <tr key={b.id}>
-                    <td style={{ fontWeight: 700, color: '#0f172a' }}>{b.regNo}</td>
-                    <td style={{ color: '#475569' }}>{b.customer}</td>
-                    <td style={{ fontWeight: 700, color: b.serviceDueDays < 0 ? '#dc2626' : '#d97706' }}>
-                      {b.serviceDueDays < 0 ? `${Math.abs(b.serviceDueDays)}d Overdue` : `${b.serviceDueDays}d Left`}
-                    </td>
-                    <td style={{ fontWeight: 700, color: '#2563eb' }}>{b.estimatedCost}</td>
-                    <td>
-                      <button
-                        type="button"
-                        className="btn-outline-blue btn-sm"
-                        onClick={() => navigate('/admin/pending-services')}
-                      >
-                        Inspect
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {bikesList.slice(0, 5).map((b) => {
+                  const cur = parseInt(b.currentKm, 10) || 0;
+                  const next = parseInt(b.nextServiceKm, 10) || (cur + 3000);
+                  const isOver = cur >= next;
+                  return (
+                    <tr key={b.id}>
+                      <td style={{ fontWeight: 700, color: '#0f172a' }}>{b.regNo}</td>
+                      <td style={{ color: '#475569' }}>{b.ownerName}</td>
+                      <td>{cur.toLocaleString()} km</td>
+                      <td>{next.toLocaleString()} km</td>
+                      <td>
+                        <span style={{
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          padding: '2px 8px',
+                          borderRadius: '9999px',
+                          background: isOver ? '#fee2e2' : '#fef3c7',
+                          color: isOver ? '#b91c1c' : '#b45309'
+                        }}>
+                          {isOver ? 'OVERDUE' : 'DUE SOON'}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         </div>
 
-        {/* Active Job Cards */}
+        {/* Registered Customer Bikes */}
         <div className="card">
           <div className="card-header">
             <div className="card-title">
               <Bike size={18} color="#2563eb" />
-              <span>Active Workshop Job Cards</span>
+              <span>Registered Customer Bikes</span>
             </div>
             <button 
               type="button" 
               className="btn-outline-blue"
-              onClick={() => navigate('/admin/job-cards')}
+              onClick={() => navigate('/admin/bikes')}
             >
-              View All <ArrowRight size={13} style={{ marginLeft: 2 }} />
+              Manage Bikes <ArrowRight size={13} style={{ marginLeft: 2 }} />
             </button>
           </div>
           <div className="card-body" style={{ padding: 0 }}>
             <table className="admin-data-table">
               <thead>
                 <tr>
-                  <th>Job No</th>
-                  <th>Customer</th>
-                  <th>Service Type</th>
-                  <th>Status</th>
-                  <th>Cost</th>
+                  <th>Reg No</th>
+                  <th>Model</th>
+                  <th>Owner</th>
+                  <th>Mobile</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
-                {mockBikes.slice(0, 4).map((b, idx) => (
+                {bikesList.slice(0, 5).map((b) => (
                   <tr key={b.id}>
-                    <td style={{ fontWeight: 700, color: '#2563eb' }}>JC-00{idx + 1}</td>
-                    <td>{b.customer}</td>
-                    <td style={{ color: '#64748b' }}>General Service</td>
-                    <td><StatusBadge status={idx % 2 === 0 ? 'In Service' : 'Open'} /></td>
-                    <td style={{ fontWeight: 700 }}>₹1,250</td>
+                    <td style={{ fontWeight: 700, color: '#2563eb' }}>{b.regNo}</td>
+                    <td>{b.brand} {b.model}</td>
+                    <td>{b.ownerName}</td>
+                    <td>{b.ownerPhone}</td>
+                    <td>
+                      <button
+                        type="button"
+                        className="btn-outline-blue btn-sm"
+                        onClick={() => navigate('/admin/bikes')}
+                      >
+                        Profile
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>

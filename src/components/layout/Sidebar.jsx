@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { 
   User,
@@ -21,18 +21,47 @@ import {
   Eye,
   EyeOff,
   AlertTriangle,
-  Sparkles
+  Sparkles,
+  Bike,
+  Wrench,
+  FileText,
+  HardDrive
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import DynamicBrandLogo from '../common/DynamicBrandLogo';
 import Modal from '../common/Modal';
 
 export default function Sidebar({ isOpen, onClose }) {
-  const { currentRole, currentUser, branding, pendingServices, logout, switchAccountWithPassword } = useApp();
+  const { 
+    currentRole, 
+    currentUser, 
+    branding, 
+    pendingServices, 
+    logout, 
+    switchAccountWithPassword,
+    bikesList 
+  } = useApp();
   const navigate = useNavigate();
 
   const isSuperAdmin = currentRole === 'super_admin';
   const criticalOverdueCount = pendingServices.filter(s => s.serviceDueDays < 0).length;
+
+  // Calculate overdue count for badge
+  const overdueCount = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return bikesList.filter(b => {
+      const curKm = parseInt(b.currentKm, 10) || 0;
+      const nextKm = parseInt(b.nextServiceKm, 10) || (curKm + 3000);
+      let dateOver = false;
+      if (b.nextServiceDate) {
+        const d = new Date(b.nextServiceDate);
+        d.setHours(0, 0, 0, 0);
+        dateOver = d < today;
+      }
+      return curKm >= nextKm || dateOver;
+    }).length;
+  }, [bikesList]);
 
   // Password-authenticated Role Switch Modal
   const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false);
@@ -73,24 +102,44 @@ export default function Sidebar({ isOpen, onClose }) {
     navigate('/login');
   };
 
-  const coreNavItems = [
+  // Bike Repair & Service Alert System Core Navigation
+  const bikeSystemNavItems = [
     { name: 'Dashboard', path: '/admin/dashboard', icon: Home },
+    { name: 'Bike Registry', path: '/admin/bikes', icon: Bike, badge: `${bikesList.length} Bikes`, badgeColor: '#0284c7' },
+    { name: 'Service Tracking', path: '/admin/services', icon: Wrench },
+    { name: 'Repair History', path: '/admin/repairs', icon: Wrench },
+    { 
+      name: 'Alerts & Reminders', 
+      path: '/admin/next-service', 
+      icon: Bell, 
+      badge: overdueCount > 0 ? `${overdueCount} Overdue` : null, 
+      badgeColor: '#ef4444' 
+    },
+    { name: 'Reports & Export', path: '/admin/reports', icon: FileText }
+  ];
+
+  // Fleet Telemetry & IoT Operations
+  const telemetryNavItems = [
     { name: 'Live Tracking', path: '/admin/live-tracking', icon: MapPin },
     { 
       name: 'Service Monitoring', 
       path: '/admin/pending-services', 
       icon: AlertCircle,
-      badge: `${criticalOverdueCount} Overdue`,
-      badgeColor: '#ef4444'
+      badge: `${criticalOverdueCount} Due`,
+      badgeColor: '#f59e0b'
     },
-    { name: 'Next Service', path: '/admin/next-service', icon: Bell },
     { name: 'Job Cards', path: '/admin/job-cards', icon: ClipboardCheck },
     { name: 'User Management', path: '/admin/users', icon: Users, subtext: 'Admin creation' },
-    { name: 'Manage Brands', path: '/admin/manage-brands', icon: Tag },
-    { name: 'Settings', path: '/admin/settings', icon: Settings },
+    { name: 'Manage Brands', path: '/admin/manage-brands', icon: Tag }
+  ];
+
+  // System & Account
+  const systemNavItems = [
+    { name: 'Settings & Storage', path: '/admin/settings', icon: Settings },
     { name: 'My Profile', path: '/admin/profile', icon: User }
   ];
 
+  // Super Admin Only Master Modules
   const superAdminNavItems = [
     { name: 'Admin Management', path: '/admin/admins', icon: Crown, badge: isSuperAdmin ? 'Super' : '🔒 Locked' },
     { name: 'Store Locations', path: '/admin/stores', icon: Store, badge: isSuperAdmin ? 'Hubs' : '🔒 Locked' },
@@ -204,8 +253,9 @@ export default function Sidebar({ isOpen, onClose }) {
             );
           })}
 
-          <div className="nav-section-title" style={{ marginTop: '16px' }}>CORE OPERATIONS</div>
-          {coreNavItems.map((item) => {
+          {/* Section: Bike Repair & Service System */}
+          <div className="nav-section-title" style={{ marginTop: '16px' }}>BIKE REPAIR & SERVICE</div>
+          {bikeSystemNavItems.map((item) => {
             const Icon = item.icon;
             return (
               <NavLink
@@ -232,13 +282,60 @@ export default function Sidebar({ isOpen, onClose }) {
               </NavLink>
             );
           })}
+
+          {/* Section: Telemetry & Operations */}
+          <div className="nav-section-title" style={{ marginTop: '16px' }}>FLEET TELEMETRY & OPS</div>
+          {telemetryNavItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                onClick={onClose}
+                className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`}
+              >
+                <Icon size={18} className="nav-item-icon" />
+                <span className="nav-item-label">{item.name}</span>
+                {item.badge && (
+                  <span style={{
+                    fontSize: '9px',
+                    marginLeft: 'auto',
+                    background: item.badgeColor || '#2563eb',
+                    color: '#ffffff',
+                    padding: '1px 6px',
+                    borderRadius: '9999px',
+                    fontWeight: 700
+                  }}>
+                    {item.badge}
+                  </span>
+                )}
+              </NavLink>
+            );
+          })}
+
+          {/* Section: Settings & Account */}
+          <div className="nav-section-title" style={{ marginTop: '16px' }}>SYSTEM & STORAGE</div>
+          {systemNavItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                onClick={onClose}
+                className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`}
+              >
+                <Icon size={18} className="nav-item-icon" />
+                <span className="nav-item-label">{item.name}</span>
+              </NavLink>
+            );
+          })}
         </nav>
 
         {/* Footer info & Logout */}
         <div className="sidebar-footer">
           <div className="system-status-indicator">
             <span className="status-dot-pulse" />
-            <span>Node: Salem-Central-01 • Active</span>
+            <span>Offline LocalStorage • Synced</span>
           </div>
 
           <button

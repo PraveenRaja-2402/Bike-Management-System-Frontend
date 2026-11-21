@@ -11,6 +11,12 @@ import {
   mockCustomerGeofences,
   mockPendingServices
 } from '../data/mockData';
+import {
+  defaultServiceIntervals,
+  initialBikesList,
+  initialServiceRecords,
+  initialRepairRecords
+} from '../data/serviceData';
 
 const AppContext = createContext(null);
 
@@ -132,8 +138,78 @@ export function AppProvider({ children }) {
     } catch {}
   };
 
-  // Bikes fleet
-  const [bikesList, setBikesList] = useState(mockBikes);
+  // Persistent Offline Storage Database: Registered Bikes
+  const [bikesList, setBikesList] = useState(() => {
+    try {
+      const stored = localStorage.getItem('bike_service_system_bikes');
+      return stored ? JSON.parse(stored) : initialBikesList;
+    } catch {
+      return initialBikesList;
+    }
+  });
+
+  // Persistent Offline Storage Database: Service History Records
+  const [serviceRecords, setServiceRecords] = useState(() => {
+    try {
+      const stored = localStorage.getItem('bike_service_system_services');
+      return stored ? JSON.parse(stored) : initialServiceRecords;
+    } catch {
+      return initialServiceRecords;
+    }
+  });
+
+  // Persistent Offline Storage Database: Repair History Records
+  const [repairRecords, setRepairRecords] = useState(() => {
+    try {
+      const stored = localStorage.getItem('bike_service_system_repairs');
+      return stored ? JSON.parse(stored) : initialRepairRecords;
+    } catch {
+      return initialRepairRecords;
+    }
+  });
+
+  // Configurable Maintenance & Service Intervals (Stored locally in browser)
+  const [serviceIntervals, setServiceIntervals] = useState(() => {
+    try {
+      const stored = localStorage.getItem('bike_service_system_intervals');
+      return stored ? JSON.parse(stored) : defaultServiceIntervals;
+    } catch {
+      return defaultServiceIntervals;
+    }
+  });
+
+  // Automatic offline persistence to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('bike_service_system_bikes', JSON.stringify(bikesList));
+    } catch (e) {
+      console.error('Failed to sync bikes to localStorage', e);
+    }
+  }, [bikesList]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('bike_service_system_services', JSON.stringify(serviceRecords));
+    } catch (e) {
+      console.error('Failed to sync services to localStorage', e);
+    }
+  }, [serviceRecords]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('bike_service_system_repairs', JSON.stringify(repairRecords));
+    } catch (e) {
+      console.error('Failed to sync repairs to localStorage', e);
+    }
+  }, [repairRecords]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('bike_service_system_intervals', JSON.stringify(serviceIntervals));
+    } catch (e) {
+      console.error('Failed to sync intervals to localStorage', e);
+    }
+  }, [serviceIntervals]);
 
   // Mobile Customer: Fines / E-Challans
   const [customerFines, setCustomerFines] = useState(mockCustomerFines);
@@ -544,6 +620,270 @@ export function AppProvider({ children }) {
     }));
   };
 
+  // =========================================================================
+  // BIKE REPAIR & SERVICE ALERT SYSTEM DATABASE METHODS
+  // =========================================================================
+
+  // 1. Bike Registration & Lifecycle Actions
+  const addBike = (bikeData) => {
+    const newId = `bike-${Date.now()}`;
+    const curKm = parseInt(bikeData.currentKm, 10) || 0;
+    const intervalKm = parseInt(serviceIntervals.generalServiceKm, 10) || 3000;
+    
+    const nextDate = new Date();
+    nextDate.setDate(nextDate.getDate() + 90);
+    const nextDateStr = nextDate.toISOString().split('T')[0];
+
+    const newBike = {
+      id: newId,
+      regNo: (bikeData.regNo || '').trim().toUpperCase(),
+      ownerName: bikeData.ownerName || bikeData.customer || '',
+      ownerPhone: bikeData.ownerPhone || bikeData.phone || '',
+      ownerEmail: bikeData.ownerEmail || bikeData.email || '',
+      model: bikeData.model || '',
+      brand: bikeData.brand || 'Other',
+      purchaseDate: bikeData.purchaseDate || new Date().toISOString().split('T')[0],
+      currentKm: curKm,
+      lastServiceDate: bikeData.lastServiceDate || 'Not Serviced Yet',
+      lastServiceKm: parseInt(bikeData.lastServiceKm, 10) || 0,
+      nextServiceDate: bikeData.nextServiceDate || nextDateStr,
+      nextServiceKm: parseInt(bikeData.nextServiceKm, 10) || (curKm + intervalKm),
+      insuranceExpiryDate: bikeData.insuranceExpiryDate || '',
+      status: bikeData.status || 'Active',
+      notes: bikeData.notes || ''
+    };
+
+    setBikesList(prev => [newBike, ...prev]);
+
+    // Automatically sync customer account
+    const existingUser = usersList.find(u => u.phone === newBike.ownerPhone);
+    if (!existingUser) {
+      addUser({
+        name: newBike.ownerName,
+        phone: newBike.ownerPhone,
+        email: newBike.ownerEmail || `${newBike.ownerName.toLowerCase().replace(/\s+/g, '')}@gmail.com`,
+        role: 'Customer',
+        status: 'Active',
+        assignedBike: newBike.regNo,
+        pin: '1234'
+      });
+    }
+
+    return newBike;
+  };
+
+  const updateBike = (id, updatedData) => {
+    setBikesList(prev => prev.map(b => b.id === id ? { ...b, ...updatedData } : b));
+  };
+
+  const deleteBike = (id) => {
+    setBikesList(prev => prev.filter(b => b.id !== id));
+  };
+
+  const updateBikeKm = (bikeId, newKm) => {
+    const kmNum = parseInt(newKm, 10) || 0;
+    setBikesList(prev => prev.map(b => {
+      if (b.id === bikeId) {
+        return {
+          ...b,
+          currentKm: kmNum
+        };
+      }
+      return b;
+    }));
+  };
+
+  // 2. Service Tracking Actions
+  const addServiceRecord = (serviceData) => {
+    const srvId = `srv-${Date.now().toString().slice(-6)}`;
+    const srvKm = parseInt(serviceData.serviceKm, 10) || 0;
+    const intervalKm = parseInt(serviceIntervals.generalServiceKm, 10) || 3000;
+    
+    const nextDate = new Date();
+    nextDate.setDate(nextDate.getDate() + 90);
+    const nextDateStr = nextDate.toISOString().split('T')[0];
+
+    const newRecord = {
+      id: srvId,
+      bikeId: serviceData.bikeId,
+      regNo: (serviceData.regNo || '').trim().toUpperCase(),
+      ownerName: serviceData.ownerName || '',
+      ownerPhone: serviceData.ownerPhone || '',
+      serviceDate: serviceData.serviceDate || new Date().toISOString().split('T')[0],
+      serviceKm: srvKm,
+      serviceCost: parseFloat(serviceData.serviceCost) || 0,
+      serviceType: serviceData.serviceType || 'General Periodic Service',
+      technician: serviceData.technician || 'Mani',
+      items: serviceData.items || {
+        engineOil: true,
+        brakeOil: false,
+        airFilter: false,
+        chainMaintenance: false,
+        battery: false,
+        tyres: false,
+        clutch: false,
+        generalServicing: true
+      },
+      notes: serviceData.notes || '',
+      nextServiceDate: serviceData.nextServiceDate || nextDateStr,
+      nextServiceKm: parseInt(serviceData.nextServiceKm, 10) || (srvKm + intervalKm)
+    };
+
+    setServiceRecords(prev => [newRecord, ...prev]);
+
+    // Update corresponding bike's last and next service benchmarks
+    setBikesList(prev => prev.map(b => {
+      if (b.id === serviceData.bikeId || b.regNo.toUpperCase() === newRecord.regNo) {
+        return {
+          ...b,
+          lastServiceDate: newRecord.serviceDate,
+          lastServiceKm: srvKm,
+          currentKm: Math.max(parseInt(b.currentKm, 10) || 0, srvKm),
+          nextServiceDate: newRecord.nextServiceDate,
+          nextServiceKm: newRecord.nextServiceKm
+        };
+      }
+      return b;
+    }));
+
+    return newRecord;
+  };
+
+  const updateServiceRecord = (id, updatedData) => {
+    setServiceRecords(prev => prev.map(s => s.id === id ? { ...s, ...updatedData } : s));
+  };
+
+  const deleteServiceRecord = (id) => {
+    setServiceRecords(prev => prev.filter(s => s.id !== id));
+  };
+
+  // 3. Repair History Actions
+  const addRepairRecord = (repairData) => {
+    const repId = `rep-${Date.now().toString().slice(-6)}`;
+    const repKm = parseInt(repairData.repairKm, 10) || 0;
+    const partsCost = (repairData.partsReplaced || []).reduce((sum, p) => sum + (parseFloat(p.total) || (parseFloat(p.quantity || 1) * parseFloat(p.unitCost || 0)) || 0), 0);
+    const laborCost = parseFloat(repairData.laborCost) || 0;
+    const totalCost = repairData.totalCost ? parseFloat(repairData.totalCost) : (partsCost + laborCost);
+
+    const newRecord = {
+      id: repId,
+      bikeId: repairData.bikeId,
+      regNo: (repairData.regNo || '').trim().toUpperCase(),
+      ownerName: repairData.ownerName || '',
+      ownerPhone: repairData.ownerPhone || '',
+      repairDate: repairData.repairDate || new Date().toISOString().split('T')[0],
+      repairKm: repKm,
+      repairDetails: repairData.repairDetails || '',
+      partsReplaced: repairData.partsReplaced || [],
+      laborCost,
+      totalCost,
+      technician: repairData.technician || 'Mani',
+      status: repairData.status || 'Completed'
+    };
+
+    setRepairRecords(prev => [newRecord, ...prev]);
+
+    // Update corresponding bike's currentKm if repair km is higher
+    setBikesList(prev => prev.map(b => {
+      if (b.id === repairData.bikeId || b.regNo.toUpperCase() === newRecord.regNo) {
+        return {
+          ...b,
+          currentKm: Math.max(parseInt(b.currentKm, 10) || 0, repKm)
+        };
+      }
+      return b;
+    }));
+
+    return newRecord;
+  };
+
+  const updateRepairRecord = (id, updatedData) => {
+    setRepairRecords(prev => prev.map(r => r.id === id ? { ...r, ...updatedData } : r));
+  };
+
+  const deleteRepairRecord = (id) => {
+    setRepairRecords(prev => prev.filter(r => r.id !== id));
+  };
+
+  // 4. Configurable Intervals
+  const updateServiceIntervals = (newIntervals) => {
+    setServiceIntervals(prev => ({ ...prev, ...newIntervals }));
+  };
+
+  // 5. Offline Storage Backup & Restoration (PC / Pendrive JSON)
+  const exportDatabaseBackup = () => {
+    const backupPayload = {
+      version: "1.0",
+      system: "Bike Repair & Service Alert System",
+      exportedAt: new Date().toISOString(),
+      bikes: bikesList,
+      serviceRecords: serviceRecords,
+      repairRecords: repairRecords,
+      serviceIntervals: serviceIntervals,
+      branding: branding
+    };
+
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupPayload, null, 2));
+    const dlAnchorElem = document.createElement('a');
+    const today = new Date().toISOString().split('T')[0];
+    dlAnchorElem.setAttribute("href", dataStr);
+    dlAnchorElem.setAttribute("download", `bike_repair_service_backup_${today}.json`);
+    document.body.appendChild(dlAnchorElem);
+    dlAnchorElem.click();
+    dlAnchorElem.remove();
+    return true;
+  };
+
+  const restoreDatabaseFromBackup = (jsonInput) => {
+    try {
+      const parsed = typeof jsonInput === 'string' ? JSON.parse(jsonInput) : jsonInput;
+      if (parsed.bikes && Array.isArray(parsed.bikes)) {
+        setBikesList(parsed.bikes);
+        localStorage.setItem('bike_service_system_bikes', JSON.stringify(parsed.bikes));
+      }
+      if (parsed.serviceRecords && Array.isArray(parsed.serviceRecords)) {
+        setServiceRecords(parsed.serviceRecords);
+        localStorage.setItem('bike_service_system_services', JSON.stringify(parsed.serviceRecords));
+      }
+      if (parsed.repairRecords && Array.isArray(parsed.repairRecords)) {
+        setRepairRecords(parsed.repairRecords);
+        localStorage.setItem('bike_service_system_repairs', JSON.stringify(parsed.repairRecords));
+      }
+      if (parsed.serviceIntervals) {
+        setServiceIntervals(parsed.serviceIntervals);
+        localStorage.setItem('bike_service_system_intervals', JSON.stringify(parsed.serviceIntervals));
+      }
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  };
+
+  const resetDatabaseToDefaults = () => {
+    setBikesList(initialBikesList);
+    setServiceRecords(initialServiceRecords);
+    setRepairRecords(initialRepairRecords);
+    setServiceIntervals(defaultServiceIntervals);
+    localStorage.removeItem('bike_service_system_bikes');
+    localStorage.removeItem('bike_service_system_services');
+    localStorage.removeItem('bike_service_system_repairs');
+    localStorage.removeItem('bike_service_system_intervals');
+  };
+
+  // 6. WhatsApp & SMS Customer Notifications Integration
+  const sendCustomerWhatsApp = (phone, message) => {
+    const digits = (phone || '').replace(/[^0-9]/g, '');
+    const recipient = digits.length === 10 ? `91${digits}` : digits;
+    const url = `https://wa.me/${recipient}?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank');
+  };
+
+  const sendCustomerSms = (phone, message) => {
+    const digits = (phone || '').replace(/[^0-9]/g, '');
+    const url = `sms:${digits}?body=${encodeURIComponent(message)}`;
+    window.open(url, '_blank');
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -577,6 +917,25 @@ export function AppProvider({ children }) {
         loginCustomer,
         logoutCustomer,
         bikesList,
+        addBike,
+        updateBike,
+        deleteBike,
+        updateBikeKm,
+        serviceRecords,
+        addServiceRecord,
+        updateServiceRecord,
+        deleteServiceRecord,
+        repairRecords,
+        addRepairRecord,
+        updateRepairRecord,
+        deleteRepairRecord,
+        serviceIntervals,
+        updateServiceIntervals,
+        exportDatabaseBackup,
+        restoreDatabaseFromBackup,
+        resetDatabaseToDefaults,
+        sendCustomerWhatsApp,
+        sendCustomerSms,
         customerFines,
         payFine,
         membership,
