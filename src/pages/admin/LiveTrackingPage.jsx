@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Search, 
   MapPin, 
@@ -7,11 +7,15 @@ import {
   Crosshair,
   X,
   Phone,
-  Radio
+  Radio,
+  Play,
+  Pause,
+  RotateCcw,
+  Navigation
 } from 'lucide-react';
 import LeafletMap from '../../components/common/LeafletMap';
 import StatusBadge from '../../components/common/StatusBadge';
-import { mockBikes } from '../../data/mockData';
+import { mockBikes, mockRoutePlaybackTrip } from '../../data/mockData';
 
 export default function LiveTrackingPage() {
   const [bikes, setBikes] = useState(mockBikes);
@@ -21,15 +25,22 @@ export default function LiveTrackingPage() {
   const [isLiveActive, setIsLiveActive] = useState(true);
   const [lastRefreshedTime, setLastRefreshedTime] = useState('Just now');
 
+  // Route playback state
+  const [isPlaybackMode, setIsPlaybackMode] = useState(false);
+  const [playbackIndex, setPlaybackIndex] = useState(0);
+  const [isPlaybackPlaying, setIsPlaybackPlaying] = useState(false);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const playbackTimerRef = useRef(null);
+
   // Stats summary counts
   const movingCount = bikes.filter((b) => b.status === 'Moving').length;
   const parkedCount = bikes.filter((b) => b.status === 'Parked').length;
   const stoppedCount = bikes.filter((b) => b.status === 'Stopped').length;
   const offlineCount = bikes.filter((b) => b.status === 'Offline').length;
 
-  // Real-time GPS movement simulation for moving bikes
+  // Real-time GPS movement simulation for moving bikes (when not in playback mode)
   useEffect(() => {
-    if (!isLiveActive) return;
+    if (!isLiveActive || isPlaybackMode) return;
 
     const interval = setInterval(() => {
       setBikes((prevBikes) =>
@@ -54,7 +65,54 @@ export default function LiveTrackingPage() {
     }, 4000);
 
     return () => clearInterval(interval);
-  }, [isLiveActive, selectedBike]);
+  }, [isLiveActive, isPlaybackMode, selectedBike]);
+
+  // Route playback loop
+  useEffect(() => {
+    if (isPlaybackPlaying && isPlaybackMode) {
+      playbackTimerRef.current = setInterval(() => {
+        setPlaybackIndex((prev) => {
+          if (prev >= mockRoutePlaybackTrip.points.length - 1) {
+            setIsPlaybackPlaying(false);
+            return prev;
+          }
+          return prev + 1;
+        });
+      }, 1000 / playbackSpeed);
+    } else {
+      if (playbackTimerRef.current) clearInterval(playbackTimerRef.current);
+    }
+    return () => {
+      if (playbackTimerRef.current) clearInterval(playbackTimerRef.current);
+    };
+  }, [isPlaybackPlaying, isPlaybackMode, playbackSpeed]);
+
+  const handleStartPlayback = (bike) => {
+    setSelectedBike(bike);
+    setIsPlaybackMode(true);
+    setPlaybackIndex(0);
+    setIsPlaybackPlaying(true);
+  };
+
+  const handleExitPlayback = () => {
+    setIsPlaybackMode(false);
+    setIsPlaybackPlaying(false);
+    if (playbackTimerRef.current) clearInterval(playbackTimerRef.current);
+  };
+
+  const handleTogglePlay = () => {
+    if (playbackIndex >= mockRoutePlaybackTrip.points.length - 1) {
+      setPlaybackIndex(0);
+      setIsPlaybackPlaying(true);
+    } else {
+      setIsPlaybackPlaying(!isPlaybackPlaying);
+    }
+  };
+
+  const handleResetPlayback = () => {
+    setIsPlaybackPlaying(false);
+    setPlaybackIndex(0);
+  };
 
   // Handle manual refresh
   const handleManualRefresh = () => {
@@ -219,17 +277,206 @@ export default function LiveTrackingPage() {
         </div>
 
         {/* Right Side: Map & Simple Tracking Inspector */}
-        <div className="tracking-map-card">
+        <div className="tracking-map-card" style={{ position: 'relative' }}>
           <LeafletMap
-            bikes={filteredBikes}
+            bikes={isPlaybackMode ? [] : filteredBikes}
             selectedBike={selectedBike}
             onSelectBike={setSelectedBike}
             showGeofence={false}
+            playbackRoute={isPlaybackMode ? mockRoutePlaybackTrip.points : null}
+            playbackIndex={isPlaybackMode ? playbackIndex : 0}
             height="100%"
           />
 
+          {/* Dedicated Admin Route Playback HUD Overlay */}
+          {isPlaybackMode && (
+            <div style={{
+              position: 'absolute',
+              bottom: 24,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: '92%',
+              maxWidth: 680,
+              background: 'rgba(15, 23, 42, 0.94)',
+              backdropFilter: 'blur(12px)',
+              border: '1px solid rgba(56, 189, 248, 0.3)',
+              borderRadius: 16,
+              padding: '16px 20px',
+              color: '#ffffff',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(56, 189, 248, 0.2)',
+              zIndex: 1000
+            }}>
+              {/* Header row */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{
+                      background: '#2563eb',
+                      color: '#ffffff',
+                      fontSize: 10,
+                      fontWeight: 800,
+                      padding: '2px 8px',
+                      borderRadius: 6,
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.5
+                    }}>
+                      Route Playback
+                    </span>
+                    <strong style={{ fontSize: 14, color: '#f8fafc' }}>
+                      {selectedBike?.regNo} • {selectedBike?.model}
+                    </strong>
+                  </div>
+                  <div style={{ fontSize: 11.5, color: '#94a3b8', marginTop: 3, display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <MapPin size={12} color="#38bdf8" />
+                    <span>{mockRoutePlaybackTrip.points[playbackIndex]?.label || 'Route Trajectory'}</span>
+                    <span style={{ color: '#475569' }}>•</span>
+                    <span style={{ color: '#38bdf8' }}>{mockRoutePlaybackTrip.tripTitle}</span>
+                  </div>
+                </div>
+
+                {/* Right controls & exit */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  {/* Speed gauge */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'baseline',
+                    gap: 3,
+                    background: 'rgba(30, 41, 59, 0.8)',
+                    padding: '4px 10px',
+                    borderRadius: 8,
+                    border: '1px solid rgba(56, 189, 248, 0.2)'
+                  }}>
+                    <span style={{ fontSize: 16, fontWeight: 900, color: '#38bdf8' }}>
+                      {(mockRoutePlaybackTrip.points[playbackIndex]?.speed || '0').replace(' km/h', '')}
+                    </span>
+                    <span style={{ fontSize: 9, color: '#94a3b8', fontWeight: 700 }}>KM/H</span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleExitPlayback}
+                    style={{
+                      background: 'rgba(239, 68, 68, 0.15)',
+                      border: '1px solid rgba(239, 68, 68, 0.3)',
+                      color: '#f87171',
+                      padding: '5px 10px',
+                      borderRadius: 8,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4
+                    }}
+                    title="Exit Playback Mode"
+                  >
+                    <X size={14} /> Exit
+                  </button>
+                </div>
+              </div>
+
+              {/* Scrubber slider */}
+              <input
+                type="range"
+                min="0"
+                max={mockRoutePlaybackTrip.points.length - 1}
+                value={playbackIndex}
+                onChange={(e) => {
+                  setPlaybackIndex(parseInt(e.target.value, 10));
+                  setIsPlaybackPlaying(false);
+                }}
+                style={{
+                  width: '100%',
+                  accentColor: '#38bdf8',
+                  cursor: 'pointer',
+                  margin: '4px 0'
+                }}
+              />
+
+              {/* Time stamps */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#94a3b8', marginTop: 2 }}>
+                <span>Trip Start: {mockRoutePlaybackTrip.points[0]?.time}</span>
+                <span style={{ color: '#38bdf8', fontWeight: 600 }}>
+                  Checkpoint {playbackIndex + 1} of {mockRoutePlaybackTrip.points.length} ({mockRoutePlaybackTrip.points[playbackIndex]?.time})
+                </span>
+                <span>Destination: {mockRoutePlaybackTrip.points[mockRoutePlaybackTrip.points.length - 1]?.time}</span>
+              </div>
+
+              {/* Control dock */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <button
+                    type="button"
+                    onClick={handleTogglePlay}
+                    style={{
+                      background: '#2563eb',
+                      border: 'none',
+                      color: '#ffffff',
+                      width: 36,
+                      height: 36,
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      boxShadow: '0 4px 12px rgba(37, 99, 235, 0.4)'
+                    }}
+                    title={isPlaybackPlaying ? "Pause" : "Play"}
+                  >
+                    {isPlaybackPlaying ? <Pause size={16} /> : <Play size={16} style={{ marginLeft: 2 }} />}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleResetPlayback}
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.08)',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      color: '#e2e8f0',
+                      width: 32,
+                      height: 32,
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer'
+                    }}
+                    title="Reset to start"
+                  >
+                    <RotateCcw size={14} />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPlaybackSpeed(playbackSpeed === 1 ? 2 : playbackSpeed === 2 ? 4 : 1)}
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.08)',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      color: '#38bdf8',
+                      padding: '4px 10px',
+                      borderRadius: 6,
+                      fontSize: 11,
+                      fontWeight: 800,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {playbackSpeed}x SPEED
+                  </button>
+                </div>
+
+                <div style={{ fontSize: 11, color: '#94a3b8', textAlign: 'right' }}>
+                  <span style={{ color: '#ffffff', fontWeight: 700 }}>{mockRoutePlaybackTrip.totalDistance}</span>
+                  <span style={{ margin: '0 6px' }}>•</span>
+                  <span>Duration: {mockRoutePlaybackTrip.duration}</span>
+                  <span style={{ margin: '0 6px' }}>•</span>
+                  <span>Top: {mockRoutePlaybackTrip.topSpeed}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Floating Selected Bike Tracking Card (Basic Tracking Only - No Fuel, No Battery) */}
-          {selectedBike && (
+          {selectedBike && !isPlaybackMode && (
             <div className="tracking-floating-card">
               <div className="floating-card-header">
                 <div>
@@ -290,7 +537,7 @@ export default function LiveTrackingPage() {
                 )}
               </div>
 
-              <div className="floating-card-actions">
+              <div className="floating-card-actions" style={{ display: 'flex', gap: '8px' }}>
                 <button
                   type="button"
                   className="card-action-btn primary"
@@ -299,6 +546,27 @@ export default function LiveTrackingPage() {
                   }}
                 >
                   <Crosshair size={13} /> Center on Map
+                </button>
+                <button
+                  type="button"
+                  className="card-action-btn"
+                  style={{
+                    background: '#2563eb',
+                    color: '#ffffff',
+                    border: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => handleStartPlayback(selectedBike)}
+                  title="Watch animated historical trip playback"
+                >
+                  <Play size={13} /> Route Playback
                 </button>
               </div>
             </div>
