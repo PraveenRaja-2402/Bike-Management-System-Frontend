@@ -10,6 +10,34 @@ export default function AdminLayout() {
   // Determine page meta from path
   const getPageMeta = () => {
     const path = location.pathname;
+    
+    // Bike Repair & Service System
+    if (path.includes('bikes')) {
+      return {
+        title: 'Bike Registry',
+        subtitle: 'Manage customer vehicle fleet, odometer readings, and registrations'
+      };
+    }
+    if (path.includes('services')) {
+      return {
+        title: 'Service Tracking',
+        subtitle: 'Track periodic maintenance items, costs, and next service benchmarks'
+      };
+    }
+    if (path.includes('repairs')) {
+      return {
+        title: 'Repair History',
+        subtitle: 'Comprehensive bike-wise repair logs, parts replacements, and labor costs'
+      };
+    }
+    if (path.includes('reports')) {
+      return {
+        title: 'Reports & Analytics',
+        subtitle: 'Daily, monthly, lifetime bike histories, and downloadable CSV/JSON exports'
+      };
+    }
+
+    // Super Admin restricted routes
     if (path.includes('admins')) {
       return {
         title: 'Admin Management',
@@ -28,6 +56,8 @@ export default function AdminLayout() {
         subtitle: 'Super Admin: Customize corporate logo, brand colors and system identity'
       };
     }
+
+    // Fleet Telemetry & Operations
     if (path.includes('pending-services')) {
       return {
         title: 'Service Pending Monitoring',
@@ -37,13 +67,13 @@ export default function AdminLayout() {
     if (path.includes('all-pages')) {
       return {
         title: 'All Pages Overview',
-        subtitle: 'Quick access to all modules of Bike Service Admin Panel'
+        subtitle: 'Quick access to all modules of Bike Service Pro Admin Panel'
       };
     }
     if (path.includes('dashboard')) {
       return {
         title: 'Dashboard',
-        subtitle: 'Overview of bikes, service due, and recent activity'
+        subtitle: 'Real-time overview of registered bikes, service due, and workshop activities'
       };
     }
     if (path.includes('live-tracking')) {
@@ -54,14 +84,14 @@ export default function AdminLayout() {
     }
     if (path.includes('next-service')) {
       return {
-        title: 'Next Service Notifications',
-        subtitle: 'View bikes with upcoming service due dates'
+        title: 'Service Alerts & Reminders',
+        subtitle: 'Automatic KM and date-based reminders with 1-click WhatsApp & SMS dispatch'
       };
     }
     if (path.includes('job-cards')) {
       return {
         title: 'Job Cards',
-        subtitle: 'Create and manage service job cards'
+        subtitle: 'Create and manage service job cards and workshop bays'
       };
     }
     if (path.includes('users')) {
@@ -73,13 +103,13 @@ export default function AdminLayout() {
     if (path.includes('manage-brands')) {
       return {
         title: 'Manage Bike Brands',
-        subtitle: 'Add, edit and manage bike brands'
+        subtitle: 'Add, edit and manage supported bike brands and models'
       };
     }
     if (path.includes('settings')) {
       return {
-        title: 'Settings',
-        subtitle: 'General preferences and notification settings'
+        title: 'Settings & Storage',
+        subtitle: 'Configurable service intervals, local browser storage, and pendrive backup'
       };
     }
     if (path.includes('profile')) {
@@ -89,8 +119,8 @@ export default function AdminLayout() {
       };
     }
     return {
-      title: 'Bike Service Admin',
-      subtitle: 'System Management'
+      title: 'Bike Service Pro',
+      subtitle: 'Commercial SaaS System Management'
     };
   };
 

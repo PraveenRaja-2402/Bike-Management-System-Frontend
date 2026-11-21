@@ -187,9 +187,9 @@ export default function Header({ onToggleSidebar, title, subtitle, breadcrumb })
               background: isSuperAdmin ? 'linear-gradient(135deg, #1e293b, #0f172a)' : '#2563eb',
               color: isSuperAdmin ? '#f59e0b' : '#ffffff'
             }}>
-              {currentUser.avatar}
+              {currentUser?.avatar || (isSuperAdmin ? 'SA' : 'AD')}
             </div>
-            <span className="user-name">{currentUser.name.split(' ')[0]}</span>
+            <span className="user-name">{currentUser?.name?.split(' ')[0] || 'User'}</span>
             <ChevronDown size={15} className="dropdown-arrow-icon" />
           </button>
 
@@ -200,14 +200,14 @@ export default function Header({ onToggleSidebar, title, subtitle, breadcrumb })
                   background: isSuperAdmin ? 'linear-gradient(135deg, #1e293b, #0f172a)' : '#2563eb',
                   color: isSuperAdmin ? '#f59e0b' : '#ffffff'
                 }}>
-                  {currentUser.avatar}
+                  {currentUser?.avatar || (isSuperAdmin ? 'SA' : 'AD')}
                 </div>
                 <div>
-                  <div className="user-info-name">{currentUser.name}</div>
+                  <div className="user-info-name">{currentUser?.name || 'User'}</div>
                   <div className="user-info-role" style={{ color: isSuperAdmin ? '#d97706' : '#2563eb', fontWeight: 600 }}>
-                    {currentUser.badge}
+                    {currentUser?.badge || (isSuperAdmin ? 'Super Admin' : 'Operations Admin')}
                   </div>
-                  <div style={{ fontSize: '11px', color: '#64748b' }}>{currentUser.email}</div>
+                  <div style={{ fontSize: '11px', color: '#64748b' }}>{currentUser?.email || ''}</div>
                 </div>
               </div>
               <div className="dropdown-divider" />

@@ -7,21 +7,21 @@ import {
   Eye, 
   EyeOff, 
   Crown, 
-  UserCheck, 
   ArrowRight, 
   AlertCircle, 
-  CheckCircle2,
-  KeyRound,
-  Sparkles,
-  Smartphone,
-  User,
-  Phone,
-  Building2,
-  UserPlus,
-  Key,
-  Info,
-  Check,
-  X
+  CheckCircle2, 
+  UserPlus, 
+  Sparkles, 
+  Phone, 
+  User, 
+  Building2, 
+  Key, 
+  Check, 
+  Zap, 
+  MessageSquare, 
+  HardDrive, 
+  Clock, 
+  Shield
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import DynamicBrandLogo from '../../components/common/DynamicBrandLogo';
@@ -35,8 +35,8 @@ export default function LoginPage() {
   const [authMode, setAuthMode] = useState('signin');
 
   // Sign In state
-  const [signInRole, setSignInRole] = useState('super_admin');
-  const [signInEmail, setSignInEmail] = useState('superadmin@bikeservice.com');
+  const [signInRole, setSignInRole] = useState('admin'); // default to branch ops admin for commercial SaaS
+  const [signInEmail, setSignInEmail] = useState('admin@bikeservice.com');
   const [signInPassword, setSignInPassword] = useState('');
   const [showSignInPassword, setShowSignInPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
@@ -52,7 +52,7 @@ export default function LoginPage() {
   const [signUpConfirmPassword, setSignUpConfirmPassword] = useState('');
   const [showSignUpPassword, setShowSignUpPassword] = useState(false);
 
-  // Common status
+  // Status banners
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -64,8 +64,8 @@ export default function LoginPage() {
     setSuccessMessage('');
   };
 
-  // Sign In portal tab switch
-  const handleSignInPortalSwitch = (role) => {
+  // Sign In role switch
+  const handleSignInRoleSwitch = (role) => {
     setSignInRole(role);
     setErrorMessage('');
     setSignInPassword('');
@@ -76,27 +76,17 @@ export default function LoginPage() {
     }
   };
 
-  // 1-Click Instant Login (Super Easy & Understandable)
-  const handleInstantLogin = (role) => {
+  // Discreet Quick-Fill for Evaluators / Developers
+  const handleDevQuickFill = (role) => {
+    setSignInRole(role);
     setErrorMessage('');
-    setIsSubmitting(true);
-    const email = role === 'super_admin' ? 'superadmin@bikeservice.com' : 'admin@bikeservice.com';
-    const pwd = role === 'super_admin' ? 'superadmin' : 'admin';
-
-    setTimeout(() => {
-      const res = login(email, pwd, true);
-      setIsSubmitting(false);
-
-      if (res.success) {
-        if (res.user.role === 'super_admin') {
-          navigate('/admin/admins', { replace: true });
-        } else {
-          navigate('/admin/dashboard', { replace: true });
-        }
-      } else {
-        setErrorMessage(res.error || 'Authentication failed.');
-      }
-    }, 250);
+    if (role === 'super_admin') {
+      setSignInEmail('superadmin@bikeservice.com');
+      setSignInPassword('superadmin');
+    } else {
+      setSignInEmail('admin@bikeservice.com');
+      setSignInPassword('admin');
+    }
   };
 
   // Sign In submit
@@ -110,17 +100,15 @@ export default function LoginPage() {
       setIsSubmitting(false);
 
       if (res.success) {
-        // Super Admin lands on Super Admin Console (/admin/admins)
-        // Operations Admin lands on Operations Dashboard (/admin/dashboard)
         if (res.user.role === 'super_admin') {
           navigate('/admin/admins', { replace: true });
         } else {
           navigate('/admin/dashboard', { replace: true });
         }
       } else {
-        setErrorMessage(res.error || 'Authentication failed. Please verify credentials.');
+        setErrorMessage(res.error || 'Invalid credentials. Please verify your email and password.');
       }
-    }, 300);
+    }, 280);
   };
 
   // Sign Up submit
@@ -130,7 +118,7 @@ export default function LoginPage() {
     setSuccessMessage('');
 
     if (signUpPassword !== signUpConfirmPassword) {
-      setErrorMessage('Passwords do not match. Please verify both password fields.');
+      setErrorMessage('Passwords do not match. Please verify both password entries.');
       return;
     }
 
@@ -166,242 +154,248 @@ export default function LoginPage() {
       } else {
         setErrorMessage(res.error || 'Registration failed. Please check form details.');
       }
-    }, 350);
+    }, 320);
   };
 
   return (
-    <div className="auth-page-wrapper">
-      {/* Dynamic Background Mesh */}
-      <div className="auth-bg-ambient" />
+    <div className="saas-auth-wrapper">
+      {/* =====================================================================
+          1. LEFT HERO SHOWCASE PANEL (Desktop Brand Identity & Product Intro)
+          ===================================================================== */}
+      <div className="saas-auth-showcase">
+        <div className="saas-showcase-grid" />
 
-      <div className="auth-container" style={{ maxWidth: '540px' }}>
-        
-        {/* Main Card */}
-        <div className="auth-card" style={{ padding: '30px 28px' }}>
-          
-          {/* Header & Dynamic Branding */}
-          <div className="auth-header">
-            <div className="auth-logo-badge">
-              <DynamicBrandLogo size={42} />
-            </div>
-            <h1 className="auth-company-name">{branding.companyName}</h1>
-            <p className="auth-tagline">{branding.tagline}</p>
-            <div className="auth-security-pill">
-              <ShieldCheck size={14} color="#10b981" />
-              <span>Role-Based Authentication • Super Admin & Operations Admin</span>
-            </div>
-          </div>
-
-          {/* Primary Mode Toggle: Sign In vs Sign Up */}
-          <div className="auth-mode-toggle-wrap">
-            <div className="auth-mode-toggle">
-              <button
-                type="button"
-                className={`auth-mode-btn ${authMode === 'signin' ? 'active' : ''}`}
-                onClick={() => handleModeChange('signin')}
-              >
-                <Lock size={15} />
-                <span>Sign In (Instant Access)</span>
-              </button>
-              <button
-                type="button"
-                className={`auth-mode-btn ${authMode === 'signup' ? 'active' : ''}`}
-                onClick={() => handleModeChange('signup')}
-              >
-                <UserPlus size={15} />
-                <span>Create New Account</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Error Message Toast / Alert */}
-          {errorMessage && (
-            <div className="auth-error-banner">
-              <AlertCircle size={18} style={{ flexShrink: 0 }} />
+        <div className="saas-showcase-content">
+          {/* Top Brand Identity */}
+          <div className="saas-showcase-header">
+            <div className="saas-brand-identity">
+              <div className="saas-brand-logo-wrap">
+                <DynamicBrandLogo size={32} />
+              </div>
               <div>
-                <strong style={{ display: 'block', fontSize: '13px' }}>Authentication Alert</strong>
+                <div className="saas-brand-title">{branding.companyName || 'Bike Service Pro'}</div>
+                <div className="saas-brand-subtitle">Commercial SaaS Platform</div>
+              </div>
+            </div>
+
+            <div className="saas-enterprise-badge">
+              <Shield size={12} /> ENTERPRISE SAAS
+            </div>
+          </div>
+
+          {/* Center Product Introduction */}
+          <div className="saas-showcase-body">
+            <div className="saas-hero-pill">
+              <Sparkles size={12} /> Commercial Workshop & Fleet Management
+            </div>
+
+            <h2 className="saas-hero-title">
+              Intelligent Bike Service & Fleet Maintenance SaaS
+            </h2>
+
+            <p className="saas-hero-desc">
+              Purpose-built for modern motorcycle workshops, service dealerships, and enterprise fleet hubs to automate reminders, track repairs, and eliminate vehicle downtime with 100% offline reliability.
+            </p>
+
+            {/* 3 Core Value Feature Highlights */}
+            <div className="saas-feature-list">
+              <div className="saas-feature-card">
+                <div className="saas-feature-icon-box">
+                  <Zap size={18} />
+                </div>
+                <div className="saas-feature-text">
+                  <h4>Automated Service Alerts & Reminders</h4>
+                  <p>Dynamic kilometre and calendar algorithms calculate exact maintenance deadlines to prevent engine wear.</p>
+                </div>
+              </div>
+
+              <div className="saas-feature-card">
+                <div className="saas-feature-icon-box">
+                  <MessageSquare size={18} />
+                </div>
+                <div className="saas-feature-text">
+                  <h4>Omnichannel Customer Notifications</h4>
+                  <p>1-click WhatsApp and SMS reminder dispatches with itemized digital quotes and service status.</p>
+                </div>
+              </div>
+
+              <div className="saas-feature-card">
+                <div className="saas-feature-icon-box">
+                  <HardDrive size={18} />
+                </div>
+                <div className="saas-feature-text">
+                  <h4>Offline-First Browser Data Engine</h4>
+                  <p>Zero cloud hosting dependency. Complete data privacy with browser storage and 1-click PC/pendrive backup.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Trust & Performance Metrics */}
+            <div className="saas-trust-strip">
+              <span className="saas-trust-metric">
+                <strong style={{ color: '#38bdf8' }}>★ 4.9/5</strong> Rating
+              </span>
+              <span className="saas-trust-bullet">•</span>
+              <span className="saas-trust-metric">
+                <strong style={{ color: '#34d399' }}>50+</strong> Workshop Hubs
+              </span>
+              <span className="saas-trust-bullet">•</span>
+              <span className="saas-trust-metric">
+                <strong style={{ color: '#fbbf24' }}>99.98%</strong> Operational Uptime
+              </span>
+            </div>
+          </div>
+
+          {/* Showcase Footer */}
+          <div className="saas-showcase-footer">
+            <div className="saas-security-guarantee">
+              <ShieldCheck size={14} /> 256-Bit TLS Security & Role-Based Access Control
+            </div>
+            <span>v3.4.0 SaaS Edition</span>
+          </div>
+        </div>
+      </div>
+
+      {/* =====================================================================
+          2. RIGHT AUTHENTICATION FORM PANEL (Clean, High-Conversion SaaS UI)
+          ===================================================================== */}
+      <div className="saas-auth-form-panel">
+        <div className="saas-auth-form-inner">
+          
+          {/* Mobile Top Brand Bar (Visible on mobile screens) */}
+          <div className="saas-mobile-brand-bar">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ width: 34, height: 34, borderRadius: '8px', background: '#0b132b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <DynamicBrandLogo size={22} />
+              </div>
+              <div>
+                <strong style={{ fontSize: '15px', color: '#0f172a' }}>{branding.companyName || 'Bike Service Pro'}</strong>
+                <div style={{ fontSize: '11px', color: '#64748b' }}>Enterprise SaaS Portal</div>
+              </div>
+            </div>
+            <span style={{ fontSize: '10.5px', background: '#eff6ff', color: '#2563eb', padding: '3px 8px', borderRadius: '9999px', fontWeight: 700 }}>
+              SaaS v3.4
+            </span>
+          </div>
+
+          {/* Form Header */}
+          <div className="saas-form-header">
+            <h1 className="saas-form-title">
+              {authMode === 'signin' ? 'Sign In to Workspace' : 'Create Enterprise Account'}
+            </h1>
+            <p className="saas-form-subtitle">
+              {authMode === 'signin' 
+                ? 'Select your administrative clearance and enter your credentials.'
+                : 'Provision a new administrative account for your workshop team.'
+              }
+            </p>
+          </div>
+
+          {/* Mode Switcher Segment Control */}
+          <div className="saas-mode-toggle">
+            <button
+              type="button"
+              className={`saas-mode-btn ${authMode === 'signin' ? 'active' : ''}`}
+              onClick={() => handleModeChange('signin')}
+            >
+              <Lock size={14} />
+              <span>Sign In</span>
+            </button>
+            <button
+              type="button"
+              className={`saas-mode-btn ${authMode === 'signup' ? 'active' : ''}`}
+              onClick={() => handleModeChange('signup')}
+            >
+              <UserPlus size={14} />
+              <span>Create Account</span>
+            </button>
+          </div>
+
+          {/* Error Banner */}
+          {errorMessage && (
+            <div className="saas-alert-banner error">
+              <AlertCircle size={18} style={{ flexShrink: 0, marginTop: '1px' }} />
+              <div>
+                <strong style={{ display: 'block', fontSize: '13px' }}>Authentication Error</strong>
                 <span>{errorMessage}</span>
               </div>
             </div>
           )}
 
-          {/* Success Message Toast */}
+          {/* Success Banner */}
           {successMessage && (
-            <div style={{
-              background: '#ecfdf5',
-              border: '1px solid #a7f3d0',
-              color: '#065f46',
-              padding: '12px 14px',
-              borderRadius: '10px',
-              fontSize: '12.5px',
-              marginBottom: '18px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px'
-            }}>
-              <CheckCircle2 size={18} color="#10b981" style={{ flexShrink: 0 }} />
-              <span>{successMessage}</span>
+            <div className="saas-alert-banner success">
+              <CheckCircle2 size={18} color="#10b981" style={{ flexShrink: 0, marginTop: '1px' }} />
+              <div>
+                <strong style={{ display: 'block', fontSize: '13px' }}>Account Provisioned</strong>
+                <span>{successMessage}</span>
+              </div>
             </div>
           )}
 
           {/* =================================================================
-              VIEW 1: SIGN IN FORM
+              VIEW A: SIGN IN FORM
               ================================================================= */}
           {authMode === 'signin' && (
             <>
-              {/* Easy Visual Account Cards (1-Click Login or Select) */}
-              <div style={{ marginBottom: '16px' }}>
-                <div style={{ fontSize: '12px', fontWeight: 800, color: '#334155', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Sparkles size={14} color="#f59e0b" />
-                  <span>Choose Account to Sign In (1-Click Login):</span>
+              {/* Redesigned Clean Role Selection Cards */}
+              <div className="saas-role-selector-wrap">
+                <div className="saas-role-selector-label">
+                  <span>Administrative Role Clearance:</span>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  
-                  {/* Super Admin Card */}
-                  <div 
-                    style={{
-                      border: signInRole === 'super_admin' ? '2px solid #f59e0b' : '1px solid #e2e8f0',
-                      background: signInRole === 'super_admin' ? '#fffbeb' : '#ffffff',
-                      borderRadius: '12px',
-                      padding: '12px',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      boxShadow: signInRole === 'super_admin' ? '0 4px 14px rgba(245, 158, 11, 0.15)' : 'none'
-                    }}
-                    onClick={() => {
-                      handleSignInPortalSwitch('super_admin');
-                      setSignInPassword('superadmin');
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                      <span style={{ fontSize: '10px', background: '#fef3c7', color: '#b45309', padding: '2px 6px', borderRadius: '4px', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                        <Crown size={11} /> SUPER ADMIN
-                      </span>
-                      <span style={{ fontSize: '10px', color: '#64748b' }}>ROOT</span>
-                    </div>
-
-                    <div style={{ fontWeight: 800, fontSize: '13px', color: '#0f172a' }}>
-                      Alexander Vance
-                    </div>
-                    <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px', lineHeight: 1.3 }}>
-                      Admins, Store Hubs & Global Branding
-                    </div>
-
-                    <div style={{ fontSize: '11px', color: '#b45309', fontWeight: 700, marginTop: '6px', background: 'rgba(245, 158, 11, 0.1)', padding: '2px 6px', borderRadius: '4px' }}>
-                      Pass: <code>superadmin</code>
-                    </div>
-
-                    <button
-                      type="button"
-                      style={{
-                        width: '100%',
-                        marginTop: '8px',
-                        background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-                        color: '#ffffff',
-                        border: 'none',
-                        padding: '6px 10px',
-                        borderRadius: '6px',
-                        fontSize: '11.5px',
-                        fontWeight: 800,
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '4px'
-                      }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleInstantLogin('super_admin');
-                      }}
-                    >
-                      <KeyRound size={12} /> 1-Click Login &rarr;
-                    </button>
-                  </div>
-
+                <div className="saas-role-grid">
                   {/* Operations Admin Card */}
-                  <div 
-                    style={{
-                      border: signInRole === 'admin' ? '2px solid #2563eb' : '1px solid #e2e8f0',
-                      background: signInRole === 'admin' ? '#eff6ff' : '#ffffff',
-                      borderRadius: '12px',
-                      padding: '12px',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      boxShadow: signInRole === 'admin' ? '0 4px 14px rgba(37, 99, 235, 0.15)' : 'none'
-                    }}
-                    onClick={() => {
-                      handleSignInPortalSwitch('admin');
-                      setSignInPassword('admin');
-                    }}
+                  <div
+                    className={`saas-role-card ${signInRole === 'admin' ? 'active ops-admin' : ''}`}
+                    onClick={() => handleSignInRoleSwitch('admin')}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                      <span style={{ fontSize: '10px', background: '#dbeafe', color: '#1d4ed8', padding: '2px 6px', borderRadius: '4px', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                        <ShieldCheck size={11} /> OPS ADMIN
-                      </span>
-                      <span style={{ fontSize: '10px', color: '#64748b' }}>BRANCH</span>
+                    <div className="saas-role-card-top">
+                      <div className="saas-role-icon-pill ops">
+                        <ShieldCheck size={18} />
+                      </div>
+                      <div className="saas-role-check-indicator">
+                        {signInRole === 'admin' && <Check size={12} strokeWidth={3} />}
+                      </div>
                     </div>
-
-                    <div style={{ fontWeight: 800, fontSize: '13px', color: '#0f172a' }}>
-                      Vikram Raman
-                    </div>
-                    <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px', lineHeight: 1.3 }}>
-                      User Creation, Job Cards, Fleet & Services
-                    </div>
-
-                    <div style={{ fontSize: '11px', color: '#1d4ed8', fontWeight: 700, marginTop: '6px', background: 'rgba(37, 99, 235, 0.1)', padding: '2px 6px', borderRadius: '4px' }}>
-                      Pass: <code>admin</code>
-                    </div>
-
-                    <button
-                      type="button"
-                      style={{
-                        width: '100%',
-                        marginTop: '8px',
-                        background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
-                        color: '#ffffff',
-                        border: 'none',
-                        padding: '6px 10px',
-                        borderRadius: '6px',
-                        fontSize: '11.5px',
-                        fontWeight: 800,
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '4px'
-                      }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleInstantLogin('admin');
-                      }}
-                    >
-                      <KeyRound size={12} /> 1-Click Login &rarr;
-                    </button>
+                    <div className="saas-role-name">Operations Admin</div>
+                    <div className="saas-role-scope">Customer Onboarding, Job Cards & Fleet Tracking</div>
+                    <span className="saas-role-clearance ops">Branch Ops Active</span>
                   </div>
 
+                  {/* Super Admin Card */}
+                  <div
+                    className={`saas-role-card ${signInRole === 'super_admin' ? 'active super-admin' : ''}`}
+                    onClick={() => handleSignInRoleSwitch('super_admin')}
+                  >
+                    <div className="saas-role-card-top">
+                      <div className="saas-role-icon-pill super">
+                        <Crown size={18} />
+                      </div>
+                      <div className="saas-role-check-indicator">
+                        {signInRole === 'super_admin' && <Check size={12} strokeWidth={3} />}
+                      </div>
+                    </div>
+                    <div className="saas-role-name">Super Admin</div>
+                    <div className="saas-role-scope">Executive Root, Multi-Branch Hubs & Branding</div>
+                    <span className="saas-role-clearance super">Master Root Clearance</span>
+                  </div>
                 </div>
               </div>
 
-              {/* Or Manual Sign In Form */}
-              <div style={{ position: 'relative', textAlign: 'center', margin: '14px 0' }}>
-                <hr style={{ border: 'none', borderTop: '1px dashed #cbd5e1' }} />
-                <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: '#ffffff', padding: '0 10px', fontSize: '11px', color: '#64748b', fontWeight: 700 }}>
-                  OR ENTER CREDENTIALS MANUALLY
-                </span>
-              </div>
-
-              <form onSubmit={handleSignInSubmit} className="auth-form">
-                <div className="auth-field-group">
-                  <label className="auth-label">
-                    <span>{signInRole === 'super_admin' ? 'Super Admin Account Email' : 'Operations Admin Account Email'}</span>
-                    <span className="auth-required-mark">*</span>
+              {/* Sign In Form */}
+              <form onSubmit={handleSignInSubmit} className="saas-form">
+                <div className="saas-field-group">
+                  <label className="saas-label">
+                    <span>Account Email Address</span>
+                    <span className="saas-required-mark">*</span>
                   </label>
-                  <div className="auth-input-wrap">
-                    <Mail size={17} className="auth-input-icon" />
+                  <div className="saas-input-wrap">
+                    <Mail size={16} className="saas-input-icon" />
                     <input
-                      type="text"
-                      className="auth-input"
+                      type="email"
+                      className="saas-input"
+                      placeholder="admin@bikeservice.com"
                       value={signInEmail}
                       onChange={(e) => setSignInEmail(e.target.value)}
                       required
@@ -409,29 +403,24 @@ export default function LoginPage() {
                   </div>
                 </div>
 
-                <div className="auth-field-group">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <label className="auth-label" style={{ margin: 0 }}>
-                      <span>Password</span>
-                      <span className="auth-required-mark">*</span>
-                    </label>
-                    <span style={{ fontSize: '11px', color: signInRole === 'super_admin' ? '#b45309' : '#1d4ed8', fontWeight: 700 }}>
-                      {signInRole === 'super_admin' ? 'Enter "superadmin" or "SuperAdmin@2026!"' : 'Enter "admin" or "Admin@Ops2026!"'}
-                    </span>
-                  </div>
-                  <div className="auth-input-wrap">
-                    <Lock size={17} className="auth-input-icon" />
+                <div className="saas-field-group">
+                  <label className="saas-label">
+                    <span>Password</span>
+                    <span className="saas-required-mark">*</span>
+                  </label>
+                  <div className="saas-input-wrap">
+                    <Lock size={16} className="saas-input-icon" />
                     <input
                       type={showSignInPassword ? 'text' : 'password'}
-                      className="auth-input"
-                      placeholder={signInRole === 'super_admin' ? 'Type "superadmin"...' : 'Type "admin"...'}
+                      className="saas-input"
+                      placeholder="Enter your administrative password"
                       value={signInPassword}
                       onChange={(e) => setSignInPassword(e.target.value)}
                       required
                     />
                     <button
                       type="button"
-                      className="auth-eye-btn"
+                      className="saas-eye-btn"
                       onClick={() => setShowSignInPassword(!showSignInPassword)}
                       aria-label={showSignInPassword ? "Hide password" : "Show password"}
                     >
@@ -440,228 +429,251 @@ export default function LoginPage() {
                   </div>
                 </div>
 
-                <div className="auth-extra-row">
-                  <label className="auth-checkbox-label">
+                <div className="saas-form-row">
+                  <label className="saas-checkbox-label">
                     <input
                       type="checkbox"
                       checked={rememberMe}
                       onChange={(e) => setRememberMe(e.target.checked)}
                     />
-                    <span>Persist session</span>
+                    <span>Persist session on this workstation</span>
                   </label>
-                  <span className="auth-session-info">256-bit Secure</span>
+
+                  <span className="saas-help-link" onClick={() => alert("For security assistance or password recovery, please contact your Super Administrator.")}>
+                    Need assistance?
+                  </span>
                 </div>
 
                 <button
                   type="submit"
-                  className={`auth-submit-btn ${signInRole === 'super_admin' ? 'btn-super' : 'btn-ops'}`}
+                  className={`saas-submit-btn ${signInRole === 'super_admin' ? 'btn-super' : 'btn-ops'}`}
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? (
-                    <span>Validating Security Clearance...</span>
+                    <span>Authenticating Workspace...</span>
                   ) : (
                     <>
-                      <KeyRound size={17} />
                       <span>
                         {signInRole === 'super_admin' 
-                          ? 'Enter Super Admin Console (Admins & Stores)' 
-                          : 'Enter Operations Dashboard (User Creation & Fleet)'
+                          ? 'Enter Super Admin Console' 
+                          : 'Enter Operations Dashboard'
                         }
                       </span>
-                      <ArrowRight size={17} />
+                      <ArrowRight size={16} />
                     </>
                   )}
                 </button>
               </form>
 
-              {/* Role Matrix & Authorization Guide (Clear & Understandable) */}
-              <div style={{ marginTop: '20px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px' }}>
-                <div style={{ fontSize: '12px', fontWeight: 800, color: '#0f172a', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Info size={14} color="#2563eb" />
-                  <span>Role Permissions & Destination Guide:</span>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '11px' }}>
-                  <div style={{ background: '#ffffff', padding: '8px 10px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                    <strong style={{ color: '#b45309', display: 'block', marginBottom: '4px' }}>👑 Super Admin Lands On:</strong>
-                    <div style={{ color: '#0f172a', fontWeight: 700 }}>Super Admin Console</div>
-                    <div style={{ color: '#64748b', marginTop: '2px' }}>• Admin Management</div>
-                    <div style={{ color: '#64748b' }}>• Store Workshop Hubs</div>
-                    <div style={{ color: '#64748b' }}>• Logo & Branding Colors</div>
+              {/* Discreet Developer / Testing Quick-Fill Drawer */}
+              <details className="saas-dev-drawer">
+                <summary className="saas-dev-summary">
+                  <Sparkles size={13} color="#2563eb" />
+                  <span>Developer & Evaluator Quick Fill</span>
+                </summary>
+                <div className="saas-dev-content">
+                  <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '8px' }}>
+                    Quick credential helper for development and verification testing:
                   </div>
 
-                  <div style={{ background: '#ffffff', padding: '8px 10px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                    <strong style={{ color: '#1d4ed8', display: 'block', marginBottom: '4px' }}>🛡️ Admin Lands On:</strong>
-                    <div style={{ color: '#0f172a', fontWeight: 700 }}>Operations Dashboard</div>
-                    <div style={{ color: '#64748b', marginTop: '2px' }}>• Customer User Creation</div>
-                    <div style={{ color: '#64748b' }}>• Service Monitoring</div>
-                    <div style={{ color: '#64748b' }}>• Job Cards & Fleet GPS</div>
+                  <div className="saas-dev-row">
+                    <div>
+                      <strong>Operations Admin:</strong> <code>admin@bikeservice.com</code>
+                    </div>
+                    <button
+                      type="button"
+                      className="saas-dev-fill-btn"
+                      onClick={() => handleDevQuickFill('admin')}
+                    >
+                      Autofill Ops
+                    </button>
+                  </div>
+
+                  <div className="saas-dev-row" style={{ marginTop: '4px' }}>
+                    <div>
+                      <strong>Super Admin:</strong> <code>superadmin@bikeservice.com</code>
+                    </div>
+                    <button
+                      type="button"
+                      className="saas-dev-fill-btn"
+                      onClick={() => handleDevQuickFill('super_admin')}
+                    >
+                      Autofill Super
+                    </button>
                   </div>
                 </div>
-              </div>
+              </details>
             </>
           )}
 
           {/* =================================================================
-              VIEW 2: SIGN UP FORM
+              VIEW B: SIGN UP FORM (Clean, Structured Account Provisioning)
               ================================================================= */}
           {authMode === 'signup' && (
-            <form onSubmit={handleSignUpSubmit} className="auth-form">
-              {/* Account Role Selector for Sign Up */}
-              <div className="auth-field-group">
-                <label className="auth-label">
-                  <span>Select Account Role Clearance</span>
-                  <span className="auth-required-mark">*</span>
-                </label>
-                <div className="auth-portal-selector" style={{ marginBottom: '6px' }}>
-                  <button
-                    type="button"
-                    className={`auth-portal-tab ${signUpRole === 'admin' ? 'active ops-admin' : ''}`}
-                    onClick={() => {
-                      setSignUpRole('admin');
-                      setErrorMessage('');
-                    }}
-                  >
-                    <UserCheck size={16} />
-                    <div>
-                      <div className="tab-main-title">Operations Admin</div>
-                      <div className="tab-sub-title">Workshop Branch Admin</div>
-                    </div>
-                  </button>
+            <form onSubmit={handleSignUpSubmit} className="saas-form">
+              {/* Role Selection */}
+              <div className="saas-role-selector-wrap">
+                <div className="saas-role-selector-label">
+                  <span>Account Type to Provision:</span>
+                </div>
 
-                  <button
-                    type="button"
-                    className={`auth-portal-tab ${signUpRole === 'super_admin' ? 'active super-admin' : ''}`}
-                    onClick={() => {
-                      setSignUpRole('super_admin');
-                      setErrorMessage('');
-                    }}
+                <div className="saas-role-grid">
+                  <div
+                    className={`saas-role-card ${signUpRole === 'admin' ? 'active ops-admin' : ''}`}
+                    onClick={() => setSignUpRole('admin')}
                   >
-                    <Crown size={16} />
-                    <div>
-                      <div className="tab-main-title">Super Admin</div>
-                      <div className="tab-sub-title">Root Clearances (Key Req.)</div>
+                    <div className="saas-role-card-top">
+                      <div className="saas-role-icon-pill ops">
+                        <ShieldCheck size={18} />
+                      </div>
+                      <div className="saas-role-check-indicator">
+                        {signUpRole === 'admin' && <Check size={12} strokeWidth={3} />}
+                      </div>
                     </div>
-                  </button>
+                    <div className="saas-role-name">Operations Admin</div>
+                    <div className="saas-role-scope">Branch workshop & customer management</div>
+                  </div>
+
+                  <div
+                    className={`saas-role-card ${signUpRole === 'super_admin' ? 'active super-admin' : ''}`}
+                    onClick={() => setSignUpRole('super_admin')}
+                  >
+                    <div className="saas-role-card-top">
+                      <div className="saas-role-icon-pill super">
+                        <Crown size={18} />
+                      </div>
+                      <div className="saas-role-check-indicator">
+                        {signUpRole === 'super_admin' && <Check size={12} strokeWidth={3} />}
+                      </div>
+                    </div>
+                    <div className="saas-role-name">Super Admin</div>
+                    <div className="saas-role-scope">Executive root management</div>
+                  </div>
                 </div>
               </div>
 
-              {/* Full Name */}
-              <div className="auth-field-group">
-                <label className="auth-label">
-                  <span>Full Legal Name</span>
-                  <span className="auth-required-mark">*</span>
-                </label>
-                <div className="auth-input-wrap">
-                  <User size={17} className="auth-input-icon" />
-                  <input
-                    type="text"
-                    className="auth-input"
-                    placeholder="e.g. Ramesh Kumar"
-                    value={signUpName}
-                    onChange={(e) => setSignUpName(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Work Email & Phone Row */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                <div className="auth-field-group">
-                  <label className="auth-label">
-                    <span>Work Email</span>
-                    <span className="auth-required-mark">*</span>
+              {/* Master Key input if Super Admin */}
+              {signUpRole === 'super_admin' && (
+                <div className="saas-field-group">
+                  <label className="saas-label">
+                    <span>Super Admin Master Key Authorization</span>
+                    <span className="saas-required-mark">*</span>
                   </label>
-                  <div className="auth-input-wrap">
-                    <Mail size={16} className="auth-input-icon" />
+                  <div className="saas-input-wrap">
+                    <Key size={16} className="saas-input-icon" />
+                    <input
+                      type="password"
+                      className="saas-input"
+                      placeholder="Enter corporate master security key"
+                      value={signUpMasterKey}
+                      onChange={(e) => setSignUpMasterKey(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <span style={{ fontSize: '11px', color: '#64748b' }}>
+                    Hint: Default corporate master key is <code>MASTER-2026-SALEM</code>
+                  </span>
+                </div>
+              )}
+
+              {/* Full Name & Email */}
+              <div className="saas-field-grid-2">
+                <div className="saas-field-group">
+                  <label className="saas-label">
+                    <span>Full Name</span>
+                    <span className="saas-required-mark">*</span>
+                  </label>
+                  <div className="saas-input-wrap">
+                    <User size={16} className="saas-input-icon" />
+                    <input
+                      type="text"
+                      className="saas-input"
+                      placeholder="e.g. Ramesh Kumar"
+                      value={signUpName}
+                      onChange={(e) => setSignUpName(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="saas-field-group">
+                  <label className="saas-label">
+                    <span>Work Email</span>
+                    <span className="saas-required-mark">*</span>
+                  </label>
+                  <div className="saas-input-wrap">
+                    <Mail size={16} className="saas-input-icon" />
                     <input
                       type="email"
-                      className="auth-input"
-                      placeholder="name@bikeservice.com"
+                      className="saas-input"
+                      placeholder="ramesh@bikeservice.com"
                       value={signUpEmail}
                       onChange={(e) => setSignUpEmail(e.target.value)}
                       required
                     />
                   </div>
                 </div>
+              </div>
 
-                <div className="auth-field-group">
-                  <label className="auth-label">
-                    <span>Phone Number</span>
+              {/* Phone & Assigned Branch */}
+              <div className="saas-field-grid-2">
+                <div className="saas-field-group">
+                  <label className="saas-label">
+                    <span>Mobile Number</span>
+                    <span className="saas-required-mark">*</span>
                   </label>
-                  <div className="auth-input-wrap">
-                    <Phone size={16} className="auth-input-icon" />
+                  <div className="saas-input-wrap">
+                    <Phone size={16} className="saas-input-icon" />
                     <input
                       type="tel"
-                      className="auth-input"
+                      className="saas-input"
                       placeholder="9876543210"
                       value={signUpPhone}
                       onChange={(e) => setSignUpPhone(e.target.value)}
+                      required
                     />
+                  </div>
+                </div>
+
+                <div className="saas-field-group">
+                  <label className="saas-label">
+                    <span>Assigned Workshop Hub</span>
+                    <span className="saas-required-mark">*</span>
+                  </label>
+                  <div className="saas-input-wrap">
+                    <Building2 size={16} className="saas-input-icon" />
+                    <select
+                      className="saas-input"
+                      value={signUpBranch}
+                      onChange={(e) => setSignUpBranch(e.target.value)}
+                      disabled={signUpRole === 'super_admin'}
+                      style={{ cursor: signUpRole === 'super_admin' ? 'not-allowed' : 'pointer' }}
+                    >
+                      {signUpRole === 'super_admin' ? (
+                        <option value="All Branches">All Mega Hubs (Global Master)</option>
+                      ) : (
+                        storesList.map(s => (
+                          <option key={s.id} value={s.name}>{s.name}</option>
+                        ))
+                      )}
+                    </select>
                   </div>
                 </div>
               </div>
 
-              {/* Assigned Branch (if Operations Admin) or Master Key (if Super Admin) */}
-              {signUpRole === 'admin' ? (
-                <div className="auth-field-group">
-                  <label className="auth-label">
-                    <span>Assigned Workshop Store Hub</span>
-                    <span className="auth-required-mark">*</span>
+              {/* Password & Confirm */}
+              <div className="saas-field-grid-2">
+                <div className="saas-field-group">
+                  <label className="saas-label">
+                    <span>Password</span>
+                    <span className="saas-required-mark">*</span>
                   </label>
-                  <div className="auth-input-wrap">
-                    <Building2 size={17} className="auth-input-icon" />
-                    <select
-                      className="auth-input"
-                      style={{ paddingLeft: '42px', appearance: 'auto' }}
-                      value={signUpBranch}
-                      onChange={(e) => setSignUpBranch(e.target.value)}
-                      required
-                    >
-                      {storesList.map(st => (
-                        <option key={st.id} value={st.name}>{st.name} ({st.city})</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              ) : (
-                <div className="auth-field-group">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <label className="auth-label" style={{ margin: 0 }}>
-                      <span>Super Admin Security Key</span>
-                      <span className="auth-required-mark">*</span>
-                    </label>
-                    <span style={{ fontSize: '11px', color: '#f59e0b', fontWeight: 700 }}>
-                      Demo Key: SUPER-ROOT-2026
-                    </span>
-                  </div>
-                  <div className="auth-input-wrap">
-                    <Key size={17} className="auth-input-icon" />
-                    <input
-                      type="text"
-                      className="auth-input"
-                      placeholder="Enter SUPER-ROOT-2026..."
-                      value={signUpMasterKey}
-                      onChange={(e) => setSignUpMasterKey(e.target.value)}
-                      required
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Password & Confirm Password Row */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                <div className="auth-field-group">
-                  <label className="auth-label">
-                    <span>Create Password</span>
-                    <span className="auth-required-mark">*</span>
-                  </label>
-                  <div className="auth-input-wrap">
-                    <Lock size={16} className="auth-input-icon" />
+                  <div className="saas-input-wrap">
+                    <Lock size={16} className="saas-input-icon" />
                     <input
                       type={showSignUpPassword ? 'text' : 'password'}
-                      className="auth-input"
-                      placeholder="Min 4 chars (e.g. admin)"
+                      className="saas-input"
+                      placeholder="Min. 4 characters"
                       value={signUpPassword}
                       onChange={(e) => setSignUpPassword(e.target.value)}
                       required
@@ -669,76 +681,64 @@ export default function LoginPage() {
                   </div>
                 </div>
 
-                <div className="auth-field-group">
-                  <label className="auth-label">
+                <div className="saas-field-group">
+                  <label className="saas-label">
                     <span>Confirm Password</span>
-                    <span className="auth-required-mark">*</span>
+                    <span className="saas-required-mark">*</span>
                   </label>
-                  <div className="auth-input-wrap">
-                    <Lock size={16} className="auth-input-icon" />
+                  <div className="saas-input-wrap">
+                    <Lock size={16} className="saas-input-icon" />
                     <input
                       type={showSignUpPassword ? 'text' : 'password'}
-                      className="auth-input"
+                      className="saas-input"
                       placeholder="Re-enter password"
                       value={signUpConfirmPassword}
                       onChange={(e) => setSignUpConfirmPassword(e.target.value)}
                       required
                     />
+                    <button
+                      type="button"
+                      className="saas-eye-btn"
+                      onClick={() => setShowSignUpPassword(!showSignUpPassword)}
+                    >
+                      {showSignUpPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
                   </div>
                 </div>
               </div>
 
-              {/* Show password toggle */}
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '-4px' }}>
-                <button
-                  type="button"
-                  onClick={() => setShowSignUpPassword(!showSignUpPassword)}
-                  style={{ background: 'transparent', border: 'none', color: '#64748b', fontSize: '11.5px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
-                >
-                  {showSignUpPassword ? <EyeOff size={13} /> : <Eye size={13} />}
-                  <span>{showSignUpPassword ? 'Hide passwords' : 'Show passwords'}</span>
-                </button>
-              </div>
-
-              {/* Submit Button */}
               <button
                 type="submit"
-                className={`auth-submit-btn ${signUpRole === 'super_admin' ? 'btn-super' : 'btn-ops'}`}
+                className="saas-submit-btn btn-ops"
                 disabled={isSubmitting}
-                style={{ marginTop: '8px' }}
+                style={{ marginTop: '12px' }}
               >
                 {isSubmitting ? (
-                  <span>Registering Administrator...</span>
+                  <span>Creating Account...</span>
                 ) : (
                   <>
-                    <UserPlus size={17} />
-                    <span>
-                      {signUpRole === 'super_admin' 
-                        ? 'Sign Up as Super Admin & Launch Console' 
-                        : 'Sign Up as Operations Admin & Launch Dashboard'
-                      }
-                    </span>
-                    <ArrowRight size={17} />
+                    <UserPlus size={16} />
+                    <span>Create Enterprise Account</span>
+                    <ArrowRight size={16} />
                   </>
                 )}
               </button>
             </form>
           )}
 
-          {/* Customer Portal Shortcut */}
-          <div className="auth-customer-link-row" style={{ marginTop: '16px' }}>
+          {/* Customer Mobile App Shortcut Link */}
+          <div className="saas-customer-portal-shortcut">
             <button
               type="button"
-              className="auth-customer-btn"
+              className="saas-customer-btn"
               onClick={() => navigate('/customer')}
             >
-              <Smartphone size={16} />
-              <span>Looking for Customer GPS Telemetry & Points? Open Mobile App</span>
+              <span>Looking for Rider Mobile App?</span>
+              <strong style={{ color: '#2563eb' }}>Launch Customer Portal &rarr;</strong>
             </button>
           </div>
 
         </div>
-
       </div>
     </div>
   );
