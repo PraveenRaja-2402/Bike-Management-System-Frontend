@@ -209,7 +209,7 @@ export default function LeafletMap({
             <div style="font-family: sans-serif; font-size: 12px;">
               <strong style="color: #0f172a; font-size: 13px;">${st.name}</strong>
               <div style="color: #64748b; margin-top: 2px;">${st.address}</div>
-              <div style="color: #2563eb; margin-top: 4px; font-weight: 600;">📞 ${st.phone}</div>
+              <div style="color: #356DF3; margin-top: 4px; font-weight: 600;">📞 ${st.phone}</div>
               <div style="color: #059669; font-size: 11px;">Bays: ${st.serviceBays} | Techs: ${st.availableTechnicians}</div>
             </div>
           `);
@@ -226,7 +226,7 @@ export default function LeafletMap({
       // Traveled path (Solid Blue)
       if (passedCoords.length > 1) {
         const passedLine = L.polyline(passedCoords, {
-          color: '#2563eb',
+          color: '#356DF3',
           weight: 5,
           opacity: 0.9,
           lineJoin: 'round'
@@ -287,7 +287,7 @@ export default function LeafletMap({
               width: 58px;
               height: 58px;
               border-radius: 50%;
-              border: 2px solid #2563eb;
+              border: 2px solid #356DF3;
               background: rgba(37, 99, 235, 0.15);
               pointer-events: none;
               animation: vehicleRadarPulse 1.8s infinite ease-out;
@@ -300,14 +300,14 @@ export default function LeafletMap({
               width: 42px;
               height: 42px;
               background: #ffffff;
-              border: 3px solid #2563eb;
+              border: 3px solid #356DF3;
               border-radius: 50%;
               display: flex;
               align-items: center;
               justify-content: center;
               box-shadow: 0 6px 16px rgba(37,99,235,0.35);
             ">
-              ${getVehicleSvg('Yamaha FZ-S', '#2563eb', false)}
+              ${getVehicleSvg('Yamaha FZ-S', '#356DF3', false)}
             </div>
 
             <!-- Pointer Needle -->
@@ -320,7 +320,7 @@ export default function LeafletMap({
               height: 0;
               border-left: 5px solid transparent;
               border-right: 5px solid transparent;
-              border-top: 5px solid #2563eb;
+              border-top: 5px solid #356DF3;
               z-index: 3;
             "></div>
 
@@ -556,7 +556,7 @@ export default function LeafletMap({
               style={{
                 padding: '5px 10px',
                 border: 'none',
-                background: mapType === 'street' ? '#2563eb' : '#ffffff',
+                background: mapType === 'street' ? '#356DF3' : '#ffffff',
                 color: mapType === 'street' ? '#ffffff' : '#475569',
                 cursor: 'pointer',
                 fontWeight: 600
@@ -570,7 +570,7 @@ export default function LeafletMap({
               style={{
                 padding: '5px 10px',
                 border: 'none',
-                background: mapType === 'satellite' ? '#2563eb' : '#ffffff',
+                background: mapType === 'satellite' ? '#356DF3' : '#ffffff',
                 color: mapType === 'satellite' ? '#ffffff' : '#475569',
                 cursor: 'pointer',
                 fontWeight: 600
@@ -653,3 +653,4 @@ export default function LeafletMap({
     </div>
   );
 }
+

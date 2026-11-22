@@ -112,3 +112,4 @@ export default function BrandLogo({ brand, size = 32, className = '' }) {
     </div>
   );
 }
+

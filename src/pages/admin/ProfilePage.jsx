@@ -92,7 +92,7 @@ export default function ProfilePage() {
         <div className="card">
           <div className="card-header">
             <div className="card-title">
-              <User size={18} color="#2563eb" />
+              <User size={18} color="#356DF3" />
               <span>Profile Overview</span>
             </div>
             <button type="button" className="btn-secondary btn-sm" style={{ padding: '4px 6px', border: 'none' }}>
@@ -150,7 +150,7 @@ export default function ProfilePage() {
         <div className="card">
           <div className="card-header">
             <div className="card-title">
-              <Edit3 size={18} color="#2563eb" />
+              <Edit3 size={18} color="#356DF3" />
               <span>Edit Profile</span>
             </div>
           </div>
@@ -257,7 +257,7 @@ export default function ProfilePage() {
         <div className="card">
           <div className="card-header">
             <div className="card-title">
-              <Lock size={18} color="#2563eb" />
+              <Lock size={18} color="#356DF3" />
               <span>Change Password</span>
             </div>
           </div>
@@ -363,7 +363,7 @@ export default function ProfilePage() {
         <div className="card">
           <div className="card-header">
             <div className="card-title">
-              <FileText size={18} color="#2563eb" />
+              <FileText size={18} color="#356DF3" />
               <span>Activity Log</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -393,7 +393,7 @@ export default function ProfilePage() {
                     <td>
                       <span style={{ 
                         fontWeight: 600, 
-                        color: log.action.includes('Login') ? '#10b981' : log.action.includes('Logout') ? '#64748b' : '#2563eb' 
+                        color: log.action.includes('Login') ? '#10b981' : log.action.includes('Logout') ? '#64748b' : '#356DF3' 
                       }}>
                         {log.action}
                       </span>
@@ -450,3 +450,4 @@ export default function ProfilePage() {
     </div>
   );
 }
+

@@ -211,7 +211,7 @@ export default function ServiceTrackingPage() {
 
       {/* Summary KPI Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '20px' }}>
-        <div className="card" style={{ padding: '16px 20px', borderLeft: '4px solid #2563eb' }}>
+        <div className="card" style={{ padding: '16px 20px', borderLeft: '4px solid #356DF3' }}>
           <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Total Services Logged</div>
           <div style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', marginTop: '4px' }}>
             {serviceRecords.length}
@@ -256,7 +256,7 @@ export default function ServiceTrackingPage() {
       <div className="table-card">
         <div className="table-header">
           <div className="table-title">
-            <Wrench size={20} color="#2563eb" />
+            <Wrench size={20} color="#356DF3" />
             <span>Service Tracking & Maintenance Logs (Requirement 2)</span>
           </div>
           <button 
@@ -354,7 +354,7 @@ export default function ServiceTrackingPage() {
                     {/* Maintenance Items Pill Checklist */}
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', maxWidth: '280px' }}>
                       {srv.items?.engineOil && (
-                        <span style={{ background: '#dbeafe', color: '#1d4ed8', fontSize: '10px', padding: '1px 6px', borderRadius: '4px', fontWeight: 700 }}>
+                        <span style={{ background: '#dbeafe', color: '#2957CC', fontSize: '10px', padding: '1px 6px', borderRadius: '4px', fontWeight: 700 }}>
                           Oil
                         </span>
                       )}
@@ -545,7 +545,7 @@ export default function ServiceTrackingPage() {
           {/* Individual Maintenance Items Checklist (Requirement 2) */}
           <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '14px' }}>
             <div style={{ fontSize: '12px', fontWeight: 700, color: '#0f172a', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Wrench size={14} color="#2563eb" />
+              <Wrench size={14} color="#356DF3" />
               <span>Specific Maintenance Items Checked & Serviced:</span>
             </div>
 
@@ -565,7 +565,7 @@ export default function ServiceTrackingPage() {
                     type="checkbox"
                     checked={formData.items[item.key] || false}
                     onChange={() => handleItemToggle(item.key)}
-                    style={{ accentColor: '#2563eb', width: '16px', height: '16px' }}
+                    style={{ accentColor: '#356DF3', width: '16px', height: '16px' }}
                   />
                   <span>{item.label}</span>
                 </label>
@@ -640,7 +640,7 @@ export default function ServiceTrackingPage() {
                 <div style={{ fontSize: '12px', color: '#64748b' }}>Salem Central Workshop • 📞 {branding.supportPhone}</div>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: '13px', fontWeight: 800, color: '#2563eb' }}>INVOICE #{viewServiceReceipt.id}</div>
+                <div style={{ fontSize: '13px', fontWeight: 800, color: '#356DF3' }}>INVOICE #{viewServiceReceipt.id}</div>
                 <div style={{ fontSize: '12px', color: '#64748b' }}>Date: {viewServiceReceipt.serviceDate}</div>
               </div>
             </div>
@@ -704,3 +704,4 @@ export default function ServiceTrackingPage() {
     </div>
   );
 }
+

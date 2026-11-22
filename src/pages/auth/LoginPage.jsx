@@ -264,7 +264,7 @@ export default function LoginPage() {
           {/* Mobile Top Brand Bar */}
           <div className="saas-mobile-brand-bar">
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div style={{ width: 32, height: 32, borderRadius: '8px', background: '#0b132b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: 32, height: 32, borderRadius: '8px', background: '#101828', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <DynamicBrandLogo size={20} />
               </div>
               <div>
@@ -272,7 +272,7 @@ export default function LoginPage() {
                 <div style={{ fontSize: '11px', color: '#64748b' }}>Enterprise SaaS Portal</div>
               </div>
             </div>
-            <span style={{ fontSize: '10px', background: '#eff6ff', color: '#2563eb', padding: '2px 8px', borderRadius: '9999px', fontWeight: 700 }}>
+            <span style={{ fontSize: '10px', background: '#eff6ff', color: '#356DF3', padding: '2px 8px', borderRadius: '9999px', fontWeight: 700 }}>
               SaaS v3.4
             </span>
           </div>
@@ -468,7 +468,7 @@ export default function LoginPage() {
               {import.meta.env.DEV && (
                 <details className="saas-dev-drawer">
                   <summary className="saas-dev-summary">
-                    <Sparkles size={12} color="#2563eb" />
+                    <Sparkles size={12} color="#356DF3" />
                     <span>Development Testing Credentials</span>
                   </summary>
                   <div className="saas-dev-content">
@@ -737,7 +737,7 @@ export default function LoginPage() {
               onClick={() => navigate('/customer')}
             >
               <span>Looking for Rider Mobile App?</span>
-              <strong style={{ color: '#2563eb' }}>Launch Customer Portal &rarr;</strong>
+              <strong style={{ color: '#356DF3' }}>Launch Customer Portal &rarr;</strong>
             </button>
           </div>
 
@@ -746,3 +746,4 @@ export default function LoginPage() {
     </div>
   );
 }
+

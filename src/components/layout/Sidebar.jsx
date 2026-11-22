@@ -25,13 +25,15 @@ import {
   Bike,
   Wrench,
   FileText,
-  HardDrive
+  HardDrive,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import DynamicBrandLogo from '../common/DynamicBrandLogo';
 import Modal from '../common/Modal';
 
-export default function Sidebar({ isOpen, onClose }) {
+export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggleCollapse }) {
   const { 
     currentRole, 
     currentUser, 
@@ -153,57 +155,80 @@ export default function Sidebar({ isOpen, onClose }) {
         <div className="sidebar-backdrop" onClick={onClose} />
       )}
 
-      <aside className={`admin-sidebar ${isOpen ? 'open' : ''}`}>
+      <aside className={`admin-sidebar ${isOpen ? 'open' : ''} ${isCollapsed ? 'collapsed' : ''}`}>
         {/* Brand Header with Dynamic Logo */}
         <div className="sidebar-brand-wrapper">
           <div className="sidebar-brand">
             <DynamicBrandLogo size={32} />
-            <div className="brand-title-wrap">
-              <span className="brand-name">{branding.companyName}</span>
-              <span className="brand-tagline">
-                {isSuperAdmin ? '⚡ Super Admin Root' : '🛡️ Operations Admin'}
-              </span>
-            </div>
+            {!isCollapsed && (
+              <div className="brand-title-wrap">
+                <span className="brand-name">{branding.companyName}</span>
+                <span className="brand-tagline">
+                  {isSuperAdmin ? '⚡ Super Admin Root' : '🛡️ Operations Admin'}
+                </span>
+              </div>
+            )}
           </div>
-          <button type="button" className="sidebar-close-btn" onClick={onClose}>
-            <X size={20} />
-          </button>
+          <div className="sidebar-header-actions">
+            {onToggleCollapse && (
+              <button
+                type="button"
+                className="sidebar-collapse-btn desktop-only"
+                onClick={onToggleCollapse}
+                title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+                aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              >
+                {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+              </button>
+            )}
+            <button type="button" className="sidebar-close-btn" onClick={onClose}>
+              <X size={20} />
+            </button>
+          </div>
         </div>
 
         {/* Authenticated User Identity Card */}
-        <div className="sidebar-user-card-wrap">
-          <div className={`sidebar-user-card ${isSuperAdmin ? 'super-active' : 'admin-active'}`}>
-            <div className="user-card-top">
-              <div className="user-avatar-badge">
-                {currentUser?.avatar || (isSuperAdmin ? 'SA' : 'AD')}
-              </div>
-              <div className="user-card-info">
-                <div className="user-card-name">{currentUser?.name || (isSuperAdmin ? 'Alexander Vance' : 'Vikram Raman')}</div>
-                <div className="user-card-role">
-                  {isSuperAdmin ? '👑 Super Admin (Master)' : '🛡️ Operations Admin'}
+        {!isCollapsed ? (
+          <div className="sidebar-user-card-wrap">
+            <div className={`sidebar-user-card ${isSuperAdmin ? 'super-active' : 'admin-active'}`}>
+              <div className="user-card-top">
+                <div className="user-avatar-badge">
+                  {currentUser?.avatar || (isSuperAdmin ? 'SA' : 'AD')}
+                </div>
+                <div className="user-card-info">
+                  <div className="user-card-name">{currentUser?.name || (isSuperAdmin ? 'Alexander Vance' : 'Vikram Raman')}</div>
+                  <div className="user-card-role">
+                    {isSuperAdmin ? '👑 Super Admin (Master)' : '🛡️ Operations Admin'}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="user-card-branch">
-              <span className="branch-label">Assigned Hub:</span>
-              <span className="branch-val">{currentUser?.assignedBranch || (isSuperAdmin ? 'All Mega Hubs' : 'Salem Central Hub')}</span>
-            </div>
+              <div className="user-card-branch">
+                <span className="branch-label">Assigned Hub:</span>
+                <span className="branch-val">{currentUser?.assignedBranch || (isSuperAdmin ? 'All Mega Hubs' : 'Salem Central Hub')}</span>
+              </div>
 
-            {/* Quick Switch Button (Protected with password) */}
-            <div className="user-card-actions">
-              <button
-                type="button"
-                className="btn-switch-account"
-                onClick={handleOpenSwitchModal}
-                title="Switch account role with password verification"
-              >
-                <KeyRound size={12} />
-                <span>Switch to {isSuperAdmin ? 'Operations Admin' : 'Super Admin'}</span>
-              </button>
+              {/* Quick Switch Button (Protected with password) */}
+              <div className="user-card-actions">
+                <button
+                  type="button"
+                  className="btn-switch-account"
+                  onClick={handleOpenSwitchModal}
+                  title="Switch account role with password verification"
+                >
+                  <KeyRound size={12} />
+                  <span>Switch to {isSuperAdmin ? 'Operations Admin' : 'Super Admin'}</span>
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        ) : (
+          <div className="sidebar-user-card-collapsed" title={`${currentUser?.name || (isSuperAdmin ? 'Alexander Vance' : 'Vikram Raman')} (${isSuperAdmin ? 'Super Admin' : 'Operations Admin'})`}>
+            <div className="user-avatar-badge small" onClick={handleOpenSwitchModal} style={{ cursor: 'pointer' }}>
+              {currentUser?.avatar || (isSuperAdmin ? 'SA' : 'AD')}
+            </div>
+          </div>
+        )}
 
         {/* Navigation Items */}
         <nav className="sidebar-nav">
@@ -232,7 +257,7 @@ export default function Sidebar({ isOpen, onClose }) {
                 onClick={onClose}
                 className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''} ${!isSuperAdmin ? 'restricted-item' : ''}`}
                 style={{ opacity: isSuperAdmin ? 1 : 0.8 }}
-                title={!isSuperAdmin ? 'Super Admin Password Required' : undefined}
+                title={!isSuperAdmin ? `${item.name} (Super Admin Password Required)` : item.name}
               >
                 <Icon size={18} className="nav-item-icon" color={isSuperAdmin ? '#f59e0b' : '#94a3b8'} />
                 <span className="nav-item-label">{item.name}</span>
@@ -263,6 +288,7 @@ export default function Sidebar({ isOpen, onClose }) {
                 to={item.path}
                 onClick={onClose}
                 className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`}
+                title={item.name}
               >
                 <Icon size={18} className="nav-item-icon" />
                 <span className="nav-item-label">{item.name}</span>
@@ -270,7 +296,7 @@ export default function Sidebar({ isOpen, onClose }) {
                   <span style={{
                     fontSize: '9px',
                     marginLeft: 'auto',
-                    background: item.badgeColor || '#2563eb',
+                    background: item.badgeColor || '#356DF3',
                     color: '#ffffff',
                     padding: '1px 6px',
                     borderRadius: '9999px',
@@ -293,6 +319,7 @@ export default function Sidebar({ isOpen, onClose }) {
                 to={item.path}
                 onClick={onClose}
                 className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`}
+                title={item.name}
               >
                 <Icon size={18} className="nav-item-icon" />
                 <span className="nav-item-label">{item.name}</span>
@@ -300,7 +327,7 @@ export default function Sidebar({ isOpen, onClose }) {
                   <span style={{
                     fontSize: '9px',
                     marginLeft: 'auto',
-                    background: item.badgeColor || '#2563eb',
+                    background: item.badgeColor || '#356DF3',
                     color: '#ffffff',
                     padding: '1px 6px',
                     borderRadius: '9999px',
@@ -323,6 +350,7 @@ export default function Sidebar({ isOpen, onClose }) {
                 to={item.path}
                 onClick={onClose}
                 className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`}
+                title={item.name}
               >
                 <Icon size={18} className="nav-item-icon" />
                 <span className="nav-item-label">{item.name}</span>
@@ -360,7 +388,7 @@ export default function Sidebar({ isOpen, onClose }) {
         <form onSubmit={handleSwitchSubmit} className="switch-role-form">
           <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', marginBottom: '16px', border: '1px solid #e2e8f0' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-              {targetRole === 'super_admin' ? <Crown size={18} color="#d97706" /> : <ShieldCheck size={18} color="#2563eb" />}
+              {targetRole === 'super_admin' ? <Crown size={18} color="#d97706" /> : <ShieldCheck size={18} color="#356DF3" />}
               <strong style={{ fontSize: '13.5px', color: '#0f172a' }}>
                 Switching to: {targetRole === 'super_admin' ? 'Super Admin (Alexander Vance)' : 'Operations Admin (Vikram Raman)'}
               </strong>
@@ -415,7 +443,7 @@ export default function Sidebar({ isOpen, onClose }) {
             <button
               type="button"
               onClick={() => setSwitchPassword(targetRole === 'super_admin' ? 'SuperAdmin@2026!' : 'Admin@Ops2026!')}
-              style={{ fontSize: '11px', fontWeight: 800, background: '#2563eb', color: '#fff', border: 'none', padding: '3px 8px', borderRadius: '4px', cursor: 'pointer' }}
+              style={{ fontSize: '11px', fontWeight: 800, background: '#356DF3', color: '#fff', border: 'none', padding: '3px 8px', borderRadius: '4px', cursor: 'pointer' }}
             >
               Autofill
             </button>
@@ -441,3 +469,4 @@ export default function Sidebar({ isOpen, onClose }) {
     </>
   );
 }
+

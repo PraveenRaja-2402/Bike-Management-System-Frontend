@@ -194,7 +194,7 @@ export default function StoreLocationsPage() {
                 style={{
                   padding: '18px 20px',
                   cursor: 'pointer',
-                  border: isSelected ? '2px solid #2563eb' : '1px solid #e2e8f0',
+                  border: isSelected ? '2px solid #356DF3' : '1px solid #e2e8f0',
                   boxShadow: isSelected ? '0 6px 18px rgba(37,99,235,0.12)' : '0 1px 3px rgba(0,0,0,0.05)',
                   transition: 'all 0.15s ease'
                 }}
@@ -205,8 +205,8 @@ export default function StoreLocationsPage() {
                       width: 42,
                       height: 42,
                       borderRadius: '10px',
-                      background: isSelected ? '#2563eb' : '#eff6ff',
-                      color: isSelected ? '#ffffff' : '#2563eb',
+                      background: isSelected ? '#356DF3' : '#eff6ff',
+                      color: isSelected ? '#ffffff' : '#356DF3',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center'
@@ -269,7 +269,7 @@ export default function StoreLocationsPage() {
                   </div>
                   <div>
                     <span style={{ color: '#64748b', display: 'block' }}>Active Jobs</span>
-                    <strong style={{ color: '#2563eb' }}>{store.activeJobsCount} in queue</strong>
+                    <strong style={{ color: '#356DF3' }}>{store.activeJobsCount} in queue</strong>
                   </div>
                 </div>
               </div>
@@ -282,7 +282,7 @@ export default function StoreLocationsPage() {
           <div className="card" style={{ padding: '22px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
               <div>
-                <span style={{ fontSize: '11px', color: '#2563eb', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                <span style={{ fontSize: '11px', color: '#356DF3', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                   Branch Details & Geofence
                 </span>
                 <h3 style={{ fontSize: '17px', fontWeight: 800, margin: '2px 0 0', color: '#0f172a' }}>
@@ -305,7 +305,7 @@ export default function StoreLocationsPage() {
 
               <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                 <div style={{ fontSize: '11px', color: '#64748b' }}>Geofence Radius</div>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: '#2563eb' }}>
+                <div style={{ fontSize: '13px', fontWeight: 700, color: '#356DF3' }}>
                   {selectedStore.geofenceRadiusMeters} meters
                 </div>
               </div>
@@ -328,7 +328,7 @@ export default function StoreLocationsPage() {
             <div>
               <div style={{ fontSize: '12px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>Operating Hours</div>
               <div style={{ fontSize: '13px', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Clock size={15} color="#2563eb" />
+                <Clock size={15} color="#356DF3" />
                 <span>{selectedStore.operatingHours}</span>
               </div>
             </div>
@@ -577,4 +577,5 @@ export default function StoreLocationsPage() {
     </div>
   );
 }
+
 

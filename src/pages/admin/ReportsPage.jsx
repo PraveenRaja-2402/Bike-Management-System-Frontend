@@ -64,6 +64,42 @@ export default function ReportsPage() {
     };
   }, [serviceRecords, repairRecords, selectedDailyDate]);
 
+  // Weekly Service Report Data (Last 7 Days)
+  const weeklyReportData = useMemo(() => {
+    const end = new Date(selectedDailyDate || new Date());
+    end.setHours(23, 59, 59, 999);
+    const start = new Date(end);
+    start.setDate(start.getDate() - 6);
+    start.setHours(0, 0, 0, 0);
+
+    const services = serviceRecords.filter(s => {
+      if (!s.serviceDate) return false;
+      const d = new Date(s.serviceDate);
+      return d >= start && d <= end;
+    });
+
+    const repairs = repairRecords.filter(r => {
+      if (!r.repairDate) return false;
+      const d = new Date(r.repairDate);
+      return d >= start && d <= end;
+    });
+
+    const totalServiceCost = services.reduce((sum, s) => sum + (parseFloat(s.serviceCost) || 0), 0);
+    const totalRepairCost = repairs.reduce((sum, r) => sum + (parseFloat(r.totalCost) || 0), 0);
+
+    return {
+      startDate: start.toISOString().split('T')[0],
+      endDate: end.toISOString().split('T')[0],
+      services,
+      repairs,
+      serviceCount: services.length,
+      repairCount: repairs.length,
+      totalRevenue: totalServiceCost + totalRepairCost,
+      totalServiceCost,
+      totalRepairCost
+    };
+  }, [serviceRecords, repairRecords, selectedDailyDate]);
+
   // 2. Monthly Service Report Data
   const monthlyReportData = useMemo(() => {
     const [year, month] = selectedMonth.split('-');
@@ -228,6 +264,16 @@ export default function ReportsPage() {
         csvContent += `"Repair","${r.id}","${r.regNo}","${r.ownerName}","${r.ownerPhone}","${r.repairDate}","${r.repairKm}","${(r.repairDetails || '').replace(/"/g, '""')}","${r.totalCost}"\n`;
       });
       csvContent += `\n"SUMMARY","Total Revenue","${dailyReportData.totalRevenue}","Services Count","${dailyReportData.serviceCount}","Repairs Count","${dailyReportData.repairCount}"\n`;
+    } else if (activeReportTab === 'weekly') {
+      csvContent += `${title} - Week: ${weeklyReportData.startDate} to ${weeklyReportData.endDate}\n\n`;
+      csvContent += `Category,Record ID,Registration,Owner,Phone,Date,KM,Details/Type,Cost (INR)\n`;
+      weeklyReportData.services.forEach(s => {
+        csvContent += `"Service","${s.id}","${s.regNo}","${s.ownerName}","${s.ownerPhone}","${s.serviceDate}","${s.serviceKm}","${s.serviceType}","${s.serviceCost}"\n`;
+      });
+      weeklyReportData.repairs.forEach(r => {
+        csvContent += `"Repair","${r.id}","${r.regNo}","${r.ownerName}","${r.ownerPhone}","${r.repairDate}","${r.repairKm}","${(r.repairDetails || '').replace(/"/g, '""')}","${r.totalCost}"\n`;
+      });
+      csvContent += `\n"SUMMARY","Total Revenue","${weeklyReportData.totalRevenue}","Services Count","${weeklyReportData.serviceCount}","Repairs Count","${weeklyReportData.repairCount}"\n`;
     } else if (activeReportTab === 'monthly') {
       csvContent += `${title} - Month: ${selectedMonth}\n\n`;
       csvContent += `Record Type,ID,Reg No,Owner,Phone,Date,KM,Cost (INR)\n`;
@@ -283,6 +329,7 @@ export default function ReportsPage() {
   const handleExportJSON = () => {
     let payload = {};
     if (activeReportTab === 'daily') payload = dailyReportData;
+    else if (activeReportTab === 'weekly') payload = weeklyReportData;
     else if (activeReportTab === 'monthly') payload = monthlyReportData;
     else if (activeReportTab === 'bike_history') payload = bikeHistoryData;
     else if (activeReportTab === 'repairs') payload = repairMaintenanceData;
@@ -297,70 +344,70 @@ export default function ReportsPage() {
 
   return (
     <div className="reports-page" style={{ paddingBottom: '40px' }}>
-      {/* Header Banner */}
+      {/* Header Banner - Premium Light SaaS Style */}
       <div style={{
-        background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
-        color: '#ffffff',
-        borderRadius: '16px',
-        padding: '20px 24px',
+        background: '#ffffff',
+        border: '1px solid #EAECF0',
+        borderRadius: '14px',
+        padding: '18px 24px',
         marginBottom: '20px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         flexWrap: 'wrap',
         gap: '16px',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+        boxShadow: '0px 1px 3px rgba(16, 24, 40, 0.08), 0px 1px 2px rgba(16, 24, 40, 0.04)'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           <div style={{
-            width: 48,
-            height: 48,
+            width: 44,
+            height: 44,
             borderRadius: '12px',
-            background: 'linear-gradient(135deg, #0284c7, #0369a1)',
+            background: 'linear-gradient(135deg, #EFF4FE, #DBEAFE)',
+            color: '#356DF3',
+            border: '1px solid #BFDBFE',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 0 16px rgba(2, 132, 199, 0.4)'
+            justifyContent: 'center'
           }}>
-            <FileText size={24} color="#ffffff" />
+            <FileText size={22} />
           </div>
           <div>
-            <div style={{ fontSize: '18px', fontWeight: 800, letterSpacing: '-0.3px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ fontSize: '17px', fontWeight: 700, color: '#101828', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span>Workshop Service & Repair Reports</span>
               <span style={{ 
                 fontSize: '11px', 
-                background: 'rgba(2, 132, 199, 0.25)', 
-                color: '#38bdf8', 
+                background: '#ECFDF3', 
+                color: '#12B76A', 
+                border: '1px solid #A6F4C5',
                 padding: '2px 8px', 
                 borderRadius: '9999px', 
-                fontWeight: 800 
+                fontWeight: 700 
               }}>
-                5 SYSTEM REPORTS
+                6 SYSTEM REPORTS
               </span>
             </div>
-            <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '2px' }}>
-              Daily & monthly revenue summaries • Individual bike histories • Maintenance audit logs • Printable & CSV/JSON exports
+            <div style={{ fontSize: '13px', color: '#667085', marginTop: '2px' }}>
+              Daily, weekly & monthly summaries • Bike service histories • Repair audits • Printable & CSV/JSON exports
             </div>
           </div>
         </div>
 
         {/* Global Export & Print Action Buttons */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           <button
             type="button"
             onClick={handleExportCSV}
             className="btn-secondary btn-sm"
-            style={{ background: 'rgba(255,255,255,0.08)', color: '#ffffff', borderColor: 'rgba(255,255,255,0.15)' }}
           >
-            <FileSpreadsheet size={14} color="#34d399" /> Export CSV
+            <FileSpreadsheet size={14} color="#12B76A" /> Export CSV
           </button>
           <button
             type="button"
             onClick={handleExportJSON}
             className="btn-secondary btn-sm"
-            style={{ background: 'rgba(255,255,255,0.08)', color: '#ffffff', borderColor: 'rgba(255,255,255,0.15)' }}
           >
-            <FileCode size={14} color="#38bdf8" /> Export JSON
+            <FileCode size={14} color="#356DF3" /> Export JSON
           </button>
           <button
             type="button"
@@ -387,6 +434,15 @@ export default function ReportsPage() {
           style={{ whiteSpace: 'nowrap' }}
         >
           📅 Daily Service Report
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveReportTab('weekly')}
+          className={`btn-sm ${activeReportTab === 'weekly' ? 'btn-primary' : 'btn-secondary'}`}
+          style={{ whiteSpace: 'nowrap' }}
+        >
+          📅 Weekly Service Report
         </button>
 
         <button
@@ -571,7 +627,196 @@ export default function ReportsPage() {
       )}
 
       {/* ==================================================================== */}
-      {/* 2. MONTHLY SERVICE REPORT VIEW */}
+      {/* 2. WEEKLY SERVICE REPORT VIEW */}
+      {/* ==================================================================== */}
+      {activeReportTab === 'weekly' && (
+        <div>
+          {/* Filter Bar */}
+          <div className="card" style={{ padding: '14px 18px', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <label style={{ fontSize: '13px', fontWeight: 700, color: '#334155' }}>Week Ending Date:</label>
+              <input
+                type="date"
+                value={selectedDailyDate}
+                onChange={(e) => setSelectedDailyDate(e.target.value)}
+                className="form-input no-left-icon"
+                style={{ width: '180px', padding: '6px 10px', fontSize: '13px' }}
+              />
+              <span style={{ fontSize: '12px', color: '#64748b' }}>
+                Covering 7-Day Window: <strong>{weeklyReportData.startDate}</strong> to <strong>{weeklyReportData.endDate}</strong>
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                type="button"
+                className="btn-secondary btn-sm"
+                onClick={() => setSelectedDailyDate(new Date().toISOString().split('T')[0])}
+              >
+                Current Week
+              </button>
+            </div>
+          </div>
+
+          {/* 4 Weekly KPI Summary Cards */}
+          <div className="metrics-row" style={{ marginBottom: '16px' }}>
+            <div className="metric-card">
+              <div className="metric-icon-wrap" style={{ background: '#ecfdf5', color: '#10b981' }}>
+                <DollarSign size={20} />
+              </div>
+              <div className="metric-content">
+                <span className="metric-title">Weekly Total Revenue</span>
+                <span className="metric-value">₹{weeklyReportData.totalRevenue.toLocaleString()}</span>
+                <span className="metric-subtitle">Services + Repairs</span>
+              </div>
+            </div>
+
+            <div className="metric-card">
+              <div className="metric-icon-wrap" style={{ background: '#eff6ff', color: '#356DF3' }}>
+                <Wrench size={20} />
+              </div>
+              <div className="metric-content">
+                <span className="metric-title">Periodic Services</span>
+                <span className="metric-value">{weeklyReportData.serviceCount}</span>
+                <span className="metric-subtitle">₹{weeklyReportData.totalServiceCost.toLocaleString()} Subtotal</span>
+              </div>
+            </div>
+
+            <div className="metric-card">
+              <div className="metric-icon-wrap" style={{ background: '#fff7ed', color: '#ea580c' }}>
+                <CheckCircle2 size={20} />
+              </div>
+              <div className="metric-content">
+                <span className="metric-title">Mechanical Repairs</span>
+                <span className="metric-value">{weeklyReportData.repairCount}</span>
+                <span className="metric-subtitle">₹{weeklyReportData.totalRepairCost.toLocaleString()} Subtotal</span>
+              </div>
+            </div>
+
+            <div className="metric-card">
+              <div className="metric-icon-wrap" style={{ background: '#f5f3ff', color: '#7c3aed' }}>
+                <Bike size={20} />
+              </div>
+              <div className="metric-content">
+                <span className="metric-title">Total Vehicles Serviced</span>
+                <span className="metric-value">{weeklyReportData.serviceCount + weeklyReportData.repairCount}</span>
+                <span className="metric-subtitle">Across Salem bays</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Weekly Services Table */}
+          <div className="table-card" style={{ marginBottom: '20px' }}>
+            <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div className="card-title">
+                <Wrench size={18} color="#356DF3" />
+                <span>Periodic Servicing Records ({weeklyReportData.startDate} to {weeklyReportData.endDate})</span>
+              </div>
+              <span style={{ fontSize: '13px', fontWeight: 700, color: '#356DF3' }}>
+                Subtotal: ₹{weeklyReportData.totalServiceCost.toLocaleString()}
+              </span>
+            </div>
+
+            <div className="table-responsive">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Service ID</th>
+                    <th>Date</th>
+                    <th>Vehicle Reg</th>
+                    <th>Customer</th>
+                    <th>Odometer</th>
+                    <th>Service Type</th>
+                    <th>Technician</th>
+                    <th style={{ textAlign: 'right' }}>Cost</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {weeklyReportData.services.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} style={{ textAlign: 'center', padding: '24px', color: '#94a3b8' }}>
+                        No periodic servicing logged during this 7-day period.
+                      </td>
+                    </tr>
+                  ) : (
+                    weeklyReportData.services.map(s => (
+                      <tr key={s.id}>
+                        <td><strong style={{ color: '#356DF3' }}>{s.id}</strong></td>
+                        <td>{s.serviceDate}</td>
+                        <td><strong>{s.regNo}</strong></td>
+                        <td>{s.ownerName} ({s.ownerPhone})</td>
+                        <td>{s.serviceKm?.toLocaleString()} km</td>
+                        <td>{s.serviceType}</td>
+                        <td>{s.technician}</td>
+                        <td style={{ textAlign: 'right', fontWeight: 700, color: '#0f172a' }}>₹{s.serviceCost?.toLocaleString()}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Weekly Repairs Table */}
+          <div className="table-card">
+            <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div className="card-title">
+                <Wrench size={18} color="#ea580c" />
+                <span>Repairs & Part Replacements ({weeklyReportData.startDate} to {weeklyReportData.endDate})</span>
+              </div>
+              <span style={{ fontSize: '13px', fontWeight: 700, color: '#ea580c' }}>
+                Subtotal: ₹{weeklyReportData.totalRepairCost.toLocaleString()}
+              </span>
+            </div>
+
+            <div className="table-responsive">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Repair ID</th>
+                    <th>Date</th>
+                    <th>Vehicle Reg</th>
+                    <th>Customer</th>
+                    <th>KM</th>
+                    <th>Work Details</th>
+                    <th>Parts Replaced</th>
+                    <th>Labor</th>
+                    <th style={{ textAlign: 'right' }}>Total Cost</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {weeklyReportData.repairs.length === 0 ? (
+                    <tr>
+                      <td colSpan={9} style={{ textAlign: 'center', padding: '24px', color: '#94a3b8' }}>
+                        No repair jobs logged during this 7-day period.
+                      </td>
+                    </tr>
+                  ) : (
+                    weeklyReportData.repairs.map(r => (
+                      <tr key={r.id}>
+                        <td><strong style={{ color: '#ea580c' }}>{r.id}</strong></td>
+                        <td>{r.repairDate}</td>
+                        <td><strong>{r.regNo}</strong></td>
+                        <td>{r.ownerName}</td>
+                        <td>{r.repairKm?.toLocaleString()} km</td>
+                        <td>{r.repairDetails}</td>
+                        <td>
+                          {(r.partsReplaced || []).map(p => `${p.partName} (x${p.quantity})`).join(', ') || 'None'}
+                        </td>
+                        <td>₹{r.laborCost?.toLocaleString()}</td>
+                        <td style={{ textAlign: 'right', fontWeight: 700, color: '#0f172a' }}>₹{r.totalCost?.toLocaleString()}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==================================================================== */}
+      {/* 3. MONTHLY SERVICE REPORT VIEW */}
       {/* ==================================================================== */}
       {activeReportTab === 'monthly' && (
         <div>
@@ -1175,3 +1420,4 @@ export default function ReportsPage() {
     </div>
   );
 }
+

@@ -644,7 +644,7 @@ export default function CustomerApp() {
                   className="quick-action-item"
                   onClick={() => setActiveTab('distance')}
                 >
-                  <div className="action-icon-box" style={{ background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)' }}>
+                  <div className="action-icon-box" style={{ background: 'linear-gradient(135deg, #3b82f6, #2957CC)' }}>
                     <Navigation size={22} />
                   </div>
                   <span className="action-label">Distance</span>
@@ -732,7 +732,7 @@ export default function CustomerApp() {
                   boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{ width: 44, height: 44, borderRadius: '12px', background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: 44, height: 44, borderRadius: '12px', background: '#eff6ff', color: '#356DF3', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <Wrench size={22} />
                     </div>
                     <div>
@@ -900,7 +900,7 @@ export default function CustomerApp() {
                       fontWeight: 800,
                       cursor: 'pointer',
                       background: distanceMode === 'weekly' ? '#ffffff' : 'transparent',
-                      color: distanceMode === 'weekly' ? '#2563eb' : '#64748b',
+                      color: distanceMode === 'weekly' ? '#356DF3' : '#64748b',
                       boxShadow: distanceMode === 'weekly' ? '0 2px 6px rgba(0,0,0,0.08)' : 'none'
                     }}
                   >
@@ -919,7 +919,7 @@ export default function CustomerApp() {
                       fontWeight: 800,
                       cursor: 'pointer',
                       background: distanceMode === 'monthly' ? '#ffffff' : 'transparent',
-                      color: distanceMode === 'monthly' ? '#2563eb' : '#64748b',
+                      color: distanceMode === 'monthly' ? '#356DF3' : '#64748b',
                       boxShadow: distanceMode === 'monthly' ? '0 2px 6px rgba(0,0,0,0.08)' : 'none'
                     }}
                   >
@@ -994,7 +994,7 @@ export default function CustomerApp() {
 
                   <div style={{ background: '#ffffff', borderRadius: '14px', padding: '14px', border: '1px solid #e2e8f0' }}>
                     <span style={{ fontSize: '11px', color: '#64748b', display: 'block', fontWeight: 600 }}>Fuel Efficiency</span>
-                    <strong style={{ fontSize: '17px', color: '#2563eb' }}>48.5 km/L</strong>
+                    <strong style={{ fontSize: '17px', color: '#356DF3' }}>48.5 km/L</strong>
                   </div>
 
                   <div style={{ background: '#ffffff', borderRadius: '14px', padding: '14px', border: '1px solid #e2e8f0' }}>
@@ -1023,15 +1023,15 @@ export default function CustomerApp() {
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{ width: 38, height: 38, borderRadius: '10px', background: '#2563eb', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: 38, height: 38, borderRadius: '10px', background: '#356DF3', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <Play size={20} />
                     </div>
                     <div>
                       <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#1e3a8a' }}>Trip Route Playback</div>
-                      <div style={{ fontSize: '11px', color: '#2563eb' }}>Replay morning route with speedometer HUD</div>
+                      <div style={{ fontSize: '11px', color: '#356DF3' }}>Replay morning route with speedometer HUD</div>
                     </div>
                   </div>
-                  <ChevronRight size={18} color="#2563eb" />
+                  <ChevronRight size={18} color="#356DF3" />
                 </div>
               </div>
             </div>
@@ -1186,7 +1186,7 @@ export default function CustomerApp() {
 
                 {/* Distance to Bike Compass Card */}
                 <div style={{
-                  background: 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%)',
+                  background: 'linear-gradient(135deg, #1e3a8a 0%, #356DF3 100%)',
                   borderRadius: '18px',
                   padding: '16px 18px',
                   color: '#ffffff',
@@ -1210,7 +1210,7 @@ export default function CustomerApp() {
                     type="button"
                     style={{
                       background: '#ffffff',
-                      color: '#2563eb',
+                      color: '#356DF3',
                       border: 'none',
                       padding: '9px 16px',
                       borderRadius: '12px',
@@ -1275,7 +1275,7 @@ export default function CustomerApp() {
                         fontSize: '12px'
                       }}
                     >
-                      <Volume2 size={22} color="#2563eb" />
+                      <Volume2 size={22} color="#356DF3" />
                       <span>Find Bike (Beep)</span>
                     </button>
                   </div>
@@ -1325,8 +1325,8 @@ export default function CustomerApp() {
                 </button>
                 <span className="subscreen-title">Branch Loyalty Points</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <Store size={16} color="#2563eb" />
-                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#2563eb' }}>Salem Central</span>
+                  <Store size={16} color="#356DF3" />
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#356DF3' }}>Salem Central</span>
                 </div>
               </div>
 
@@ -1423,7 +1423,7 @@ export default function CustomerApp() {
                       width: '100%',
                       padding: '11px',
                       borderRadius: '12px',
-                      background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+                      background: 'linear-gradient(135deg, #356DF3, #2957CC)',
                       color: '#ffffff',
                       border: 'none',
                       fontWeight: 800,
@@ -1542,7 +1542,7 @@ export default function CustomerApp() {
                               padding: '7px 14px',
                               fontSize: '12px',
                               whiteSpace: 'nowrap',
-                              background: membership.pointsBalance >= (discount.pointsRequired || discount.pointsCost) ? '#2563eb' : '#94a3b8'
+                              background: membership.pointsBalance >= (discount.pointsRequired || discount.pointsCost) ? '#356DF3' : '#94a3b8'
                             }}
                             onClick={() => handleRedeemClick(discount)}
                             disabled={membership.pointsBalance < (discount.pointsRequired || discount.pointsCost)}
@@ -1580,7 +1580,7 @@ export default function CustomerApp() {
                           <div style={{ fontSize: '11px', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
                             <span>{tx.date}</span>
                             {tx.badge && (
-                              <span style={{ background: '#eff6ff', color: '#2563eb', padding: '1px 6px', borderRadius: '4px', fontSize: '9.5px', fontWeight: 700 }}>
+                              <span style={{ background: '#eff6ff', color: '#356DF3', padding: '1px 6px', borderRadius: '4px', fontSize: '9.5px', fontWeight: 700 }}>
                                 {tx.badge}
                               </span>
                             )}
@@ -1748,7 +1748,7 @@ export default function CustomerApp() {
                 </div>
                 <div className="bike-hero-reg-row">
                   <span>{bharathBike.regNo}</span>
-                  <Edit2 size={16} color="#2563eb" style={{ cursor: 'pointer' }} />
+                  <Edit2 size={16} color="#356DF3" style={{ cursor: 'pointer' }} />
                 </div>
                 <span className="bike-hero-model">{bharathBike.model}</span>
                 <span className="bike-hero-purchased">Purchased on {bharathBike.purchasedDate}</span>
@@ -1826,7 +1826,7 @@ export default function CustomerApp() {
 
               <div style={{ padding: '20px 18px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '14px', background: '#ffffff', padding: '16px', borderRadius: '18px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
-                  <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', color: '#fff', fontSize: '22px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'linear-gradient(135deg, #356DF3, #2957CC)', color: '#fff', fontSize: '22px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {currentCustomer?.name ? currentCustomer.name.charAt(0).toUpperCase() : 'B'}
                   </div>
                   <div>
@@ -1853,7 +1853,7 @@ export default function CustomerApp() {
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span style={{ color: '#64748b' }}>Emergency Helpline</span>
-                    <strong style={{ color: '#2563eb' }}>{branding.supportPhone}</strong>
+                    <strong style={{ color: '#356DF3' }}>{branding.supportPhone}</strong>
                   </div>
                 </div>
 
@@ -1948,7 +1948,7 @@ export default function CustomerApp() {
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                       <span style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>{item.serviceType}</span>
-                      <span style={{ fontSize: '14px', fontWeight: 800, color: '#2563eb' }}>{item.cost}</span>
+                      <span style={{ fontSize: '14px', fontWeight: 800, color: '#356DF3' }}>{item.cost}</span>
                     </div>
                     <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '8px' }}>
                       {item.date} • Odometer: {item.odometer}
@@ -2044,9 +2044,9 @@ export default function CustomerApp() {
                     style={{
                       padding: '10px 6px',
                       borderRadius: '10px',
-                      border: payMethod === m ? '2px solid #2563eb' : '1px solid #cbd5e1',
+                      border: payMethod === m ? '2px solid #356DF3' : '1px solid #cbd5e1',
                       background: payMethod === m ? '#eff6ff' : '#ffffff',
-                      color: payMethod === m ? '#2563eb' : '#475569',
+                      color: payMethod === m ? '#356DF3' : '#475569',
                       fontWeight: 700,
                       fontSize: '11px',
                       cursor: 'pointer'
@@ -2104,12 +2104,12 @@ export default function CustomerApp() {
 
             <div style={{
               background: '#f8fafc',
-              border: '2px dashed #2563eb',
+              border: '2px dashed #356DF3',
               borderRadius: '14px',
               padding: '16px',
               fontSize: '22px',
               fontWeight: 900,
-              color: '#2563eb',
+              color: '#356DF3',
               letterSpacing: '2px',
               marginBottom: '18px'
             }}>
@@ -2335,3 +2335,4 @@ export default function CustomerApp() {
     </div>
   );
 }
+

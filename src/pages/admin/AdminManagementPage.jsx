@@ -135,9 +135,9 @@ export default function AdminManagementPage() {
     <div className="admin-management-page">
       {/* Super Admin Executive Command Banner */}
       <div style={{
-        background: 'linear-gradient(90deg, #090e1a 0%, #1e1b4b 100%)',
-        border: '1px solid rgba(245, 158, 11, 0.35)',
-        borderRadius: '16px',
+        background: '#ffffff',
+        border: '1px solid #EAECF0',
+        borderRadius: '14px',
         padding: '18px 24px',
         marginBottom: '20px',
         display: 'flex',
@@ -145,32 +145,32 @@ export default function AdminManagementPage() {
         justifyContent: 'space-between',
         flexWrap: 'wrap',
         gap: '14px',
-        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)'
+        boxShadow: '0px 1px 3px rgba(16, 24, 40, 0.08), 0px 1px 2px rgba(16, 24, 40, 0.04)'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           <div style={{
-            width: 48,
-            height: 48,
-            borderRadius: '14px',
-            background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+            width: 44,
+            height: 44,
+            borderRadius: '12px',
+            background: 'linear-gradient(135deg, #FEF3C7, #FDE68A)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: '#fff',
-            boxShadow: '0 0 16px rgba(245, 158, 11, 0.45)'
+            color: '#B45309',
+            border: '1px solid #FCD34D'
           }}>
-            <Crown size={26} />
+            <Crown size={22} />
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '16.5px', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.3px' }}>
+              <span style={{ fontSize: '17px', fontWeight: 700, color: '#101828', letterSpacing: '-0.3px' }}>
                 Super Admin Console • Alexander Vance
               </span>
-              <span style={{ fontSize: '10px', background: '#f59e0b', color: '#000', padding: '2px 8px', borderRadius: '9999px', fontWeight: 900 }}>
+              <span style={{ fontSize: '10px', background: '#FEF3C7', color: '#B45309', border: '1px solid #FDE68A', padding: '2px 8px', borderRadius: '9999px', fontWeight: 800 }}>
                 ROOT MASTER
               </span>
             </div>
-            <div style={{ fontSize: '12.5px', color: '#94a3b8', marginTop: '3px' }}>
+            <div style={{ fontSize: '13px', color: '#667085', marginTop: '3px' }}>
               Managing Administrator Accounts, Salem Mega Workshop Hubs, and Dynamic Corporate Branding
             </div>
           </div>
@@ -180,18 +180,16 @@ export default function AdminManagementPage() {
           <button
             type="button"
             className="btn-secondary btn-sm"
-            style={{ background: 'rgba(255,255,255,0.08)', color: '#fff', borderColor: 'rgba(255,255,255,0.18)' }}
             onClick={() => navigate('/admin/stores')}
           >
-            <Building2 size={13} color="#38bdf8" /> Store Locations
+            <Building2 size={13} color="#0284C7" /> Store Locations
           </button>
           <button
             type="button"
             className="btn-secondary btn-sm"
-            style={{ background: 'rgba(255,255,255,0.08)', color: '#fff', borderColor: 'rgba(255,255,255,0.18)' }}
             onClick={() => navigate('/admin/branding')}
           >
-            <Palette size={13} color="#f59e0b" /> Change Logo & Branding
+            <Palette size={13} color="#F79009" /> Change Logo & Branding
           </button>
         </div>
       </div>
@@ -247,7 +245,7 @@ export default function AdminManagementPage() {
       {/* Top Super Admin Metric Summary */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '20px' }}>
         <div className="card" style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <div style={{ width: 44, height: 44, borderRadius: '12px', background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: 44, height: 44, borderRadius: '12px', background: '#eff6ff', color: '#356DF3', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Crown size={24} />
           </div>
           <div>
@@ -344,7 +342,7 @@ export default function AdminManagementPage() {
                   <td>
                     <div className="table-user-cell">
                       <div className="user-initial-avatar" style={{
-                        background: admin.role === 'Super Admin' ? 'linear-gradient(135deg, #1e293b, #0f172a)' : '#2563eb',
+                        background: admin.role === 'Super Admin' ? 'linear-gradient(135deg, #1e293b, #0f172a)' : '#356DF3',
                         color: admin.role === 'Super Admin' ? '#f59e0b' : '#ffffff'
                       }}>
                         {admin.role === 'Super Admin' ? '👑' : admin.name.charAt(0)}
@@ -623,4 +621,5 @@ export default function AdminManagementPage() {
     </div>
   );
 }
+
 

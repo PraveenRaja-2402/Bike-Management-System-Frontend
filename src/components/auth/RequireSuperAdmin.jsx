@@ -86,7 +86,7 @@ export default function RequireSuperAdmin({ children, moduleName = "Super Admin 
             </div>
 
             <div style={{ background: '#ffffff', padding: '12px', borderRadius: '8px', border: '1px solid #bfdbfe' }}>
-              <div style={{ fontWeight: 800, color: '#1d4ed8', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <div style={{ fontWeight: 800, color: '#2957CC', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <Users size={13} /> Operations Admin
               </div>
               <div style={{ color: '#0f172a', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px' }}>
@@ -149,3 +149,4 @@ export default function RequireSuperAdmin({ children, moduleName = "Super Admin 
     </div>
   );
 }
+

@@ -199,7 +199,7 @@ export default function BikesPage() {
 
       {/* Header and Quick Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '20px' }}>
-        <div className="card" style={{ padding: '16px 20px', borderLeft: '4px solid #2563eb' }}>
+        <div className="card" style={{ padding: '16px 20px', borderLeft: '4px solid #356DF3' }}>
           <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Total Registered Bikes</div>
           <div style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', marginTop: '4px' }}>
             {bikesList.length}
@@ -244,7 +244,7 @@ export default function BikesPage() {
       <div className="table-card">
         <div className="table-header">
           <div className="table-title">
-            <BikeIcon size={20} color="#2563eb" />
+            <BikeIcon size={20} color="#356DF3" />
             <span>Customer Bike Registry (Requirement 1)</span>
           </div>
           <button 
@@ -346,7 +346,7 @@ export default function BikesPage() {
                     </td>
                     <td>
                       <div style={{ fontWeight: 600 }}>{bike.model}</div>
-                      <span style={{ fontSize: '11px', color: '#2563eb', fontWeight: 600 }}>{bike.brand}</span>
+                      <span style={{ fontSize: '11px', color: '#356DF3', fontWeight: 600 }}>{bike.brand}</span>
                     </td>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -359,7 +359,7 @@ export default function BikesPage() {
                           style={{
                             background: '#eff6ff',
                             border: '1px solid #bfdbfe',
-                            color: '#1d4ed8',
+                            color: '#2957CC',
                             padding: '2px 6px',
                             borderRadius: '4px',
                             fontSize: '10px',
@@ -790,7 +790,7 @@ export default function BikesPage() {
           {/* Header Card */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#0f172a', color: '#fff', padding: '16px 20px', borderRadius: '12px', marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-              <div style={{ width: 44, height: 44, borderRadius: '10px', background: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: 44, height: 44, borderRadius: '10px', background: '#356DF3', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <BikeIcon size={22} color="#fff" />
               </div>
               <div>
@@ -964,3 +964,4 @@ export default function BikesPage() {
     </div>
   );
 }
+

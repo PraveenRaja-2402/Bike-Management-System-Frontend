@@ -278,3 +278,4 @@ export default function ManageBrandsPage() {
     </div>
   );
 }
+

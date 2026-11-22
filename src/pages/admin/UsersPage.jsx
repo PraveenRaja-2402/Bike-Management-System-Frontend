@@ -148,7 +148,7 @@ export default function UsersPage() {
         boxShadow: '0 2px 6px rgba(0,0,0,0.03)'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ width: 42, height: 42, borderRadius: '10px', background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: 42, height: 42, borderRadius: '10px', background: '#eff6ff', color: '#356DF3', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <UserPlus size={22} />
           </div>
           <div>
@@ -615,7 +615,7 @@ export default function UsersPage() {
         >
           <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-              <Smartphone size={18} color="#2563eb" />
+              <Smartphone size={18} color="#356DF3" />
               <strong style={{ fontSize: '13.5px', color: '#0f172a' }}>Separate Rider Mobile Application</strong>
             </div>
             <p style={{ margin: 0, fontSize: '12px', color: '#64748b', lineHeight: 1.5 }}>
@@ -628,7 +628,7 @@ export default function UsersPage() {
               <span style={{ fontSize: '11px', color: '#1e40af', fontWeight: 700, display: 'block', marginBottom: '4px' }}>
                 SEPARATE CUSTOMER URL:
               </span>
-              <code style={{ fontSize: '13px', color: '#1d4ed8', fontWeight: 800, wordBreak: 'break-all' }}>
+              <code style={{ fontSize: '13px', color: '#2957CC', fontWeight: 800, wordBreak: 'break-all' }}>
                 {window.location.origin}/customer
               </code>
             </div>
@@ -681,3 +681,4 @@ export default function UsersPage() {
     </div>
   );
 }
+

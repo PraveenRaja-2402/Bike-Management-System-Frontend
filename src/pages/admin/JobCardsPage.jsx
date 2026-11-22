@@ -167,7 +167,7 @@ export default function JobCardsPage() {
               {filteredJobCards.map((job, idx) => (
                 <tr key={job.id}>
                   <td style={{ color: '#64748b' }}>{idx + 1}</td>
-                  <td style={{ fontWeight: 700, color: '#2563eb' }}>{job.jobNo}</td>
+                  <td style={{ fontWeight: 700, color: '#356DF3' }}>{job.jobNo}</td>
                   <td style={{ fontWeight: 600 }}>{job.regNo}</td>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -510,3 +510,4 @@ export default function JobCardsPage() {
     </div>
   );
 }
+

@@ -189,7 +189,7 @@ export default function SettingsPage() {
         <div className="card settings-content-card">
           <div className="card-header">
             <div className="card-title">
-              <Settings size={18} color="#2563eb" />
+              <Settings size={18} color="#356DF3" />
               <span>
                 {activeTab === 'intervals' && 'Configurable Maintenance & Service Intervals'}
                 {activeTab === 'offline_storage' && 'Browser Local Storage & Offline Backup / Restore'}
@@ -592,3 +592,4 @@ export default function SettingsPage() {
     </div>
   );
 }
+

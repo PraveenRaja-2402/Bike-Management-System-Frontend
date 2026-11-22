@@ -84,7 +84,7 @@ export default function AllPagesOverview() {
       category: 'Operations',
       path: '/admin/dashboard',
       icon: Home,
-      color: '#2563eb',
+      color: '#356DF3',
       lightColor: '#eff6ff',
       glowColor: 'rgba(37, 99, 235, 0.4)',
       tag: 'Realtime Command',
@@ -289,7 +289,7 @@ export default function AllPagesOverview() {
           <div className="dash-stat-box">
             <span className="dash-stat-label">Total Fleet Bikes</span>
             <div className="dash-stat-val-group">
-              <span className="dash-stat-number" style={{ color: '#2563eb' }}>52</span>
+              <span className="dash-stat-number" style={{ color: '#356DF3' }}>52</span>
               <span className="dash-stat-badge" style={{ background: '#dbeafe', color: '#1e40af' }}>↑ +12% MoM</span>
             </div>
           </div>
@@ -320,7 +320,7 @@ export default function AllPagesOverview() {
         <div className="dash-mini-radar">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: '12px', fontWeight: 700, color: '#334155', display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Radio size={14} color="#2563eb" /> Salem Central Service Radar
+              <Radio size={14} color="#356DF3" /> Salem Central Service Radar
             </span>
             <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 600 }}>● Live Telemetry Active</span>
           </div>
@@ -354,7 +354,7 @@ export default function AllPagesOverview() {
             <div style={{ fontWeight: 700, color: '#1e293b' }}>JC-003 Completed</div>
             <div style={{ color: '#64748b', fontSize: '11px' }}>Customer: Mani • Quality Check Passed</div>
           </div>
-          <span style={{ background: '#eff6ff', color: '#1d4ed8', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>Ready</span>
+          <span style={{ background: '#eff6ff', color: '#2957CC', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>Ready</span>
         </div>
         <div className="dash-feed-item">
           <div>
@@ -402,7 +402,7 @@ export default function AllPagesOverview() {
                 fontSize: '11px', 
                 fontWeight: 700,
                 background: selectedBike.status === 'Moving' ? '#ecfdf5' : '#eff6ff',
-                color: selectedBike.status === 'Moving' ? '#047857' : '#1d4ed8'
+                color: selectedBike.status === 'Moving' ? '#047857' : '#2957CC'
               }}>
                 {selectedBike.status}
               </span>
@@ -522,7 +522,7 @@ export default function AllPagesOverview() {
                 type="button" 
                 onClick={() => setServiceFilter('all')}
                 style={{
-                  background: serviceFilter === 'all' ? '#2563eb' : '#f1f5f9',
+                  background: serviceFilter === 'all' ? '#356DF3' : '#f1f5f9',
                   color: serviceFilter === 'all' ? '#fff' : '#64748b',
                   border: 'none',
                   padding: '3px 8px',
@@ -595,7 +595,7 @@ export default function AllPagesOverview() {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px', background: '#f8fafc', borderRadius: '6px' }}>
               <span style={{ color: '#475569' }}>SMS Dispatch Queue:</span>
-              <span style={{ fontWeight: 700, color: '#2563eb' }}>0 Pending</span>
+              <span style={{ fontWeight: 700, color: '#356DF3' }}>0 Pending</span>
             </div>
           </div>
           <button 
@@ -619,13 +619,13 @@ export default function AllPagesOverview() {
           <span style={{ background: '#dbeafe', color: '#1e40af', padding: '1px 6px', borderRadius: '4px' }}>3</span>
         </div>
         <div className="job-ticket-card">
-          <div style={{ fontWeight: 800, color: '#2563eb' }}>JC-002</div>
+          <div style={{ fontWeight: 800, color: '#356DF3' }}>JC-002</div>
           <div style={{ fontWeight: 600 }}>TN 28 CD 5678</div>
           <div style={{ color: '#64748b' }}>Priya • General Service</div>
-          <span style={{ background: '#eff6ff', color: '#2563eb', padding: '1px 5px', borderRadius: '4px', fontSize: '10px', width: 'fit-content' }}>Advisor: Ramesh</span>
+          <span style={{ background: '#eff6ff', color: '#356DF3', padding: '1px 5px', borderRadius: '4px', fontSize: '10px', width: 'fit-content' }}>Advisor: Ramesh</span>
         </div>
         <div className="job-ticket-card">
-          <div style={{ fontWeight: 800, color: '#2563eb' }}>JC-004</div>
+          <div style={{ fontWeight: 800, color: '#356DF3' }}>JC-004</div>
           <div style={{ fontWeight: 600 }}>TN 30 GH 3456</div>
           <div style={{ color: '#64748b' }}>Anand • Brake Pad Replacement</div>
         </div>
@@ -677,7 +677,7 @@ export default function AllPagesOverview() {
     <div className="users-slider-grid">
       {mockUsers.slice(0, 3).map((u) => (
         <div key={u.id} className="user-profile-tile">
-          <div className="user-tile-avatar" style={{ background: u.role === 'Administrator' ? '#2563eb' : u.role === 'Technician' ? '#10b981' : '#8b5cf6' }}>
+          <div className="user-tile-avatar" style={{ background: u.role === 'Administrator' ? '#356DF3' : u.role === 'Technician' ? '#10b981' : '#8b5cf6' }}>
             {u.name.charAt(0)}
             <div className="user-tile-online-dot" />
           </div>
@@ -693,7 +693,7 @@ export default function AllPagesOverview() {
             style={{ 
               marginTop: '4px', 
               background: '#eff6ff', 
-              color: '#2563eb', 
+              color: '#356DF3', 
               border: '1px solid #bfdbfe', 
               borderRadius: '6px', 
               padding: '4px 10px', 
@@ -816,7 +816,7 @@ export default function AllPagesOverview() {
         </div>
         <div>
           <div style={{ fontSize: '11px', color: '#64748b' }}>Session Clearance</div>
-          <div style={{ fontWeight: 700, color: '#2563eb' }}>Full Root Privileges</div>
+          <div style={{ fontWeight: 700, color: '#356DF3' }}>Full Root Privileges</div>
         </div>
       </div>
     </div>
@@ -1151,3 +1151,4 @@ export default function AllPagesOverview() {
     </div>
   );
 }
+

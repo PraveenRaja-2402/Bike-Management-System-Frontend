@@ -232,48 +232,50 @@ export default function NextServicePage() {
 
   return (
     <div className="next-service-page" style={{ paddingBottom: '32px' }}>
-      {/* Header Banner */}
+      {/* Header Banner - Premium Light SaaS Style */}
       <div style={{
-        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
-        color: '#ffffff',
-        borderRadius: '16px',
-        padding: '20px 24px',
+        background: '#ffffff',
+        border: '1px solid #EAECF0',
+        borderRadius: '14px',
+        padding: '18px 24px',
         marginBottom: '20px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         flexWrap: 'wrap',
         gap: '16px',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+        boxShadow: '0px 1px 3px rgba(16, 24, 40, 0.08), 0px 1px 2px rgba(16, 24, 40, 0.04)'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           <div style={{
-            width: 48,
-            height: 48,
+            width: 44,
+            height: 44,
             borderRadius: '12px',
-            background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+            background: 'linear-gradient(135deg, #FEF3F2, #FEE4E2)',
+            color: '#F04438',
+            border: '1px solid #FECDCA',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 0 16px rgba(239, 68, 68, 0.4)'
+            justifyContent: 'center'
           }}>
-            <Bell size={24} color="#ffffff" />
+            <Bell size={22} />
           </div>
           <div>
-            <div style={{ fontSize: '18px', fontWeight: 800, letterSpacing: '-0.3px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ fontSize: '17px', fontWeight: 700, color: '#101828', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span>Service Alerts & Maintenance Reminders</span>
               <span style={{ 
                 fontSize: '11px', 
-                background: 'rgba(239, 68, 68, 0.2)', 
-                color: '#f87171', 
+                background: '#FEF3F2', 
+                color: '#F04438', 
+                border: '1px solid #FECDCA',
                 padding: '2px 8px', 
                 borderRadius: '9999px', 
-                fontWeight: 800 
+                fontWeight: 700 
               }}>
                 {overdueCount} CRITICAL OVERDUE
               </span>
             </div>
-            <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '2px' }}>
+            <div style={{ fontSize: '13px', color: '#667085', marginTop: '2px' }}>
               Automatic KM and Date threshold calculations • Insurance expiry tracking • 1-click WhatsApp & SMS reminder dispatch
             </div>
           </div>
@@ -957,3 +959,4 @@ export default function NextServicePage() {
     </div>
   );
 }
+

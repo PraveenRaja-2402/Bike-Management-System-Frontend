@@ -227,9 +227,9 @@ export default function RepairHistoryPage() {
           </div>
         </div>
 
-        <div className="card" style={{ padding: '16px 20px', borderLeft: '4px solid #2563eb' }}>
+        <div className="card" style={{ padding: '16px 20px', borderLeft: '4px solid #356DF3' }}>
           <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Avg Repair Cost</div>
-          <div style={{ fontSize: '26px', fontWeight: 800, color: '#2563eb', marginTop: '4px' }}>
+          <div style={{ fontSize: '26px', fontWeight: 800, color: '#356DF3', marginTop: '4px' }}>
             ₹{repairRecords.length > 0 ? Math.round(totalRepairRevenue / repairRecords.length).toLocaleString() : 0}
           </div>
           <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
@@ -242,7 +242,7 @@ export default function RepairHistoryPage() {
       <div className="table-card">
         <div className="table-header">
           <div className="table-title">
-            <ClipboardList size={20} color="#2563eb" />
+            <ClipboardList size={20} color="#356DF3" />
             <span>Bike-Wise Repair History & Parts Replacement (Requirement 4)</span>
           </div>
           <button 
@@ -459,7 +459,7 @@ export default function RepairHistoryPage() {
           <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '14px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
               <div style={{ fontSize: '12px', fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Package size={14} color="#2563eb" />
+                <Package size={14} color="#356DF3" />
                 <span>Spare Parts Replaced:</span>
               </div>
               <button
@@ -664,3 +664,4 @@ export default function RepairHistoryPage() {
     </div>
   );
 }
+

@@ -5,7 +5,18 @@ import Header from './Header';
 
 export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    return localStorage.getItem('bsp_sidebar_collapsed') === 'true';
+  });
   const location = useLocation();
+
+  const handleToggleCollapse = () => {
+    setIsCollapsed(prev => {
+      const next = !prev;
+      localStorage.setItem('bsp_sidebar_collapsed', String(next));
+      return next;
+    });
+  };
 
   // Determine page meta from path
   const getPageMeta = () => {
@@ -130,10 +141,12 @@ export default function AdminLayout() {
     <div className="admin-layout-root">
       <Sidebar 
         isOpen={sidebarOpen} 
-        onClose={() => setSidebarOpen(false)} 
+        onClose={() => setSidebarOpen(false)}
+        isCollapsed={isCollapsed}
+        onToggleCollapse={handleToggleCollapse}
       />
 
-      <div className="admin-main-container">
+      <div className={`admin-main-container ${isCollapsed ? 'collapsed-sidebar' : ''}`}>
         <Header 
           onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
           title={meta.title}
@@ -148,3 +161,4 @@ export default function AdminLayout() {
     </div>
   );
 }
+

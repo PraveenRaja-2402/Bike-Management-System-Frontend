@@ -115,10 +115,10 @@ export default function PendingServicePage() {
           <div style={{ fontSize: '11px', color: '#64748b' }}>High priority slots required</div>
         </div>
 
-        <div className="card" style={{ padding: '16px 20px', borderLeft: '4px solid #2563eb' }}>
+        <div className="card" style={{ padding: '16px 20px', borderLeft: '4px solid #356DF3' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#2563eb', textTransform: 'uppercase' }}>Pending Work Value</span>
-            <TrendingUp size={20} color="#2563eb" />
+            <span style={{ fontSize: '12px', fontWeight: 700, color: '#356DF3', textTransform: 'uppercase' }}>Pending Work Value</span>
+            <TrendingUp size={20} color="#356DF3" />
           </div>
           <div style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a' }}>₹{totalPendingRevenue.toLocaleString()}</div>
           <div style={{ fontSize: '11px', color: '#64748b' }}>Estimated revenue from pending services</div>
@@ -235,7 +235,7 @@ export default function PendingServicePage() {
                         fontSize: '12px',
                         fontWeight: 700,
                         background: isOverdue ? '#fef2f2' : item.serviceDueDays <= 7 ? '#fffbeb' : '#eff6ff',
-                        color: isOverdue ? '#dc2626' : item.serviceDueDays <= 7 ? '#d97706' : '#2563eb'
+                        color: isOverdue ? '#dc2626' : item.serviceDueDays <= 7 ? '#d97706' : '#356DF3'
                       }}>
                         <Clock size={13} />
                         <span>{isOverdue ? `${Math.abs(item.serviceDueDays)} Days Overdue` : `${item.serviceDueDays} Days Left`}</span>
@@ -248,7 +248,7 @@ export default function PendingServicePage() {
                     </td>
 
                     <td>
-                      <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#2563eb' }}>{item.estimatedCost}</div>
+                      <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#356DF3' }}>{item.estimatedCost}</div>
                       <div style={{ fontSize: '11px', color: '#475569', maxWidth: '180px', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
                         {item.serviceCategory}
                       </div>
@@ -386,4 +386,5 @@ export default function PendingServicePage() {
     </div>
   );
 }
+
 

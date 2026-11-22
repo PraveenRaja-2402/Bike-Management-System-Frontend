@@ -99,7 +99,7 @@ export default function Header({ onToggleSidebar, title, subtitle, breadcrumb })
               borderRadius: '9999px',
               fontWeight: 700,
               background: isSuperAdmin ? '#fef3c7' : '#eff6ff',
-              color: isSuperAdmin ? '#b45309' : '#1d4ed8',
+              color: isSuperAdmin ? '#b45309' : '#2957CC',
               border: isSuperAdmin ? '1px solid #fde68a' : '1px solid #bfdbfe',
               display: 'inline-flex',
               alignItems: 'center',
@@ -126,8 +126,8 @@ export default function Header({ onToggleSidebar, title, subtitle, breadcrumb })
           }}
           className="header-customer-switch-btn"
           style={{
-            background: isSuperAdmin ? '#1e293b' : '#2563eb',
-            borderColor: isSuperAdmin ? '#334155' : '#1d4ed8'
+            background: isSuperAdmin ? '#1e293b' : '#356DF3',
+            borderColor: isSuperAdmin ? '#334155' : '#2957CC'
           }}
           title="Click to securely switch between Super Admin and Admin (Password Required)"
         >
@@ -184,7 +184,7 @@ export default function Header({ onToggleSidebar, title, subtitle, breadcrumb })
             onClick={() => setShowProfileMenu(!showProfileMenu)}
           >
             <div className="user-avatar-circle" style={{
-              background: isSuperAdmin ? 'linear-gradient(135deg, #1e293b, #0f172a)' : '#2563eb',
+              background: isSuperAdmin ? 'linear-gradient(135deg, #1e293b, #0f172a)' : '#356DF3',
               color: isSuperAdmin ? '#f59e0b' : '#ffffff'
             }}>
               {currentUser?.avatar || (isSuperAdmin ? 'SA' : 'AD')}
@@ -197,14 +197,14 @@ export default function Header({ onToggleSidebar, title, subtitle, breadcrumb })
             <div className="header-dropdown profile-dropdown">
               <div className="dropdown-user-info">
                 <div className="user-avatar-circle large" style={{
-                  background: isSuperAdmin ? 'linear-gradient(135deg, #1e293b, #0f172a)' : '#2563eb',
+                  background: isSuperAdmin ? 'linear-gradient(135deg, #1e293b, #0f172a)' : '#356DF3',
                   color: isSuperAdmin ? '#f59e0b' : '#ffffff'
                 }}>
                   {currentUser?.avatar || (isSuperAdmin ? 'SA' : 'AD')}
                 </div>
                 <div>
                   <div className="user-info-name">{currentUser?.name || 'User'}</div>
-                  <div className="user-info-role" style={{ color: isSuperAdmin ? '#d97706' : '#2563eb', fontWeight: 600 }}>
+                  <div className="user-info-role" style={{ color: isSuperAdmin ? '#d97706' : '#356DF3', fontWeight: 600 }}>
                     {currentUser?.badge || (isSuperAdmin ? 'Super Admin' : 'Operations Admin')}
                   </div>
                   <div style={{ fontSize: '11px', color: '#64748b' }}>{currentUser?.email || ''}</div>
@@ -303,7 +303,7 @@ export default function Header({ onToggleSidebar, title, subtitle, breadcrumb })
         }}>
           <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '14px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-              {targetRole === 'super_admin' ? <Crown size={18} color="#d97706" /> : <ShieldCheck size={18} color="#2563eb" />}
+              {targetRole === 'super_admin' ? <Crown size={18} color="#d97706" /> : <ShieldCheck size={18} color="#356DF3" />}
               <strong style={{ fontSize: '13.5px', color: '#0f172a' }}>
                 {targetRole === 'super_admin' ? 'Alexander Vance (Super Admin)' : 'Vikram Raman (Operations Admin)'}
               </strong>
@@ -355,7 +355,7 @@ export default function Header({ onToggleSidebar, title, subtitle, breadcrumb })
             <button
               type="button"
               onClick={() => setSwitchPassword(targetRole === 'super_admin' ? 'SuperAdmin@2026!' : 'Admin@Ops2026!')}
-              style={{ fontSize: '11px', fontWeight: 800, background: '#2563eb', color: '#fff', border: 'none', padding: '3px 8px', borderRadius: '4px', cursor: 'pointer' }}
+              style={{ fontSize: '11px', fontWeight: 800, background: '#356DF3', color: '#fff', border: 'none', padding: '3px 8px', borderRadius: '4px', cursor: 'pointer' }}
             >
               Autofill
             </button>
@@ -381,3 +381,4 @@ export default function Header({ onToggleSidebar, title, subtitle, breadcrumb })
     </header>
   );
 }
+

@@ -48,7 +48,7 @@ export default function DynamicBrandLogo({ size = 36, showText = false, classNam
 
     // Default 'modern' preset
     return (
-      <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke={branding.primaryColor || "#2563eb"} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke={branding.primaryColor || "#356DF3"} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="5.5" cy="17.5" r="3.5" />
         <circle cx="18.5" cy="17.5" r="3.5" />
         <path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-3 11.5L9 9l3-3h3l2 4" />
@@ -88,4 +88,5 @@ export default function DynamicBrandLogo({ size = 36, showText = false, classNam
     </div>
   );
 }
+
 

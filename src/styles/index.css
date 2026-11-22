@@ -5,76 +5,76 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
 
 :root {
-  /* Ultra-Premium Commercial SaaS Palette: Deep Navy & Electric Sapphire */
-  --color-navy-950: #070c18;
-  --color-navy-900: #0b132b;
-  --color-navy-850: #0d1733;
-  --color-navy-800: #0f172a;
-  --color-navy-750: #131d36;
-  --color-navy-700: #1e293b;
+  /* Ultra-Premium Commercial SaaS Palette: Deep Navy & Electric Blue */
+  --color-navy-950: #0a0f1d;
+  --color-navy-900: #101828;
+  --color-navy-850: #162033;
+  --color-navy-800: #1d2939;
+  --color-navy-750: #253247;
+  --color-navy-700: #344054;
 
-  --bg-sidebar: #0b132b;
-  --bg-sidebar-hover: #131d36;
-  --bg-sidebar-active: #2563eb;
+  --bg-sidebar: #101828;
+  --bg-sidebar-hover: #1d2939;
+  --bg-sidebar-active: #356DF3;
   --sidebar-border: rgba(255, 255, 255, 0.08);
-  --sidebar-text: #94a3b8;
+  --sidebar-text: #98a2b3;
   --sidebar-text-active: #ffffff;
   
-  --bg-body: #f8fafc;
+  --bg-body: #F5F7FB;
   --bg-card: #ffffff;
-  --border-color: #e2e8f0;
-  --border-subtle: #f1f5f9;
+  --border-color: #EAECF0;
+  --border-subtle: #F2F4F7;
 
-  /* Primary Accent: Electric Sapphire Blue */
-  --primary-blue: #2563eb;
-  --primary-blue-hover: #1d4ed8;
-  --primary-blue-active: #1e40af;
-  --primary-blue-light: #eff6ff;
-  --primary-blue-subtle: rgba(37, 99, 235, 0.08);
-  --primary-glow: rgba(37, 99, 235, 0.25);
+  /* Primary Accent: Electric Blue */
+  --primary-blue: #356DF3;
+  --primary-blue-hover: #2957CC;
+  --primary-blue-active: #1e429f;
+  --primary-blue-light: #EFF4FE;
+  --primary-blue-subtle: rgba(53, 109, 243, 0.08);
+  --primary-glow: rgba(53, 109, 243, 0.25);
 
   /* Status Colors */
-  --success-bg: #ecfdf5;
-  --success-text: #059669;
-  --success-border: #a7f3d0;
+  --success-bg: #ECFDF3;
+  --success-text: #12B76A;
+  --success-border: #A6F4C5;
 
-  --warning-bg: #fffbeb;
-  --warning-text: #d97706;
-  --warning-border: #fde68a;
+  --warning-bg: #FFFAEB;
+  --warning-text: #F79009;
+  --warning-border: #FEDF89;
 
-  --danger-bg: #fef2f2;
-  --danger-text: #dc2626;
-  --danger-border: #fecaca;
+  --danger-bg: #FEF3F2;
+  --danger-text: #F04438;
+  --danger-border: #FECDCA;
 
-  --info-bg: #f0f9ff;
-  --info-text: #0284c7;
-  --info-border: #bae6fd;
+  --info-bg: #F0F9FF;
+  --info-text: #0284C7;
+  --info-border: #BAE6FD;
 
-  --neutral-bg: #f1f5f9;
-  --neutral-text: #475569;
+  --neutral-bg: #F2F4F7;
+  --neutral-text: #475467;
 
   /* Typography: Inter Gold-Standard SaaS font */
-  --font-family: 'Inter', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
-  --text-main: #0f172a;
-  --text-muted: #64748b;
-  --text-light: #94a3b8;
+  --text-main: #101828;
+  --text-muted: #667085;
+  --text-light: #98A2B3;
 
   /* Refined Commercial SaaS Shadows */
-  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
-  --shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
-  --shadow-card: 0 1px 3px 0 rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
-  --shadow-card-hover: 0 10px 20px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
-  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
-  --shadow-lg: 0 20px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
-  --shadow-modal: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+  --shadow-xs: 0px 1px 2px rgba(16, 24, 40, 0.05);
+  --shadow-sm: 0px 1px 3px rgba(16, 24, 40, 0.1), 0px 1px 2px rgba(16, 24, 40, 0.06);
+  --shadow-card: 0px 1px 3px rgba(16, 24, 40, 0.1), 0px 1px 2px rgba(16, 24, 40, 0.06);
+  --shadow-card-hover: 0px 12px 16px -4px rgba(16, 24, 40, 0.08), 0px 4px 6px -2px rgba(16, 24, 40, 0.03);
+  --shadow-md: 0px 4px 8px -2px rgba(16, 24, 40, 0.1), 0px 2px 4px -2px rgba(16, 24, 40, 0.06);
+  --shadow-lg: 0px 12px 16px -4px rgba(16, 24, 40, 0.08), 0px 4px 6px -2px rgba(16, 24, 40, 0.03);
+  --shadow-modal: 0px 20px 24px -4px rgba(16, 24, 40, 0.15), 0px 8px 8px -4px rgba(16, 24, 40, 0.04);
 
   /* Radii */
   --radius-xs: 4px;
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
-  --radius-xl: 18px;
+  --radius-xl: 16px;
   --radius-full: 9999px;
 }
 
@@ -126,3 +126,4 @@ input, select, textarea {
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+

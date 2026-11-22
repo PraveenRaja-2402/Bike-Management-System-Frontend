@@ -11,7 +11,12 @@ import {
   Play,
   Pause,
   RotateCcw,
-  Navigation
+  Navigation,
+  Activity,
+  Calendar,
+  Gauge,
+  Info,
+  ShieldCheck
 } from 'lucide-react';
 import LeafletMap from '../../components/common/LeafletMap';
 import StatusBadge from '../../components/common/StatusBadge';
@@ -136,6 +141,42 @@ export default function LiveTrackingPage() {
 
   return (
     <div className="live-tracking-page">
+      {/* Explicit Backend Integration & Simulated Telemetry Notice */}
+      <div style={{
+        background: '#EFF4FE',
+        border: '1px solid #BFDBFE',
+        borderRadius: '12px',
+        padding: '12px 18px',
+        marginBottom: '16px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '10px'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{
+            fontSize: '10px',
+            fontWeight: 800,
+            letterSpacing: '0.6px',
+            background: '#356DF3',
+            color: '#ffffff',
+            padding: '3px 8px',
+            borderRadius: '4px',
+            textTransform: 'uppercase'
+          }}>
+            Sample Data Preview
+          </span>
+          <span style={{ fontSize: '13px', color: '#1E40AF', fontWeight: 500 }}>
+            Simulated Telemetry Preview • Backend Integration Ready. Showing sample IoT hardware coordinates for UI preview (never presented as real GPS hardware feeds).
+          </span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11.5px', color: '#667085' }}>
+          <ShieldCheck size={14} color="#12B76A" />
+          <span>MQTT / WebSocket Stub Ready</span>
+        </div>
+      </div>
+
       {/* Top summary & GPS controls bar */}
       <div className="tracking-header-bar">
         <div className="tracking-summary-pills">
@@ -311,7 +352,7 @@ export default function LiveTrackingPage() {
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span style={{
-                      background: '#2563eb',
+                      background: '#356DF3',
                       color: '#ffffff',
                       fontSize: 10,
                       fontWeight: 800,
@@ -409,7 +450,7 @@ export default function LiveTrackingPage() {
                     type="button"
                     onClick={handleTogglePlay}
                     style={{
-                      background: '#2563eb',
+                      background: '#356DF3',
                       border: 'none',
                       color: '#ffffff',
                       width: 36,
@@ -503,9 +544,9 @@ export default function LiveTrackingPage() {
                   <span 
                     className="simple-stat-value"
                     style={{ 
-                      color: selectedBike.status === 'Moving' ? '#10b981' : 
-                             selectedBike.status === 'Parked' ? '#2563eb' : 
-                             selectedBike.status === 'Stopped' ? '#f59e0b' : '#64748b' 
+                      color: selectedBike.status === 'Moving' ? '#12B76A' : 
+                             selectedBike.status === 'Parked' ? '#356DF3' : 
+                             selectedBike.status === 'Stopped' ? '#F79009' : '#667085' 
                     }}
                   >
                     {selectedBike.status}
@@ -513,9 +554,34 @@ export default function LiveTrackingPage() {
                 </div>
                 <div className="simple-stat-box">
                   <span className="simple-stat-label">Current Speed</span>
-                  <span className="simple-stat-value" style={{ color: selectedBike.status === 'Moving' ? '#10b981' : '#0f172a' }}>
+                  <span className="simple-stat-value" style={{ color: selectedBike.status === 'Moving' ? '#12B76A' : '#101828' }}>
                     {selectedBike.status === 'Moving' ? selectedBike.speed : '0 km/h'}
                   </span>
+                </div>
+              </div>
+
+              {/* Weekly and Monthly Distance Summaries (Requirement 6) */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '8px',
+                margin: '10px 0',
+                padding: '8px 12px',
+                background: '#F8F9FC',
+                borderRadius: '8px',
+                border: '1px solid #EAECF0'
+              }}>
+                <div>
+                  <span style={{ fontSize: '10.5px', color: '#667085', display: 'block' }}>Weekly Distance</span>
+                  <strong style={{ fontSize: '13px', color: '#101828' }}>
+                    {selectedBike.weeklyKm || '142.4'} km
+                  </strong>
+                </div>
+                <div>
+                  <span style={{ fontSize: '10.5px', color: '#667085', display: 'block' }}>Monthly Distance</span>
+                  <strong style={{ fontSize: '13px', color: '#356DF3' }}>
+                    {selectedBike.monthlyKm || '586.2'} km
+                  </strong>
                 </div>
               </div>
 
@@ -551,7 +617,7 @@ export default function LiveTrackingPage() {
                   type="button"
                   className="card-action-btn"
                   style={{
-                    background: '#2563eb',
+                    background: '#356DF3',
                     color: '#ffffff',
                     border: 'none',
                     display: 'flex',
@@ -577,3 +643,4 @@ export default function LiveTrackingPage() {
     </div>
   );
 }
+

@@ -32,7 +32,7 @@ export default function BrandingPage() {
   const [successToast, setSuccessToast] = useState('');
 
   const colorPresets = [
-    { name: 'Royal Blue', color: '#2563eb', accent: '#3b82f6' },
+    { name: 'Royal Blue', color: '#356DF3', accent: '#3b82f6' },
     { name: 'Speed Red', color: '#dc2626', accent: '#ef4444' },
     { name: 'Racing Green', color: '#059669', accent: '#10b981' },
     { name: 'Midnight Violet', color: '#7c3aed', accent: '#8b5cf6' },
@@ -125,7 +125,7 @@ export default function BrandingPage() {
       logoType: "preset",
       selectedPreset: "modern",
       customLogoUrl: "",
-      primaryColor: "#2563eb",
+      primaryColor: "#356DF3",
       accentColor: "#3b82f6",
       supportPhone: "1800-425-BIKE",
       supportEmail: "support@bikeservicepro.com"
@@ -191,7 +191,7 @@ export default function BrandingPage() {
         <form onSubmit={handleSave} className="card" style={{ padding: '24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0', paddingBottom: '14px', marginBottom: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div style={{ width: 36, height: 36, borderRadius: '8px', background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: 36, height: 36, borderRadius: '8px', background: '#eff6ff', color: '#356DF3', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <ImageIcon size={20} />
               </div>
               <div>
@@ -240,9 +240,9 @@ export default function BrandingPage() {
                 style={{
                   flex: 1,
                   padding: '10px',
-                  borderColor: formState.logoType === 'preset' ? '#2563eb' : '#cbd5e1',
+                  borderColor: formState.logoType === 'preset' ? '#356DF3' : '#cbd5e1',
                   background: formState.logoType === 'preset' ? '#eff6ff' : '#ffffff',
-                  color: formState.logoType === 'preset' ? '#2563eb' : '#475569',
+                  color: formState.logoType === 'preset' ? '#356DF3' : '#475569',
                   fontWeight: 600
                 }}
                 onClick={() => setFormState({ ...formState, logoType: 'preset' })}
@@ -256,9 +256,9 @@ export default function BrandingPage() {
                 style={{
                   flex: 1,
                   padding: '10px',
-                  borderColor: formState.logoType === 'custom' ? '#2563eb' : '#cbd5e1',
+                  borderColor: formState.logoType === 'custom' ? '#356DF3' : '#cbd5e1',
                   background: formState.logoType === 'custom' ? '#eff6ff' : '#ffffff',
-                  color: formState.logoType === 'custom' ? '#2563eb' : '#475569',
+                  color: formState.logoType === 'custom' ? '#356DF3' : '#475569',
                   fontWeight: 600
                 }}
                 onClick={() => setFormState({ ...formState, logoType: 'custom' })}
@@ -274,7 +274,7 @@ export default function BrandingPage() {
                     key={preset.id}
                     onClick={() => setFormState({ ...formState, selectedPreset: preset.id })}
                     style={{
-                      border: formState.selectedPreset === preset.id ? '2px solid #2563eb' : '1px solid #e2e8f0',
+                      border: formState.selectedPreset === preset.id ? '2px solid #356DF3' : '1px solid #e2e8f0',
                       background: formState.selectedPreset === preset.id ? '#f0f7ff' : '#ffffff',
                       borderRadius: '12px',
                       padding: '14px',
@@ -389,7 +389,7 @@ export default function BrandingPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div className="card" style={{ padding: '20px' }}>
             <h4 style={{ fontSize: '14px', fontWeight: 700, margin: '0 0 14px', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Layout size={16} color="#2563eb" />
+              <Layout size={16} color="#356DF3" />
               <span>Admin Sidebar Preview</span>
             </h4>
 
@@ -433,12 +433,12 @@ export default function BrandingPage() {
 
           <div className="card" style={{ padding: '20px' }}>
             <h4 style={{ fontSize: '14px', fontWeight: 700, margin: '0 0 14px', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Smartphone size={16} color="#2563eb" />
+              <Smartphone size={16} color="#356DF3" />
               <span>Customer Mobile Header Preview</span>
             </h4>
 
             <div style={{
-              background: '#1d4ed8',
+              background: '#2957CC',
               borderRadius: '16px',
               padding: '18px',
               color: '#ffffff',
@@ -474,7 +474,7 @@ export default function BrandingPage() {
 
           <div className="card" style={{ padding: '20px' }}>
             <h4 style={{ fontSize: '14px', fontWeight: 700, margin: '0 0 14px', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <FileText size={16} color="#2563eb" />
+              <FileText size={16} color="#356DF3" />
               <span>Job Card / Invoice Header Preview</span>
             </h4>
 
@@ -491,7 +491,7 @@ export default function BrandingPage() {
                 <div style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>{formState.companyName}</div>
                 <div style={{ fontSize: '11px', color: '#64748b' }}>GSTIN: 33AAAAA0000A1Z5 • Salem Center</div>
               </div>
-              <span style={{ fontSize: '12px', fontWeight: 700, color: '#2563eb' }}>TAX INVOICE</span>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#356DF3' }}>TAX INVOICE</span>
             </div>
           </div>
         </div>
@@ -499,4 +499,5 @@ export default function BrandingPage() {
     </div>
   );
 }
+
 
