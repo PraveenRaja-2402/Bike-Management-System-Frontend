@@ -107,14 +107,14 @@ export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggle
   // Bike Repair & Service Alert System Core Navigation
   const bikeSystemNavItems = [
     { name: 'Dashboard', path: '/admin/dashboard', icon: Home },
-    { name: 'Bike Registry', path: '/admin/bikes', icon: Bike, badge: `${bikesList.length} Bikes`, badgeColor: '#0284c7' },
+    { name: 'Bike Registry', path: '/admin/bikes', icon: Bike, badge: `${bikesList.length}`, badgeColor: '#0284c7' },
     { name: 'Service Tracking', path: '/admin/services', icon: Wrench },
     { name: 'Repair History', path: '/admin/repairs', icon: Wrench },
     { 
       name: 'Alerts & Reminders', 
       path: '/admin/next-service', 
       icon: Bell, 
-      badge: overdueCount > 0 ? `${overdueCount} Overdue` : null, 
+      badge: overdueCount > 0 ? `${overdueCount} Due` : null, 
       badgeColor: '#ef4444' 
     },
     { name: 'Reports & Export', path: '/admin/reports', icon: FileText }
@@ -127,11 +127,11 @@ export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggle
       name: 'Service Monitoring', 
       path: '/admin/pending-services', 
       icon: AlertCircle,
-      badge: `${criticalOverdueCount} Due`,
+      badge: criticalOverdueCount > 0 ? `${criticalOverdueCount} Due` : null,
       badgeColor: '#f59e0b'
     },
     { name: 'Job Cards', path: '/admin/job-cards', icon: ClipboardCheck },
-    { name: 'User Management', path: '/admin/users', icon: Users, subtext: 'Admin creation' },
+    { name: 'User Management', path: '/admin/users', icon: Users },
     { name: 'Manage Brands', path: '/admin/manage-brands', icon: Tag }
   ];
 
@@ -141,11 +141,11 @@ export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggle
     { name: 'My Profile', path: '/admin/profile', icon: User }
   ];
 
-  // Super Admin Only Master Modules
+  // Super Admin Only Master Modules (No redundant text badges in super admin mode)
   const superAdminNavItems = [
-    { name: 'Admin Management', path: '/admin/admins', icon: Crown, badge: isSuperAdmin ? 'Super' : '🔒 Locked' },
-    { name: 'Store Locations', path: '/admin/stores', icon: Store, badge: isSuperAdmin ? 'Hubs' : '🔒 Locked' },
-    { name: 'Logo & Branding', path: '/admin/branding', icon: Palette, badge: isSuperAdmin ? 'Branding' : '🔒 Locked' }
+    { name: 'Admin Management', path: '/admin/admins', icon: Crown, badge: !isSuperAdmin ? '🔒' : null },
+    { name: 'Store Locations', path: '/admin/stores', icon: Store, badge: !isSuperAdmin ? '🔒' : null },
+    { name: 'Logo & Branding', path: '/admin/branding', icon: Palette, badge: !isSuperAdmin ? '🔒' : null }
   ];
 
   return (
@@ -187,39 +187,30 @@ export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggle
           </div>
         </div>
 
-        {/* Authenticated User Identity Card */}
+        {/* Authenticated User Identity Card (Clean & Compact) */}
         {!isCollapsed ? (
           <div className="sidebar-user-card-wrap">
-            <div className={`sidebar-user-card ${isSuperAdmin ? 'super-active' : 'admin-active'}`}>
-              <div className="user-card-top">
-                <div className="user-avatar-badge">
-                  {currentUser?.avatar || (isSuperAdmin ? 'SA' : 'AD')}
+            <div className={`sidebar-user-card-compact ${isSuperAdmin ? 'super-active' : 'admin-active'}`}>
+              <div className="user-avatar-badge">
+                {currentUser?.avatar || (isSuperAdmin ? 'SA' : 'AD')}
+              </div>
+              <div className="user-card-info">
+                <div className="user-card-name" title={currentUser?.name || (isSuperAdmin ? 'Alexander Vance' : 'Vikram Raman')}>
+                  {currentUser?.name || (isSuperAdmin ? 'Alexander Vance' : 'Vikram Raman')}
                 </div>
-                <div className="user-card-info">
-                  <div className="user-card-name">{currentUser?.name || (isSuperAdmin ? 'Alexander Vance' : 'Vikram Raman')}</div>
-                  <div className="user-card-role">
-                    {isSuperAdmin ? '👑 Super Admin (Master)' : '🛡️ Operations Admin'}
-                  </div>
+                <div className="user-card-role-sub">
+                  {isSuperAdmin ? 'Super Admin' : 'Operations Admin'} • {currentUser?.assignedBranch || (isSuperAdmin ? 'All Hubs' : 'Salem Hub')}
                 </div>
               </div>
-
-              <div className="user-card-branch">
-                <span className="branch-label">Assigned Hub:</span>
-                <span className="branch-val">{currentUser?.assignedBranch || (isSuperAdmin ? 'All Mega Hubs' : 'Salem Central Hub')}</span>
-              </div>
-
-              {/* Quick Switch Button (Protected with password) */}
-              <div className="user-card-actions">
-                <button
-                  type="button"
-                  className="btn-switch-account"
-                  onClick={handleOpenSwitchModal}
-                  title="Switch account role with password verification"
-                >
-                  <KeyRound size={12} />
-                  <span>Switch to {isSuperAdmin ? 'Operations Admin' : 'Super Admin'}</span>
-                </button>
-              </div>
+              <button
+                type="button"
+                className="btn-switch-compact"
+                onClick={handleOpenSwitchModal}
+                title={`Switch to ${isSuperAdmin ? 'Operations Admin' : 'Super Admin'}`}
+                aria-label="Switch Role"
+              >
+                <KeyRound size={13} />
+              </button>
             </div>
           </div>
         ) : (
@@ -233,7 +224,7 @@ export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggle
         {/* Navigation Items */}
         <nav className="sidebar-nav">
           {/* Super Admin Modules */}
-          <div className="nav-section-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div className="nav-section-title">
             <span>SUPER ADMIN CONTROLS</span>
             <span style={{ 
               fontSize: '9px', 
@@ -262,14 +253,9 @@ export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggle
                 <Icon size={18} className="nav-item-icon" color={isSuperAdmin ? '#f59e0b' : '#94a3b8'} />
                 <span className="nav-item-label">{item.name}</span>
                 {item.badge && (
-                  <span style={{
-                    fontSize: '9.5px',
-                    marginLeft: 'auto',
+                  <span className="nav-item-badge" style={{
                     background: isSuperAdmin ? '#fef3c7' : '#fee2e2',
-                    color: isSuperAdmin ? '#b45309' : '#dc2626',
-                    padding: '2px 6px',
-                    borderRadius: '4px',
-                    fontWeight: 700
+                    color: isSuperAdmin ? '#b45309' : '#dc2626'
                   }}>
                     {item.badge}
                   </span>
@@ -279,7 +265,9 @@ export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggle
           })}
 
           {/* Section: Bike Repair & Service System */}
-          <div className="nav-section-title" style={{ marginTop: '16px' }}>BIKE REPAIR & SERVICE</div>
+          <div className="nav-section-title" style={{ marginTop: '10px' }}>
+            <span>BIKE REPAIR & SERVICE</span>
+          </div>
           {bikeSystemNavItems.map((item) => {
             const Icon = item.icon;
             return (
@@ -293,14 +281,9 @@ export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggle
                 <Icon size={18} className="nav-item-icon" />
                 <span className="nav-item-label">{item.name}</span>
                 {item.badge && (
-                  <span style={{
-                    fontSize: '9px',
-                    marginLeft: 'auto',
+                  <span className="nav-item-badge" style={{
                     background: item.badgeColor || '#356DF3',
-                    color: '#ffffff',
-                    padding: '1px 6px',
-                    borderRadius: '9999px',
-                    fontWeight: 700
+                    color: '#ffffff'
                   }}>
                     {item.badge}
                   </span>
@@ -310,7 +293,9 @@ export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggle
           })}
 
           {/* Section: Telemetry & Operations */}
-          <div className="nav-section-title" style={{ marginTop: '16px' }}>FLEET TELEMETRY & OPS</div>
+          <div className="nav-section-title" style={{ marginTop: '10px' }}>
+            <span>FLEET TELEMETRY & OPS</span>
+          </div>
           {telemetryNavItems.map((item) => {
             const Icon = item.icon;
             return (
@@ -324,14 +309,9 @@ export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggle
                 <Icon size={18} className="nav-item-icon" />
                 <span className="nav-item-label">{item.name}</span>
                 {item.badge && (
-                  <span style={{
-                    fontSize: '9px',
-                    marginLeft: 'auto',
+                  <span className="nav-item-badge" style={{
                     background: item.badgeColor || '#356DF3',
-                    color: '#ffffff',
-                    padding: '1px 6px',
-                    borderRadius: '9999px',
-                    fontWeight: 700
+                    color: '#ffffff'
                   }}>
                     {item.badge}
                   </span>
@@ -341,7 +321,9 @@ export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggle
           })}
 
           {/* Section: Settings & Account */}
-          <div className="nav-section-title" style={{ marginTop: '16px' }}>SYSTEM & STORAGE</div>
+          <div className="nav-section-title" style={{ marginTop: '10px' }}>
+            <span>SYSTEM & STORAGE</span>
+          </div>
           {systemNavItems.map((item) => {
             const Icon = item.icon;
             return (
