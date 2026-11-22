@@ -10,6 +10,7 @@ import BikesPage from './pages/admin/BikesPage';
 import ServiceTrackingPage from './pages/admin/ServiceTrackingPage';
 import RepairHistoryPage from './pages/admin/RepairHistoryPage';
 import NextServicePage from './pages/admin/NextServicePage';
+import PoliceFinesPage from './pages/admin/PoliceFinesPage';
 import ReportsPage from './pages/admin/ReportsPage';
 import LiveTrackingPage from './pages/admin/LiveTrackingPage';
 import PendingServicePage from './pages/admin/PendingServicePage';
@@ -54,6 +55,7 @@ function AppRoutes() {
           <Route path="services" element={<ServiceTrackingPage />} />
           <Route path="repairs" element={<RepairHistoryPage />} />
           <Route path="next-service" element={<NextServicePage />} />
+          <Route path="fines" element={<PoliceFinesPage />} />
           <Route path="reports" element={<ReportsPage />} />
 
           {/* Fleet Telemetry & Operations */}

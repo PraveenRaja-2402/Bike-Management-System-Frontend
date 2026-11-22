@@ -36,7 +36,9 @@ export default function BikesPage() {
     repairRecords,
     serviceIntervals,
     sendCustomerWhatsApp,
-    sendCustomerSms
+    sendCustomerSms,
+    customerFines,
+    payFine
   } = useApp();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -830,6 +832,19 @@ export default function BikesPage() {
             >
               Repair History ({repairRecords.filter(r => r.regNo === viewBikeDetail.regNo).length})
             </button>
+            <button
+              type="button"
+              className={`tab-pill ${activeDetailTab === 'fines' ? 'active' : ''}`}
+              onClick={() => setActiveDetailTab('fines')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              <ShieldAlert size={14} color={customerFines.filter(f => f.vehicleNo === viewBikeDetail.regNo && f.status === 'Unpaid').length > 0 ? '#ef4444' : '#64748b'} />
+              Police Fines ({customerFines.filter(f => f.vehicleNo === viewBikeDetail.regNo).length})
+            </button>
           </div>
 
           {/* TAB 1: OVERVIEW */}
@@ -948,6 +963,134 @@ export default function BikesPage() {
                         )}
                       </div>
                     ))
+                  }
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 4: POLICE FINES & E-CHALLANS */}
+          {activeDetailTab === 'fines' && (
+            <div>
+              {customerFines.filter(f => f.vehicleNo === viewBikeDetail.regNo).length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '36px 20px', background: '#f0fdf4', borderRadius: '12px', border: '1px solid #bbf7d0' }}>
+                  <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px auto' }}>
+                    <CheckCircle2 size={28} color="#16a34a" />
+                  </div>
+                  <h4 style={{ fontSize: '15px', fontWeight: 800, color: '#15803d', margin: '0 0 4px 0' }}>
+                    Zero Traffic Violations on Record
+                  </h4>
+                  <p style={{ fontSize: '12.5px', color: '#166534', margin: 0 }}>
+                    Vehicle {viewBikeDetail.regNo} has a completely clean record with no pending police fines or e-challans.
+                  </p>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {/* Summary Bar */}
+                  {(() => {
+                    const bFines = customerFines.filter(f => f.vehicleNo === viewBikeDetail.regNo);
+                    const bUnpaid = bFines.filter(f => f.status === 'Unpaid');
+                    const bUnpaidTotal = bUnpaid.reduce((s, f) => s + (Number(f.amount) || 0), 0);
+                    return (
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        background: bUnpaid.length > 0 ? '#fff1f2' : '#f0fdf4',
+                        border: bUnpaid.length > 0 ? '1px solid #fecdd3' : '1px solid #bbf7d0',
+                        borderRadius: '10px',
+                        padding: '12px 16px'
+                      }}>
+                        <div>
+                          <div style={{ fontSize: '13px', fontWeight: 800, color: bUnpaid.length > 0 ? '#9f1239' : '#15803d' }}>
+                            {bUnpaid.length > 0 ? `${bUnpaid.length} Unpaid Traffic Violation(s)` : 'All Fines Settled'}
+                          </div>
+                          <div style={{ fontSize: '11.5px', color: bUnpaid.length > 0 ? '#be123c' : '#166534' }}>
+                            {bUnpaid.length > 0 ? `Total penalty due: ₹${bUnpaidTotal.toLocaleString()}` : 'No outstanding liabilities'}
+                          </div>
+                        </div>
+                        <a 
+                          href="/admin/fines" 
+                          style={{ fontSize: '12px', fontWeight: 700, color: '#356DF3', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}
+                        >
+                          View in Fines Hub →
+                        </a>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Fines List */}
+                  {customerFines
+                    .filter(f => f.vehicleNo === viewBikeDetail.regNo)
+                    .map(fine => {
+                      const isUnpaid = fine.status === 'Unpaid';
+                      return (
+                        <div 
+                          key={fine.id} 
+                          style={{
+                            background: isUnpaid ? '#fffbfb' : '#f8fafc',
+                            border: isUnpaid ? '1px solid #fecdd3' : '1px solid #e2e8f0',
+                            borderRadius: '10px',
+                            padding: '12px 16px'
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
+                            <div>
+                              <span style={{
+                                fontSize: '11px',
+                                fontWeight: 800,
+                                color: isUnpaid ? '#dc2626' : '#16a34a',
+                                background: isUnpaid ? '#fee2e2' : '#dcfce7',
+                                padding: '2px 8px',
+                                borderRadius: '5px',
+                                fontFamily: 'monospace'
+                              }}>
+                                {fine.challanNo}
+                              </span>
+                              <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '13.5px', marginTop: '4px' }}>
+                                {fine.offense}
+                              </div>
+                            </div>
+                            <div style={{ textAlign: 'right' }}>
+                              <span style={{ fontSize: '16px', fontWeight: 900, color: isUnpaid ? '#dc2626' : '#16a34a' }}>
+                                ₹{(Number(fine.amount) || 0).toLocaleString()}
+                              </span>
+                              <div style={{ fontSize: '10.5px', color: isUnpaid ? '#e11d48' : '#15803d', fontWeight: 700 }}>
+                                {isUnpaid ? 'PENDING' : 'SETTLED'}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div style={{ fontSize: '11.5px', color: '#64748b', display: 'flex', gap: '14px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                            <span>📍 {fine.location}</span>
+                            <span>🕒 {fine.dateTime}</span>
+                            <span>🏛️ {fine.issuingAuthority}</span>
+                          </div>
+
+                          {fine.paidOn ? (
+                            <div style={{ fontSize: '11.5px', color: '#15803d', background: '#dcfce7', padding: '4px 8px', borderRadius: '6px' }}>
+                              ✓ Settled on {fine.paidOn} • Ref: {fine.paymentRef}
+                            </div>
+                          ) : (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #fecdd3', paddingTop: '8px', marginTop: '6px' }}>
+                              <span style={{ fontSize: '11px', color: '#dc2626', fontWeight: 600 }}>Due: {fine.dueDate || 'Immediate'}</span>
+                              <button
+                                type="button"
+                                className="btn-primary"
+                                style={{ padding: '5px 12px', fontSize: '11.5px', background: '#dc2626', borderColor: '#dc2626' }}
+                                onClick={() => {
+                                  payFine(fine.id, `COUNTER-CASH-${Date.now().toString().slice(-6)}`);
+                                  setToastMessage(`Fine of ₹${fine.amount} for Challan #${fine.challanNo} marked as settled!`);
+                                  setTimeout(() => setToastMessage(''), 4000);
+                                }}
+                              >
+                                Mark as Paid
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })
                   }
                 </div>
               )}

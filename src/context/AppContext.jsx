@@ -211,8 +211,24 @@ export function AppProvider({ children }) {
     }
   }, [serviceIntervals]);
 
-  // Mobile Customer: Fines / E-Challans
-  const [customerFines, setCustomerFines] = useState(mockCustomerFines);
+  // Mobile Customer & Fleet: Traffic Police Fines / E-Challans
+  const [customerFines, setCustomerFines] = useState(() => {
+    try {
+      const stored = localStorage.getItem('bike_mgmt_police_fines');
+      return stored ? JSON.parse(stored) : mockCustomerFines;
+    } catch {
+      return mockCustomerFines;
+    }
+  });
+
+  // Sync police fines to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('bike_mgmt_police_fines', JSON.stringify(customerFines));
+    } catch (e) {
+      console.error('Failed to sync police fines to localStorage', e);
+    }
+  }, [customerFines]);
 
   // Mobile Customer: Membership Points & Rewards
   const [membership, setMembership] = useState(initialMembership);
@@ -519,14 +535,57 @@ export function AppProvider({ children }) {
     setUsersList(usersList.filter(u => u.id !== id));
   };
 
-  // Customer action: Pay Fine / E-Challan
+  // Police Fines / E-Challan Management (Admin & Customer shared)
+  const addPoliceFine = (fineData) => {
+    const now = new Date();
+    const formattedDate = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + 
+      ', ' + now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+    
+    const dueDate = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toLocaleDateString('en-GB', { 
+      day: '2-digit', month: 'short', year: 'numeric' 
+    });
+
+    const newFine = {
+      id: Date.now(),
+      challanNo: fineData.challanNo || `TN-SLM-${now.getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`,
+      offense: fineData.offense || 'Traffic Rule Violation',
+      location: fineData.location || 'Salem Central Circle, Salem',
+      dateTime: fineData.dateTime || formattedDate,
+      amount: Number(fineData.amount) || 500,
+      status: fineData.status || 'Unpaid',
+      issuingAuthority: fineData.issuingAuthority || 'Salem City Traffic Police',
+      vehicleNo: (fineData.vehicleNo || 'TN 30 AB 1234').toUpperCase().trim(),
+      cameraCode: fineData.cameraCode || `CAM-${Math.floor(10 + Math.random() * 90)}Z-AUTO`,
+      dueDate: fineData.dueDate || dueDate,
+      notes: fineData.notes || '',
+      paidOn: fineData.status === 'Paid' ? (fineData.paidOn || formattedDate) : null,
+      paymentRef: fineData.status === 'Paid' ? (fineData.paymentRef || `REC-${Date.now().toString().slice(-6)}`) : null
+    };
+
+    setCustomerFines(prev => [newFine, ...prev]);
+    return newFine;
+  };
+
+  const updatePoliceFine = (fineId, updatedData) => {
+    setCustomerFines(prev => prev.map(f => f.id === fineId ? { ...f, ...updatedData } : f));
+  };
+
+  const deletePoliceFine = (fineId) => {
+    setCustomerFines(prev => prev.filter(f => f.id !== fineId));
+  };
+
+  // Pay Fine / E-Challan (Admin or Customer)
   const payFine = (fineId, paymentRef = `UPI-${Date.now().toString().slice(-6)}`) => {
-    setCustomerFines(customerFines.map(fine => {
+    const now = new Date();
+    const formattedPaidOn = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) +
+      ', ' + now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+
+    setCustomerFines(prev => prev.map(fine => {
       if (fine.id === fineId) {
         return {
           ...fine,
           status: "Paid",
-          paidOn: "Just Now",
+          paidOn: formattedPaidOn,
           paymentRef
         };
       }
@@ -937,6 +996,9 @@ export function AppProvider({ children }) {
         sendCustomerWhatsApp,
         sendCustomerSms,
         customerFines,
+        addPoliceFine,
+        updatePoliceFine,
+        deletePoliceFine,
         payFine,
         membership,
         redeemReward,

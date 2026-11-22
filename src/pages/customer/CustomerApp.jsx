@@ -148,8 +148,13 @@ export default function CustomerApp() {
     notes: 'Please check rear brake pad squeak and lubricate chain.'
   });
 
-  const unpaidFines = customerFines.filter(f => f.status === 'Unpaid');
-  const totalUnpaidFineAmount = unpaidFines.reduce((sum, f) => sum + f.amount, 0);
+  const userFines = useMemo(() => {
+    const matched = customerFines.filter(f => !f.vehicleNo || f.vehicleNo === bharathBike?.regNo);
+    return matched.length > 0 ? matched : customerFines;
+  }, [customerFines, bharathBike]);
+
+  const unpaidFines = userFines.filter(f => f.status === 'Unpaid');
+  const totalUnpaidFineAmount = unpaidFines.reduce((sum, f) => sum + (Number(f.amount) || 0), 0);
 
   // Playback player loop
   useEffect(() => {
@@ -808,7 +813,7 @@ export default function CustomerApp() {
                     <span style={{ fontSize: '11px', color: '#64748b' }}>Salem Traffic Police Portal</span>
                   </div>
 
-                  {customerFines.map((fine) => {
+                  {userFines.map((fine) => {
                     const isUnpaid = fine.status === 'Unpaid';
 
                     return (

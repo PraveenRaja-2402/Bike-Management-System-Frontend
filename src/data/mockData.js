@@ -834,6 +834,46 @@ export const mockCustomerFines = [
     issuingAuthority: "Salem City Traffic Police",
     vehicleNo: "TN 30 AB 1234",
     cameraCode: "CAM-09C-NBS"
+  },
+  {
+    id: 4,
+    challanNo: "TN-SLM-2026-55410",
+    offense: "Triple Riding on Two-Wheeler",
+    location: "Fairlands Junction, Salem",
+    dateTime: "05 Nov 2026, 05:30 PM",
+    amount: 1000,
+    status: "Unpaid",
+    issuingAuthority: "Salem Traffic Police North",
+    vehicleNo: "TN 30 BC 5678",
+    cameraCode: "CAM-07F-FAIR",
+    dueDate: "25 Nov 2026"
+  },
+  {
+    id: 5,
+    challanNo: "TN-SLM-2026-33921",
+    offense: "Defective Silencer / Excessive Noise Exhaust",
+    location: "Meyyanur Bypass, Salem",
+    dateTime: "18 Oct 2026, 08:15 PM",
+    amount: 1000,
+    status: "Paid",
+    paidOn: "19 Oct 2026, 11:30 AM",
+    paymentRef: "POS-CARD-9912",
+    issuingAuthority: "Salem Highway Patrol",
+    vehicleNo: "TN 30 CD 9012",
+    cameraCode: "CAM-18M-MEYY"
+  },
+  {
+    id: 6,
+    challanNo: "TN-SLM-2026-11884",
+    offense: "Holding / Using Mobile Phone while Riding",
+    location: "Hasthampatti Roundabout, Salem",
+    dateTime: "28 Oct 2026, 02:45 PM",
+    amount: 1000,
+    status: "Unpaid",
+    issuingAuthority: "Salem Traffic Police East",
+    vehicleNo: "TN 30 EF 3456",
+    cameraCode: "CAM-03H-HAST",
+    dueDate: "18 Nov 2026"
   }
 ];
 

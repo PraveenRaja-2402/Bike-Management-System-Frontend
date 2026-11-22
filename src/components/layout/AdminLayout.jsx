@@ -41,6 +41,12 @@ export default function AdminLayout() {
         subtitle: 'Comprehensive bike-wise repair logs, parts replacements, and labor costs'
       };
     }
+    if (path.includes('fines')) {
+      return {
+        title: 'Traffic Police Fines & E-Challans',
+        subtitle: 'Fleet-wide violation tracking, penalty collection, and e-challan settlements'
+      };
+    }
     if (path.includes('reports')) {
       return {
         title: 'Reports & Analytics',

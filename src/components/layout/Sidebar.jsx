@@ -22,6 +22,7 @@ import {
   EyeOff,
   AlertTriangle,
   Sparkles,
+  ShieldAlert,
   Bike,
   Wrench,
   FileText,
@@ -41,7 +42,8 @@ export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggle
     pendingServices, 
     logout, 
     switchAccountWithPassword,
-    bikesList 
+    bikesList,
+    customerFines 
   } = useApp();
   const navigate = useNavigate();
 
@@ -64,6 +66,11 @@ export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggle
       return curKm >= nextKm || dateOver;
     }).length;
   }, [bikesList]);
+
+  // Calculate unpaid police fines count
+  const unpaidFinesCount = useMemo(() => {
+    return (customerFines || []).filter(f => f.status === 'Unpaid').length;
+  }, [customerFines]);
 
   // Password-authenticated Role Switch Modal
   const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false);
@@ -115,6 +122,13 @@ export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggle
       path: '/admin/next-service', 
       icon: Bell, 
       badge: overdueCount > 0 ? `${overdueCount} Due` : null, 
+      badgeColor: '#ef4444' 
+    },
+    { 
+      name: 'Police Fines', 
+      path: '/admin/fines', 
+      icon: ShieldAlert, 
+      badge: unpaidFinesCount > 0 ? `${unpaidFinesCount} Due` : null, 
       badgeColor: '#ef4444' 
     },
     { name: 'Reports & Export', path: '/admin/reports', icon: FileText }
