@@ -446,7 +446,7 @@ export default function UsersPage() {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         title="Admin User Creation • Provision Account"
-        maxWidth="500px"
+        size="md"
       >
         <form onSubmit={handleSaveAdd}>
           <div className="form-group">

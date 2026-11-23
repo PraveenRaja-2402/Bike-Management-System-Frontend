@@ -2161,7 +2161,7 @@ export default function CustomerApp() {
         isOpen={bookingModalOpen}
         onClose={() => setBookingModalOpen(false)}
         title="Book Service Appointment"
-        maxWidth="500px"
+        size="md"
       >
         <form onSubmit={handleBookService}>
           <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '14px', fontSize: '13px' }}>

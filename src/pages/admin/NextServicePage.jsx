@@ -1386,7 +1386,7 @@ export default function NextServicePage() {
         isOpen={notifyModalOpen}
         onClose={() => setNotifyModalOpen(false)}
         title={notificationType === 'whatsapp' ? '💬 Dispatch WhatsApp Service Reminder' : '📱 Dispatch SMS Service Reminder'}
-        maxWidth="540px"
+        size="md"
       >
         {activeBikeForNotify && (
           <form onSubmit={handleSendNotification}>
@@ -1515,7 +1515,7 @@ export default function NextServicePage() {
         isOpen={kmModalOpen}
         onClose={() => setKmModalOpen(false)}
         title="⚡ Update Vehicle Odometer KM"
-        maxWidth="440px"
+        size="sm"
       >
         {bikeForKm && (
           <form onSubmit={handleSaveKm}>

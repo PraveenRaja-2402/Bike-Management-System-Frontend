@@ -360,7 +360,7 @@ export default function StoreLocationsPage() {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         title="Add New Store / Service Center Branch"
-        maxWidth="540px"
+        size="md"
       >
         <form onSubmit={handleSaveAdd}>
           <div className="form-group">
@@ -490,7 +490,7 @@ export default function StoreLocationsPage() {
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
           title={`Edit Store - ${editingStore.name}`}
-          maxWidth="540px"
+          size="md"
         >
           <form onSubmit={handleSaveEdit}>
             <div className="form-group">

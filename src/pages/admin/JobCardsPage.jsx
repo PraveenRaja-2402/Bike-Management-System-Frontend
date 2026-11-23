@@ -210,7 +210,7 @@ export default function JobCardsPage() {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         title="Create Workshop Job Card"
-        maxWidth="600px"
+        size="md"
       >
         <form onSubmit={handleCreateJobCard}>
           <div className="form-grid-2">
@@ -385,7 +385,7 @@ export default function JobCardsPage() {
           isOpen={Boolean(selectedJob)}
           onClose={() => setSelectedJob(null)}
           title={`Job Card Details - ${selectedJob.jobNo}`}
-          maxWidth="600px"
+          size="md"
         >
           <div>
             <div style={{
