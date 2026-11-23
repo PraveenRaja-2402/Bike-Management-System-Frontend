@@ -465,6 +465,25 @@ export function AppProvider({ children }) {
     localStorage.setItem('bike_mgmt_auth_user', JSON.stringify(target));
   };
 
+  // Update Current Authenticated User Profile (Persists to session & local storage)
+  const updateCurrentUserProfile = (updatedFields) => {
+    setCurrentUser(prev => {
+      const updated = { ...prev, ...updatedFields };
+      sessionStorage.setItem('bike_mgmt_auth_user', JSON.stringify(updated));
+      return updated;
+    });
+
+    setAuthUsers(prev => {
+      const updated = prev.map(u => 
+        (u.email === currentUser?.email || u.role === currentUser?.role) 
+          ? { ...u, ...updatedFields } 
+          : u
+      );
+      localStorage.setItem('bike_mgmt_auth_users', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   // Super Admin actions: Admin management
   const addAdmin = (adminData) => {
     const newAdmin = {
@@ -1064,6 +1083,7 @@ export function AppProvider({ children }) {
         currentRole,
         switchRole,
         currentUser,
+        updateCurrentUserProfile,
         adminsList,
         addAdmin,
         updateAdmin,
