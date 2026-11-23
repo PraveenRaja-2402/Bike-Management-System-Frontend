@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   User, 
   Phone, 
   Mail, 
   Shield, 
   Calendar, 
-  Camera, 
   UploadCloud, 
   Lock, 
   Eye, 
@@ -24,11 +23,11 @@ import {
   Sparkles,
   Clock,
   Laptop,
+  Smartphone,
   Check,
   CheckCircle2,
   AlertTriangle,
-  ArrowRight,
-  ShieldAlert
+  Trash2
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import StatusBadge from '../../components/common/StatusBadge';
@@ -67,8 +66,11 @@ export default function ProfilePage() {
   const [bio, setBio] = useState('');
   const [avatar, setAvatar] = useState('');
   const [avatarBg, setAvatarBg] = useState(AVATAR_COLOR_PRESETS[0].bg);
+  const [customPhotoUrl, setCustomPhotoUrl] = useState('');
   const [profileSuccessMsg, setProfileSuccessMsg] = useState('');
   const [profileErrorMsg, setProfileErrorMsg] = useState('');
+
+  const fileInputRef = useRef(null);
 
   // Synchronize state with current authenticated user
   useEffect(() => {
@@ -83,6 +85,9 @@ export default function ProfilePage() {
         : 'Managing Salem Central Mega Hub daily vehicle intakes, customer relations, technician dispatch, and telemetry diagnostics.'));
       setAvatar(currentUser.avatar || (isSuperAdmin ? 'AV' : 'VR'));
       setAvatarBg(isSuperAdmin ? AVATAR_COLOR_PRESETS[3].bg : AVATAR_COLOR_PRESETS[0].bg);
+      if (currentUser.photo) {
+        setCustomPhotoUrl(currentUser.photo);
+      }
     }
   }, [currentUser, isSuperAdmin]);
 
@@ -129,7 +134,7 @@ export default function ProfilePage() {
       if (logFilterCategory === 'Services') return matchSearch && (log.action.includes('Service') || log.action.includes('Job') || log.description.includes('Maintenance'));
       return matchSearch;
     });
-  }, [mockActivityLogs, logSearch, logFilterCategory]);
+  }, [logSearch, logFilterCategory]);
 
   const totalPages = Math.ceil(filteredLogs.length / itemsPerPage) || 1;
   const currentLogs = filteredLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -140,6 +145,49 @@ export default function ProfilePage() {
   const hasNumber = /[0-9]/.test(newPassword);
   const hasSpecial = /[^a-zA-Z0-9]/.test(newPassword);
   const strengthScore = [hasMinLength, hasLetter, hasNumber, hasSpecial].filter(Boolean).length;
+
+  // Handle Profile Photo Upload with format and 2 MB limit validation
+  const handlePhotoUpload = (e) => {
+    setProfileErrorMsg('');
+    setProfileSuccessMsg('');
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Format validation: strictly PNG or JPG/JPEG
+    const validTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+    if (!validTypes.includes(file.type.toLowerCase())) {
+      setProfileErrorMsg('Invalid file format. Please upload a PNG or JPG photo.');
+      if (e.target) e.target.value = '';
+      return;
+    }
+
+    // Size validation: max 2 MB (2 * 1024 * 1024 bytes)
+    const MAX_SIZE = 2 * 1024 * 1024;
+    if (file.size > MAX_SIZE) {
+      const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
+      setProfileErrorMsg(`File size (${sizeMb} MB) exceeds the 2 MB limit. Please select an image under 2 MB.`);
+      if (e.target) e.target.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result;
+      if (dataUrl) {
+        setCustomPhotoUrl(String(dataUrl));
+        setProfileSuccessMsg('Photo uploaded successfully! Click "Save Changes" to save to your profile.');
+        showToast('Photo uploaded successfully (PNG/JPG < 2 MB)');
+      }
+    };
+    reader.readAsDataURL(file);
+    if (e.target) e.target.value = '';
+  };
+
+  const handleRemovePhoto = () => {
+    setCustomPhotoUrl('');
+    setProfileSuccessMsg('Custom photo removed. Restored signature monogram initials.');
+    showToast('Photo removed');
+  };
 
   const handleUpdateProfile = (e) => {
     e.preventDefault();
@@ -158,7 +206,8 @@ export default function ProfilePage() {
       phone: phone.trim(),
       bio: bio.trim(),
       assignedBranch,
-      avatar
+      avatar,
+      photo: customPhotoUrl
     });
 
     setProfileSuccessMsg('Profile changes saved successfully! Your identity has been updated across the portal.');
@@ -213,7 +262,7 @@ export default function ProfilePage() {
     if (res.success) {
       setIsSwitchModalOpen(false);
       setSwitchPassword('');
-      showToast(`Switched account clearance to ${targetRole === 'super_admin' ? 'Super Admin' : 'Operations Admin'}`);
+      showToast(`Switched account role to ${targetRole === 'super_admin' ? 'Super Admin' : 'Operations Admin'}`);
     } else {
       setSwitchError(res.error || 'Authentication failed. Please verify credentials.');
     }
@@ -259,10 +308,21 @@ export default function ProfilePage() {
           <div className="profile-avatar-super-wrap">
             <div 
               className="profile-avatar-circle" 
-              style={{ background: avatarBg }}
-              title="Click 'Identity & Details' tab below to change avatar styling"
+              style={{ 
+                background: customPhotoUrl ? '#0f172a' : avatarBg,
+                overflow: 'hidden'
+              }}
+              title="Profile Avatar"
             >
-              {avatar || (isSuperAdmin ? 'AV' : 'VR')}
+              {customPhotoUrl ? (
+                <img 
+                  src={customPhotoUrl} 
+                  alt={fullName} 
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                />
+              ) : (
+                avatar || (isSuperAdmin ? 'AV' : 'VR')
+              )}
             </div>
             <div className="profile-status-beacon" title="Active Authenticated Session" />
           </div>
@@ -279,7 +339,7 @@ export default function ProfilePage() {
                 }}
               >
                 {isSuperAdmin ? <Crown size={13} color="#f59e0b" /> : <ShieldCheck size={13} color="#38bdf8" />}
-                <span>{isSuperAdmin ? 'Super Admin Root' : 'Operations Admin'}</span>
+                <span>{isSuperAdmin ? 'Super Admin' : 'Operations Admin'}</span>
               </span>
               <span style={{ 
                 fontSize: '11px', 
@@ -314,9 +374,9 @@ export default function ProfilePage() {
         {/* Right Executive Stats & Fast Elevation Controls */}
         <div className="profile-hero-stats">
           <div className="profile-stat-box">
-            <span className="profile-stat-label">Clearance Tier</span>
+            <span className="profile-stat-label">Active Role</span>
             <span className="profile-stat-val" style={{ color: isSuperAdmin ? '#fbbf24' : '#38bdf8' }}>
-              {isSuperAdmin ? 'Master Root' : 'Hub Ops'}
+              {isSuperAdmin ? 'Super Admin' : 'Operations Admin'}
             </span>
           </div>
 
@@ -332,7 +392,7 @@ export default function ProfilePage() {
               type="button"
               className="btn-primary btn-sm"
               onClick={handleOpenSwitchModal}
-              title={`Switch clearance tier between Super Admin and Operations Admin`}
+              title={`Switch account role between Super Admin and Operations Admin`}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -342,7 +402,7 @@ export default function ProfilePage() {
               }}
             >
               <KeyRound size={14} />
-              <span>Switch Clearance</span>
+              <span>Switch Account Role</span>
             </button>
 
             <button
@@ -369,7 +429,7 @@ export default function ProfilePage() {
       </div>
 
       {/* =========================================================================
-          PROFILE ENTERPRISE NAVIGATION TABS
+          PROFILE ENTERPRISE NAVIGATION TABS (Sticky with proper offset)
           ========================================================================= */}
       <div className="profile-tabs-header">
         <button
@@ -424,7 +484,7 @@ export default function ProfilePage() {
               <span style={{ fontSize: '12px', color: '#64748b' }}>Updated in real-time</span>
             </div>
 
-            <div className="card-body">
+            <div className="card-body" style={{ padding: '24px' }}>
               {profileSuccessMsg && (
                 <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', color: '#047857', padding: '12px 16px', borderRadius: '10px', marginBottom: '18px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <CheckCircle size={18} color="#10b981" />
@@ -524,8 +584,8 @@ export default function ProfilePage() {
                       title="Role permissions are managed via Super Admin Clearance"
                     />
                   </div>
-                  <span style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
-                    🔒 Role permissions are cryptographically locked. Switch clearance via master authentication button above.
+                  <span style={{ fontSize: '11.5px', color: '#64748b', marginTop: '6px', lineHeight: 1.4, display: 'block' }}>
+                    Role assignments and administrative privileges are configured by the System Super Admin. Use the account switch button above to toggle between Super Admin and Operations Admin.
                   </span>
                 </div>
 
@@ -536,14 +596,21 @@ export default function ProfilePage() {
                     className="form-input no-left-icon"
                     value={bio}
                     onChange={(e) => setBio(e.target.value)}
-                    placeholder="Describe your role responsibilities..."
-                    style={{ height: 'auto', padding: '10px 14px', resize: 'vertical' }}
+                    placeholder="Describe your role responsibilities and workshop oversight..."
+                    style={{ 
+                      minHeight: '90px', 
+                      height: '90px', 
+                      padding: '10px 14px', 
+                      resize: 'vertical',
+                      lineHeight: 1.5,
+                      boxSizing: 'border-box'
+                    }}
                   />
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '20px', borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
-                  <button type="submit" className="btn-primary" style={{ padding: '10px 24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Check size={16} />
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '20px', borderTop: '1px solid #f1f5f9', paddingTop: '18px' }}>
+                  <button type="submit" className="btn-save-profile">
+                    <Check size={16} color="#ffffff" strokeWidth={2.5} />
                     <span>Save Changes</span>
                   </button>
                 </div>
@@ -558,18 +625,18 @@ export default function ProfilePage() {
               <div className="card-header">
                 <div className="card-title">
                   <Sparkles size={18} color="#f59e0b" />
-                  <span>Avatar & Visual Persona</span>
+                  <span>Avatar & Visual Signature</span>
                 </div>
               </div>
 
-              <div className="card-body">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '18px' }}>
+              <div className="card-body" style={{ padding: '24px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}>
                   <div 
                     style={{ 
                       width: 64, 
                       height: 64, 
                       borderRadius: '16px', 
-                      background: avatarBg, 
+                      background: customPhotoUrl ? '#0f172a' : avatarBg, 
                       color: '#ffffff', 
                       display: 'flex', 
                       alignItems: 'center', 
@@ -577,15 +644,20 @@ export default function ProfilePage() {
                       fontSize: '22px',
                       fontWeight: 800,
                       boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                      flexShrink: 0
+                      flexShrink: 0,
+                      overflow: 'hidden'
                     }}
                   >
-                    {avatar || (fullName ? fullName.split(' ').map(n => n[0]).join('').slice(0, 2) : 'AV')}
+                    {customPhotoUrl ? (
+                      <img src={customPhotoUrl} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      avatar || (fullName ? fullName.split(' ').map(n => n[0]).join('').slice(0, 2) : 'AV')
+                    )}
                   </div>
                   <div>
-                    <strong style={{ fontSize: '14px', color: '#0f172a', display: 'block' }}>Display Initials</strong>
-                    <span style={{ fontSize: '12px', color: '#64748b' }}>Customizable 2-character signature avatar</span>
-                    <div style={{ marginTop: '6px' }}>
+                    <strong style={{ fontSize: '14px', color: '#0f172a', display: 'block' }}>Display Signature</strong>
+                    <span style={{ fontSize: '12px', color: '#64748b' }}>Customizable 2-character monogram</span>
+                    <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <input
                         type="text"
                         maxLength={3}
@@ -593,55 +665,73 @@ export default function ProfilePage() {
                         value={avatar}
                         onChange={(e) => setAvatar(e.target.value.toUpperCase())}
                         placeholder="e.g. AV"
-                        style={{ width: '80px', height: '34px', textAlign: 'center', fontWeight: 800 }}
+                        style={{ width: '80px', height: '36px', textAlign: 'center', fontWeight: 800 }}
                       />
+                      {customPhotoUrl && (
+                        <button
+                          type="button"
+                          className="btn-secondary btn-sm"
+                          onClick={handleRemovePhoto}
+                          title="Remove custom photo and restore initials"
+                          style={{ fontSize: '11px', padding: '6px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#ef4444' }}
+                        >
+                          <Trash2 size={12} />
+                          <span>Remove Photo</span>
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
 
-                <label className="form-label" style={{ marginBottom: '8px' }}>Select Avatar Color Theme:</label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '18px' }}>
-                  {AVATAR_COLOR_PRESETS.map((preset) => (
-                    <button
-                      key={preset.name}
-                      type="button"
-                      onClick={() => {
-                        setAvatarBg(preset.bg);
-                        showToast(`Applied ${preset.name} theme`);
-                      }}
-                      style={{
-                        background: preset.bg,
-                        color: '#ffffff',
-                        border: avatarBg === preset.bg ? '2px solid #0f172a' : '1px solid transparent',
-                        padding: '8px 10px',
-                        borderRadius: '8px',
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        boxShadow: avatarBg === preset.bg ? '0 0 0 2px #356DF3' : 'none',
-                        transition: 'transform 0.15s ease'
-                      }}
-                    >
-                      {preset.name.split(' ')[0]}
-                    </button>
-                  ))}
+                <label className="form-label" style={{ marginBottom: '10px' }}>Select Avatar Colour Swatch:</label>
+                <div className="color-swatches-grid" style={{ marginBottom: '20px' }}>
+                  {AVATAR_COLOR_PRESETS.map((preset) => {
+                    const isSelected = avatarBg === preset.bg && !customPhotoUrl;
+                    return (
+                      <button
+                        key={preset.name}
+                        type="button"
+                        className={`color-swatch-circle ${isSelected ? 'selected' : ''}`}
+                        onClick={() => {
+                          setAvatarBg(preset.bg);
+                          showToast(`Applied ${preset.name} theme`);
+                        }}
+                        style={{ background: preset.bg }}
+                        title={`${preset.name} (${isSelected ? 'Selected' : 'Click to select'})`}
+                        aria-label={`Select ${preset.name}`}
+                      >
+                        {isSelected && <Check size={14} color="#ffffff" strokeWidth={3} />}
+                      </button>
+                    );
+                  })}
                 </div>
+
+                {/* Restricted PNG/JPG photo upload */}
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  accept="image/png, image/jpeg, image/jpg" 
+                  style={{ display: 'none' }} 
+                  onChange={handlePhotoUpload} 
+                />
 
                 <div 
                   className="upload-dropzone" 
-                  onClick={() => showToast('Custom photo upload: JPG, PNG supported (Preview updated)')}
+                  onClick={() => fileInputRef.current?.click()}
                   style={{ borderRadius: '12px', padding: '16px' }}
                 >
                   <div className="upload-icon-circle">
                     <UploadCloud size={18} />
                   </div>
-                  <span className="upload-text">Upload Custom Photo</span>
-                  <span className="upload-sub">PNG, JPG, SVG up to 2MB</span>
+                  <span className="upload-text">
+                    {customPhotoUrl ? 'Replace Profile Photo' : 'Upload Profile Photo'}
+                  </span>
+                  <span className="upload-sub">PNG or JPG only (Max 2 MB)</span>
                 </div>
               </div>
             </div>
 
-            {/* Card: Account Snapshot */}
+            {/* Card: Account Session Snapshot with Improved Hierarchy */}
             <div className="card">
               <div className="card-header">
                 <div className="card-title">
@@ -650,26 +740,82 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              <div className="card-body" style={{ fontSize: '13px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '8px', borderBottom: '1px solid #f1f5f9' }}>
-                  <span style={{ color: '#64748b' }}>Account Status:</span>
-                  <StatusBadge status="Active" />
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '8px', borderBottom: '1px solid #f1f5f9' }}>
-                  <span style={{ color: '#64748b' }}>Account Created:</span>
-                  <strong style={{ color: '#0f172a' }}>12 Sep 2026</strong>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '8px', borderBottom: '1px solid #f1f5f9' }}>
-                  <span style={{ color: '#64748b' }}>Last Authenticated:</span>
-                  <strong style={{ color: '#0f172a' }}>Today, 20:45 IST</strong>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '8px', borderBottom: '1px solid #f1f5f9' }}>
-                  <span style={{ color: '#64748b' }}>Network IP:</span>
-                  <code style={{ color: '#356DF3', fontWeight: 700 }}>192.168.1.104</code>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: '#64748b' }}>Active Device:</span>
-                  <strong style={{ color: '#0f172a' }}>Windows 11 (Chrome Desktop)</strong>
+              <div className="card-body" style={{ padding: '20px 24px' }}>
+                <div className="snapshot-list">
+                  <div className="snapshot-item">
+                    <div className="snapshot-label-wrap">
+                      <ShieldCheck size={15} color="#10b981" />
+                      <span>Account Status:</span>
+                    </div>
+                    <div className="snapshot-value">
+                      <StatusBadge status="Active" />
+                    </div>
+                  </div>
+
+                  <div className="snapshot-item">
+                    <div className="snapshot-label-wrap">
+                      <Shield size={15} color="#356DF3" />
+                      <span>Security Clearance:</span>
+                    </div>
+                    <div className="snapshot-value">
+                      <span style={{ 
+                        color: isSuperAdmin ? '#b45309' : '#0284c7', 
+                        fontWeight: 700,
+                        fontSize: '12.5px'
+                      }}>
+                        {isSuperAdmin ? 'Master Root Clearance' : 'Branch Operations'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="snapshot-item">
+                    <div className="snapshot-label-wrap">
+                      <Calendar size={15} color="#64748b" />
+                      <span>Account Created:</span>
+                    </div>
+                    <div className="snapshot-value">
+                      12 Sep 2026
+                    </div>
+                  </div>
+
+                  <div className="snapshot-item">
+                    <div className="snapshot-label-wrap">
+                      <Clock size={15} color="#64748b" />
+                      <span>Last Sign-in:</span>
+                    </div>
+                    <div className="snapshot-value">
+                      Today, 20:45 IST
+                    </div>
+                  </div>
+
+                  <div className="snapshot-item">
+                    <div className="snapshot-label-wrap">
+                      <MapPin size={15} color="#64748b" />
+                      <span>Session Network IP:</span>
+                    </div>
+                    <div className="snapshot-value">
+                      <code style={{ 
+                        background: '#eff6ff', 
+                        color: '#2563eb', 
+                        padding: '2px 8px', 
+                        borderRadius: '6px', 
+                        fontWeight: 700,
+                        fontSize: '12px'
+                      }}>
+                        192.168.1.104
+                      </code>
+                    </div>
+                  </div>
+
+                  <div className="snapshot-item">
+                    <div className="snapshot-label-wrap">
+                      <Laptop size={15} color="#64748b" />
+                      <span>Active Client Device:</span>
+                    </div>
+                    <div className="snapshot-value">
+                      Windows 11 (Chrome Desktop)
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -691,7 +837,7 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            <div className="card-body">
+            <div className="card-body" style={{ padding: '24px' }}>
               {passwordSuccessMsg && (
                 <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', color: '#047857', padding: '12px 16px', borderRadius: '10px', marginBottom: '18px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <CheckCircle size={18} color="#10b981" />
@@ -841,8 +987,9 @@ export default function ProfilePage() {
                 </div>
 
                 <div style={{ textAlign: 'right' }}>
-                  <button type="submit" className="btn-primary" style={{ padding: '10px 24px' }}>
-                    Update Password
+                  <button type="submit" className="btn-save-profile">
+                    <Check size={16} color="#ffffff" strokeWidth={2.5} />
+                    <span>Update Password</span>
                   </button>
                 </div>
               </form>
@@ -860,7 +1007,7 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              <div className="card-body">
+              <div className="card-body" style={{ padding: '24px' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px' }}>
                   <div>
                     <strong style={{ fontSize: '14px', color: '#0f172a', display: 'block' }}>
@@ -911,7 +1058,7 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div className="card-body" style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <Laptop size={18} color="#356DF3" />
@@ -966,13 +1113,13 @@ export default function ProfilePage() {
               background: isSuperAdmin ? '#fef3c7' : '#ecfdf5',
               color: isSuperAdmin ? '#b45309' : '#047857'
             }}>
-              Current Role: {isSuperAdmin ? 'Super Admin (Master)' : 'Operations Admin (Branch)'}
+              Current Role: {isSuperAdmin ? 'Super Admin' : 'Operations Admin'}
             </span>
           </div>
 
-          <div className="card-body">
+          <div className="card-body" style={{ padding: '24px' }}>
             <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: '#64748b', lineHeight: 1.5 }}>
-              The matrix below illustrates the module-level entitlements active for your authenticated role. Super Admin holds unrestricted master authority over all store locations and global parameters, while Operations Admin holds full day-to-day workshop capabilities.
+              The matrix below illustrates the module-level entitlements active for your authenticated role. Super Admin holds master authority over store locations, administrative user accounts, and branding, while Operations Admin holds full day-to-day workshop capabilities.
             </p>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
@@ -1011,7 +1158,7 @@ export default function ProfilePage() {
                   </span>
                 </div>
                 <p style={{ margin: 0, fontSize: '12px', color: '#64748b', lineHeight: 1.4 }}>
-                  Invite, authorize, suspend, or elevate administrative and staff personnel credentials.
+                  Invite, authorize, suspend, or configure administrative and staff personnel credentials.
                 </p>
               </div>
 
@@ -1076,14 +1223,14 @@ export default function ProfilePage() {
                 placeholder="Search audit trail..."
                 value={logSearch}
                 onChange={(e) => setLogSearch(e.target.value)}
-                style={{ height: '34px', fontSize: '12.5px', width: '200px' }}
+                style={{ height: '36px', fontSize: '12.5px', width: '200px' }}
               />
 
               <select 
                 className="filter-select"
                 value={logFilterCategory}
                 onChange={(e) => setLogFilterCategory(e.target.value)}
-                style={{ height: '34px', fontSize: '12.5px' }}
+                style={{ height: '36px', fontSize: '12.5px' }}
               >
                 <option value="All">All Categories</option>
                 <option value="Auth">Authentication & Passwords</option>
@@ -1188,7 +1335,7 @@ export default function ProfilePage() {
         <Modal
           isOpen={isSwitchModalOpen}
           onClose={() => setIsSwitchModalOpen(false)}
-          title="Secure Account Clearance Switch"
+          title="Switch Administrative Role"
           size="md"
         >
           <form onSubmit={handleSwitchSubmit}>
@@ -1199,7 +1346,7 @@ export default function ProfilePage() {
                   Target Role: {targetRole === 'super_admin' ? 'Super Admin (Alexander Vance)' : 'Operations Admin (Vikram Raman)'}
                 </strong>
               </div>
-              <p style={{ margin: 0, fontSize: '12px', color: '#64748b', lineHeight: 1.5 }}>
+              <p style={{ margin: 0, fontSize: '12.5px', color: '#64748b', lineHeight: 1.5 }}>
                 {targetRole === 'super_admin'
                   ? 'Super Admin grants full administrative privileges over all hubs, store locations, admin user management, and global branding.'
                   : 'Operations Admin handles everyday branch customer onboarding, job cards, service tracking, and fleet telemetry.'
@@ -1216,7 +1363,7 @@ export default function ProfilePage() {
 
             <div className="form-group">
               <label className="form-label">
-                Enter Password for {targetRole === 'super_admin' ? 'Super Admin' : 'Admin'} *
+                Enter Password for {targetRole === 'super_admin' ? 'Super Admin' : 'Operations Admin'} *
               </label>
               <div className="input-with-icon">
                 <Lock size={16} className="input-icon-left" />
@@ -1245,8 +1392,8 @@ export default function ProfilePage() {
               <button type="button" className="btn-secondary" onClick={() => setIsSwitchModalOpen(false)}>
                 Cancel
               </button>
-              <button type="submit" className="btn-primary">
-                Verify & Switch Account
+              <button type="submit" className="btn-save-profile">
+                <span>Verify & Switch Role</span>
               </button>
             </div>
           </form>
