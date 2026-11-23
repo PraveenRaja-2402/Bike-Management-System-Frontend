@@ -113,8 +113,8 @@ export default function AdminLayout() {
     }
     if (path.includes('users')) {
       return {
-        title: 'User Management',
-        subtitle: 'Admin: Create customer, technician, and advisor user accounts'
+        title: 'Customers & User Directory',
+        subtitle: 'Manage customer accounts, mobile portal access credentials, and workshop staff'
       };
     }
     if (path.includes('manage-brands')) {

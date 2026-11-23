@@ -38,7 +38,8 @@ export default function BikesPage() {
     sendCustomerWhatsApp,
     sendCustomerSms,
     customerFines,
-    payFine
+    payFine,
+    usersList
   } = useApp();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -527,6 +528,39 @@ export default function BikesPage() {
                 onChange={(e) => setFormData({ ...formData, model: e.target.value })}
               />
             </div>
+          </div>
+
+          {/* Quick Customer Directory Selection */}
+          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px 12px', marginBottom: '14px' }}>
+            <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+              <span>Link Registered Customer (Auto-fill)</span>
+              <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 500 }}>Or type custom owner below</span>
+            </label>
+            <select
+              className="form-input no-left-icon"
+              onChange={(e) => {
+                const selectedPhone = e.target.value;
+                if (selectedPhone) {
+                  const cust = (usersList || []).find(u => u.phone === selectedPhone);
+                  if (cust) {
+                    setFormData(prev => ({
+                      ...prev,
+                      ownerName: cust.name,
+                      ownerPhone: cust.phone,
+                      ownerEmail: cust.email || ''
+                    }));
+                  }
+                }
+              }}
+              defaultValue=""
+            >
+              <option value="">-- Choose Existing Customer from Directory --</option>
+              {(usersList || []).filter(u => u.role === 'Customer').map(u => (
+                <option key={u.id} value={u.phone}>
+                  {u.name} ({u.phone}) {u.assignedBike ? `[Has: ${u.assignedBike}]` : ''}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="form-grid-2">

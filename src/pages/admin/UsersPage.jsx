@@ -11,6 +11,7 @@ import {
   Trash2,
   Eye, 
   CheckCircle2, 
+  AlertCircle,
   Award,
   Bike,
   Sparkles,
@@ -38,6 +39,7 @@ export default function UsersPage() {
   const [shareModalUser, setShareModalUser] = useState(null);
   const [copiedInvite, setCopiedInvite] = useState(false);
   const [successToast, setSuccessToast] = useState('');
+  const [errorToast, setErrorToast] = useState('');
 
   const [formData, setFormData] = useState({
     name: '',
@@ -45,18 +47,22 @@ export default function UsersPage() {
     email: '',
     role: 'Customer',
     status: 'Active',
-    assignedBike: 'TN 30 AB 1234',
+    assignedBike: bikesList[0]?.regNo || 'TN 30 AB 1234',
     pin: '1234',
-    initialPoints: 200
+    initialPoints: 250,
+    newBikeReg: '',
+    newBikeModel: '',
+    newBikeBrand: 'Yamaha',
+    newBikeKm: 1500
   });
 
   const filteredUsers = usersList.filter((u) => {
     const matchesRole = roleFilter === 'All' || u.role.toLowerCase() === roleFilter.toLowerCase();
     const matchesStatus = statusFilter === 'All' || u.status.toLowerCase() === statusFilter.toLowerCase();
-    const matchesSearch = u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          u.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          u.phone.includes(searchQuery) ||
-                          u.role.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = (u.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          (u.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          (u.phone || '').includes(searchQuery) ||
+                          (u.role || '').toLowerCase().includes(searchQuery.toLowerCase());
     return matchesRole && matchesStatus && matchesSearch;
   });
 
@@ -69,8 +75,13 @@ export default function UsersPage() {
       status: 'Active',
       assignedBike: bikesList[0]?.regNo || 'TN 30 AB 1234',
       pin: '1234',
-      initialPoints: defaultRole === 'Customer' ? 250 : 0
+      initialPoints: defaultRole === 'Customer' ? 250 : 0,
+      newBikeReg: '',
+      newBikeModel: '',
+      newBikeBrand: 'Yamaha',
+      newBikeKm: 1500
     });
+    setErrorToast('');
     setIsAddModalOpen(true);
   };
 
@@ -83,17 +94,79 @@ export default function UsersPage() {
       role: user.role,
       status: user.status,
       assignedBike: user.assignedBike || 'TN 30 AB 1234',
-      initialPoints: user.membershipPoints || 500
+      pin: user.pin || '1234',
+      initialPoints: user.membershipPoints || 250,
+      newBikeReg: '',
+      newBikeModel: '',
+      newBikeBrand: 'Yamaha',
+      newBikeKm: 1500
     });
+    setErrorToast('');
     setIsEditModalOpen(true);
   };
 
   const handleSaveAdd = (e) => {
     e.preventDefault();
-    addUser(formData);
+    setErrorToast('');
+
+    const cleanName = (formData.name || '').trim();
+    const cleanPhone = (formData.phone || '').trim().replace(/[\s\-\+]/g, '').replace(/^91/, '');
+    const cleanEmail = (formData.email || '').trim().toLowerCase();
+
+    if (!cleanName) {
+      setErrorToast('Please enter the customer full name.');
+      return;
+    }
+
+    if (!cleanPhone || cleanPhone.length < 10) {
+      setErrorToast('Please enter a valid 10-digit mobile number.');
+      return;
+    }
+
+    // Check duplicate phone
+    const existingPhone = usersList.find(u => (u.phone || '').trim().replace(/[\s\-\+]/g, '').replace(/^91/, '') === cleanPhone);
+    if (existingPhone) {
+      setErrorToast(`Mobile number "${cleanPhone}" is already registered with "${existingPhone.name}" (${existingPhone.role}).`);
+      return;
+    }
+
+    // Check duplicate email
+    if (cleanEmail) {
+      const existingEmail = usersList.find(u => (u.email || '').trim().toLowerCase() === cleanEmail);
+      if (existingEmail) {
+        setErrorToast(`Email "${cleanEmail}" is already registered with "${existingEmail.name}".`);
+        return;
+      }
+    }
+
+    // Handle new bike creation if selected
+    let finalAssignedBike = formData.assignedBike;
+    let isNewBike = false;
+    if (formData.role === 'Customer' && formData.assignedBike === '__NEW_BIKE__') {
+      const reg = (formData.newBikeReg || '').trim().toUpperCase();
+      if (!reg) {
+        setErrorToast('Please enter the registration number for the new bike.');
+        return;
+      }
+      finalAssignedBike = reg;
+      isNewBike = true;
+    }
+
+    addUser({
+      ...formData,
+      name: cleanName,
+      phone: cleanPhone,
+      email: cleanEmail,
+      assignedBike: finalAssignedBike,
+      isNewBike,
+      bikeModel: formData.newBikeModel || 'Motorcycle',
+      bikeBrand: formData.newBikeBrand || 'Other',
+      bikeKm: formData.newBikeKm || 1000
+    });
+
     setIsAddModalOpen(false);
-    setSuccessToast(`New ${formData.role} account created successfully for "${formData.name}"!`);
-    setTimeout(() => setSuccessToast(''), 4000);
+    setSuccessToast(`New ${formData.role} account created successfully for "${cleanName}"!`);
+    setTimeout(() => setSuccessToast(''), 4500);
   };
 
   const handleSaveEdit = (e) => {
@@ -130,6 +203,25 @@ export default function UsersPage() {
         }}>
           <CheckCircle2 size={18} />
           <span>{successToast}</span>
+        </div>
+      )}
+
+      {errorToast && (
+        <div style={{
+          background: '#fff1f2',
+          border: '1px solid #fecdd3',
+          color: '#dc2626',
+          padding: '12px 18px',
+          borderRadius: '8px',
+          marginBottom: '16px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          fontSize: '13.5px',
+          fontWeight: 600
+        }}>
+          <AlertCircle size={18} color="#dc2626" />
+          <span>{errorToast}</span>
         </div>
       )}
 
@@ -240,7 +332,8 @@ export default function UsersPage() {
             <tbody>
               {filteredUsers.map((user, idx) => {
                 const isCustomer = user.role === 'Customer';
-                const points = user.name === 'Bharath' ? 1250 : user.name === 'Priya' ? 850 : isCustomer ? 350 : null;
+                const points = isCustomer ? (user.membershipPoints ?? 250) : null;
+                const tier = points >= 1000 ? 'Platinum' : points >= 500 ? 'Gold' : 'Silver';
 
                 return (
                   <tr key={user.id}>
@@ -263,9 +356,9 @@ export default function UsersPage() {
                     </td>
                     <td>
                       {isCustomer ? (
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#fef3c7', color: '#b45309', padding: '3px 8px', borderRadius: '6px', fontSize: '11.5px', fontWeight: 700 }}>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: points >= 1000 ? '#e0e7ff' : points >= 500 ? '#fef3c7' : '#f1f5f9', color: points >= 1000 ? '#3730a3' : points >= 500 ? '#b45309' : '#475569', padding: '3px 8px', borderRadius: '6px', fontSize: '11.5px', fontWeight: 700 }}>
                           <Award size={13} />
-                          <span>{points} Pts (Gold)</span>
+                          <span>{points.toLocaleString()} Pts ({tier})</span>
                         </div>
                       ) : (
                         <span style={{ color: '#94a3b8', fontSize: '12px' }}>Staff Account</span>
@@ -443,12 +536,79 @@ export default function UsersPage() {
                     value={formData.assignedBike}
                     onChange={(e) => setFormData({ ...formData, assignedBike: e.target.value })}
                   >
-                    {bikesList.map(b => (
-                      <option key={b.id} value={b.regNo}>{b.regNo} ({b.model})</option>
-                    ))}
+                    <optgroup label="Select Existing Registered Bike">
+                      {bikesList.map(b => (
+                        <option key={b.id} value={b.regNo}>{b.regNo} — {b.model} (Owner: {b.ownerName || b.customer || 'Unassigned'})</option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="Or Register Brand New Vehicle">
+                      <option value="__NEW_BIKE__">+ Register a Brand New Bike for this Customer...</option>
+                    </optgroup>
                   </select>
                 </div>
               </div>
+
+              {formData.assignedBike === '__NEW_BIKE__' && (
+                <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '12px', marginTop: '12px' }}>
+                  <div style={{ fontSize: '12px', fontWeight: 700, color: '#1e40af', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Bike size={14} color="#356DF3" />
+                    <span>New Vehicle Registration (Will automatically reflect in Bike Registry)</span>
+                  </div>
+                  <div className="form-grid-2">
+                    <div>
+                      <label style={{ fontSize: '11px', color: '#1e40af', display: 'block', marginBottom: '4px' }}>Bike Reg Number *</label>
+                      <input
+                        type="text"
+                        className="form-input no-left-icon"
+                        placeholder="e.g. TN 30 CD 9988"
+                        value={formData.newBikeReg || ''}
+                        onChange={(e) => setFormData({ ...formData, newBikeReg: e.target.value.toUpperCase() })}
+                        required={formData.assignedBike === '__NEW_BIKE__'}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '11px', color: '#1e40af', display: 'block', marginBottom: '4px' }}>Model Name</label>
+                      <input
+                        type="text"
+                        className="form-input no-left-icon"
+                        placeholder="e.g. Yamaha MT-15 / Activa 6G"
+                        value={formData.newBikeModel || ''}
+                        onChange={(e) => setFormData({ ...formData, newBikeModel: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                  <div className="form-grid-2" style={{ marginTop: '8px' }}>
+                    <div>
+                      <label style={{ fontSize: '11px', color: '#1e40af', display: 'block', marginBottom: '4px' }}>Manufacturer Brand</label>
+                      <select
+                        className="form-input no-left-icon"
+                        value={formData.newBikeBrand || 'Yamaha'}
+                        onChange={(e) => setFormData({ ...formData, newBikeBrand: e.target.value })}
+                      >
+                        <option value="Yamaha">Yamaha</option>
+                        <option value="Honda">Honda</option>
+                        <option value="Royal Enfield">Royal Enfield</option>
+                        <option value="TVS">TVS</option>
+                        <option value="Hero">Hero</option>
+                        <option value="Bajaj">Bajaj</option>
+                        <option value="KTM">KTM</option>
+                        <option value="Suzuki">Suzuki</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '11px', color: '#1e40af', display: 'block', marginBottom: '4px' }}>Current Odometer (KM)</label>
+                      <input
+                        type="number"
+                        className="form-input no-left-icon"
+                        placeholder="e.g. 1500"
+                        value={formData.newBikeKm || 1500}
+                        onChange={(e) => setFormData({ ...formData, newBikeKm: parseInt(e.target.value, 10) || 0 })}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div style={{ marginTop: '10px' }}>
                 <label style={{ fontSize: '11px', color: '#64748b', display: 'block', marginBottom: '4px' }}>
@@ -553,6 +713,21 @@ export default function UsersPage() {
               </div>
             </div>
 
+            {formData.role === 'Customer' && (
+              <div className="form-group">
+                <label className="form-label">Assigned Bike Reg</label>
+                <select
+                  className="form-input no-left-icon"
+                  value={formData.assignedBike}
+                  onChange={(e) => setFormData({ ...formData, assignedBike: e.target.value })}
+                >
+                  {bikesList.map(b => (
+                    <option key={b.id} value={b.regNo}>{b.regNo} — {b.model} (Owner: {b.ownerName || b.customer || 'Unassigned'})</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '16px' }}>
               <button type="button" className="btn-secondary" onClick={() => setIsEditModalOpen(false)}>
                 Cancel
@@ -592,9 +767,23 @@ export default function UsersPage() {
               Status: <StatusBadge status={viewModalUser.status} />
             </div>
             {viewModalUser.role === 'Customer' && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                Membership Points: <strong style={{ color: '#d97706' }}>1,250 Points (Gold Tier)</strong>
-              </div>
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  Linked Bike: <strong style={{ color: '#0f172a' }}>{viewModalUser.assignedBike || 'None Assigned'}</strong>
+                  {(() => {
+                    const linked = bikesList.find(b => (b.regNo || '').toUpperCase() === (viewModalUser.assignedBike || '').toUpperCase());
+                    return linked ? <span style={{ color: '#64748b' }}>({linked.brand} {linked.model} • {(linked.currentKm || 0).toLocaleString()} km)</span> : null;
+                  })()}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  Membership Points: 
+                  <strong style={{ color: '#d97706' }}>
+                    {(viewModalUser.membershipPoints ?? 250).toLocaleString()} Points ({
+                      (viewModalUser.membershipPoints ?? 250) >= 1000 ? 'Platinum Tier' : (viewModalUser.membershipPoints ?? 250) >= 500 ? 'Gold Tier' : 'Silver Tier'
+                    })
+                  </strong>
+                </div>
+              </>
             )}
           </div>
 

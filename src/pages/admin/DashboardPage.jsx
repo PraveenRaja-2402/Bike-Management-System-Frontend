@@ -97,11 +97,14 @@ export default function DashboardPage() {
     };
   }, [bikesList, serviceRecords]);
 
-  // Unique customer count
+  // Unique customer count (filtered strictly to Customer accounts or unique vehicle owners)
   const totalCustomers = useMemo(() => {
-    if (usersList && usersList.length > 0) return usersList.length;
+    if (usersList && usersList.length > 0) {
+      const customerAccounts = usersList.filter(u => u.role === 'Customer');
+      if (customerAccounts.length > 0) return customerAccounts.length;
+    }
     const uniqueOwners = new Set(bikesList.map(b => b.ownerName || b.customer).filter(Boolean));
-    return uniqueOwners.size || 18;
+    return uniqueOwners.size || 0;
   }, [usersList, bikesList]);
 
   // Recent service & repair activities combined

@@ -145,7 +145,7 @@ export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggle
       badgeColor: '#f59e0b'
     },
     { name: 'Job Cards', path: '/admin/job-cards', icon: ClipboardCheck },
-    { name: 'User Management', path: '/admin/users', icon: Users },
+    { name: 'Customers & Users', path: '/admin/users', icon: Users },
     { name: 'Manage Brands', path: '/admin/manage-brands', icon: Tag }
   ];
 

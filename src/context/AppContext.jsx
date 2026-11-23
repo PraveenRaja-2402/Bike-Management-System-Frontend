@@ -75,8 +75,24 @@ export function AppProvider({ children }) {
   // Super Admin: Branding & Logo customizer
   const [branding, setBranding] = useState(initialBranding);
 
-  // Admin & Super Admin: Users creation & management
-  const [usersList, setUsersList] = useState(mockUsers);
+  // Admin & Super Admin: Users creation & management (Persistent in localStorage)
+  const [usersList, setUsersList] = useState(() => {
+    try {
+      const stored = localStorage.getItem('bike_mgmt_users');
+      return stored ? JSON.parse(stored) : mockUsers;
+    } catch {
+      return mockUsers;
+    }
+  });
+
+  // Sync usersList to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('bike_mgmt_users', JSON.stringify(usersList));
+    } catch (e) {
+      console.error('Failed to sync users to localStorage', e);
+    }
+  }, [usersList]);
 
   // Customer Rider Session (Stored in sessionStorage)
   const [currentCustomer, setCurrentCustomer] = useState(() => {
@@ -509,30 +525,116 @@ export function AppProvider({ children }) {
     setBranding(prev => ({ ...prev, ...newBranding }));
   };
 
-  // Admin action: User Creation
+  // Admin action: User Creation (with bidirectional bike sync)
   const addUser = (userData) => {
+    const cleanPhone = (userData.phone || '').trim().replace(/[\s\-\+]/g, '').replace(/^91/, '');
+    const cleanEmail = (userData.email || '').trim().toLowerCase();
+    const cleanName = (userData.name || '').trim();
+    const assignedReg = (userData.assignedBike || '').trim().toUpperCase();
+
     const newUser = {
-      id: usersList.length + 1,
-      name: userData.name,
-      phone: userData.phone,
-      email: userData.email,
+      id: Date.now(),
+      name: cleanName,
+      phone: cleanPhone,
+      email: cleanEmail,
       role: userData.role || "Customer",
       status: userData.status || "Active",
-      assignedBike: userData.assignedBike || (bikesList[0]?.regNo || "TN 30 AB 1234"),
-      pin: userData.pin || "1234",
-      membershipPoints: userData.initialPoints || 250,
-      registeredDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+      assignedBike: assignedReg,
+      pin: (userData.pin || "1234").trim(),
+      membershipPoints: Number(userData.initialPoints ?? userData.membershipPoints) || (userData.role === 'Customer' ? 250 : 0),
+      registeredDate: userData.registeredDate || new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
     };
-    setUsersList([newUser, ...usersList]);
+
+    setUsersList(prev => [newUser, ...prev]);
+
+    // Bidirectional sync with bikesList if this is a Customer with a bike:
+    if (newUser.role === 'Customer' && assignedReg) {
+      setBikesList(prevBikes => {
+        const existingBike = prevBikes.find(b => (b.regNo || '').toUpperCase() === assignedReg);
+        if (existingBike) {
+          // Existing bike: update ownership details
+          return prevBikes.map(b => (b.regNo || '').toUpperCase() === assignedReg ? {
+            ...b,
+            ownerName: cleanName,
+            customer: cleanName,
+            ownerPhone: cleanPhone,
+            phone: cleanPhone,
+            ownerEmail: cleanEmail
+          } : b);
+        } else if (userData.isNewBike || userData.createBikeIfMissing) {
+          // New bike details provided: auto-create in bikesList!
+          const curKm = parseInt(userData.bikeKm, 10) || 1000;
+          const nextKm = curKm + (serviceIntervals?.generalServiceKm || 3000);
+          const nextDate = new Date();
+          nextDate.setMonth(nextDate.getMonth() + 3);
+          const nextDateStr = nextDate.toISOString().split('T')[0];
+
+          const newBikeRecord = {
+            id: Date.now() + 1,
+            regNo: assignedReg,
+            ownerName: cleanName,
+            customer: cleanName,
+            ownerPhone: cleanPhone,
+            phone: cleanPhone,
+            ownerEmail: cleanEmail,
+            model: (userData.bikeModel || 'Motorcycle').trim(),
+            brand: userData.bikeBrand || 'Other',
+            purchaseDate: userData.bikePurchaseDate || new Date().toISOString().split('T')[0],
+            currentKm: curKm,
+            lastServiceDate: 'Not Serviced Yet',
+            lastServiceKm: 0,
+            nextServiceDate: nextDateStr,
+            nextServiceKm: nextKm,
+            insuranceExpiryDate: userData.bikeInsuranceExpiry || '',
+            status: 'Active',
+            notes: `Auto-registered with customer account ${cleanName}`
+          };
+          return [newBikeRecord, ...prevBikes];
+        }
+        return prevBikes;
+      });
+    }
+
     return newUser;
   };
 
   const updateUser = (id, updatedData) => {
-    setUsersList(usersList.map(u => u.id === id ? { ...u, ...updatedData } : u));
+    const cleanPhone = updatedData.phone ? (updatedData.phone || '').trim().replace(/[\s\-\+]/g, '').replace(/^91/, '') : undefined;
+    const cleanName = updatedData.name ? (updatedData.name || '').trim() : undefined;
+    const assignedReg = updatedData.assignedBike ? (updatedData.assignedBike || '').trim().toUpperCase() : undefined;
+
+    setUsersList(prev => prev.map(u => {
+      if (u.id === id) {
+        return {
+          ...u,
+          ...updatedData,
+          name: cleanName !== undefined ? cleanName : u.name,
+          phone: cleanPhone !== undefined ? cleanPhone : u.phone,
+          assignedBike: assignedReg !== undefined ? assignedReg : u.assignedBike
+        };
+      }
+      return u;
+    }));
+
+    // If customer's name, phone, or assignedBike was modified, sync to bikesList:
+    if (assignedReg) {
+      setBikesList(prevBikes => prevBikes.map(b => {
+        if ((b.regNo || '').toUpperCase() === assignedReg) {
+          return {
+            ...b,
+            ownerName: cleanName || b.ownerName,
+            customer: cleanName || b.customer,
+            ownerPhone: cleanPhone || b.ownerPhone,
+            phone: cleanPhone || b.phone
+          };
+        }
+        return b;
+      }));
+    }
   };
 
   const deleteUser = (id) => {
-    setUsersList(usersList.filter(u => u.id !== id));
+    setUsersList(prev => prev.filter(u => u.id !== id));
   };
 
   // Police Fines / E-Challan Management (Admin & Customer shared)
@@ -715,17 +817,21 @@ export function AppProvider({ children }) {
     setBikesList(prev => [newBike, ...prev]);
 
     // Automatically sync customer account
-    const existingUser = usersList.find(u => u.phone === newBike.ownerPhone);
-    if (!existingUser) {
+    const cleanPhone = (newBike.ownerPhone || '').trim().replace(/[\s\-\+]/g, '').replace(/^91/, '');
+    const existingUser = usersList.find(u => (u.phone || '').trim().replace(/[\s\-\+]/g, '').replace(/^91/, '') === cleanPhone);
+    if (!existingUser && newBike.ownerName && cleanPhone) {
       addUser({
         name: newBike.ownerName,
-        phone: newBike.ownerPhone,
+        phone: cleanPhone,
         email: newBike.ownerEmail || `${newBike.ownerName.toLowerCase().replace(/\s+/g, '')}@gmail.com`,
         role: 'Customer',
         status: 'Active',
         assignedBike: newBike.regNo,
-        pin: '1234'
+        pin: '1234',
+        initialPoints: 250
       });
+    } else if (existingUser && (!existingUser.assignedBike || existingUser.assignedBike !== newBike.regNo)) {
+      updateUser(existingUser.id, { assignedBike: newBike.regNo });
     }
 
     return newBike;
