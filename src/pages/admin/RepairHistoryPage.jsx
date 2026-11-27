@@ -19,6 +19,7 @@ import {
 import { useApp } from '../../context/AppContext';
 import StatusBadge from '../../components/common/StatusBadge';
 import Modal from '../../components/common/Modal';
+import MetricCard from '../../components/common/MetricCard';
 
 export default function RepairHistoryPage() {
   const { 
@@ -196,54 +197,60 @@ export default function RepairHistoryPage() {
       )}
 
       {/* KPI Highlights */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '20px' }}>
-        <div className="card" style={{ padding: '16px 20px', borderLeft: '4px solid #ef4444' }}>
-          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Total Repairs Logged</div>
-          <div style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', marginTop: '4px' }}>
-            {repairRecords.length}
-          </div>
-          <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
-            Complete bike-wise repair history
-          </div>
-        </div>
-
-        <div className="card" style={{ padding: '16px 20px', borderLeft: '4px solid #10b981' }}>
-          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Total Repair Billing</div>
-          <div style={{ fontSize: '26px', fontWeight: 800, color: '#059669', marginTop: '4px' }}>
-            ₹{totalRepairRevenue.toLocaleString()}
-          </div>
-          <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
-            Parts replacement + labor charges
-          </div>
-        </div>
-
-        <div className="card" style={{ padding: '16px 20px', borderLeft: '4px solid #f59e0b' }}>
-          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Total Spare Parts Replaced</div>
-          <div style={{ fontSize: '26px', fontWeight: 800, color: '#d97706', marginTop: '4px' }}>
-            {totalPartsUsed} Parts
-          </div>
-          <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
-            Brake pads, clutch plates, batteries
-          </div>
-        </div>
-
-        <div className="card" style={{ padding: '16px 20px', borderLeft: '4px solid #356DF3' }}>
-          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Avg Repair Cost</div>
-          <div style={{ fontSize: '26px', fontWeight: 800, color: '#356DF3', marginTop: '4px' }}>
-            ₹{repairRecords.length > 0 ? Math.round(totalRepairRevenue / repairRecords.length).toLocaleString() : 0}
-          </div>
-          <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
-            Per completed workshop job
-          </div>
-        </div>
+      <div className="metrics-row">
+        <MetricCard
+          title="Total Repairs Logged"
+          value={repairRecords.length}
+          icon={Wrench}
+          color="red"
+          trend="Workshop Jobs"
+          trendType="neutral"
+          subtitle="Complete bike-wise repair history"
+        />
+        <MetricCard
+          title="Total Repair Billing"
+          value={`₹${totalRepairRevenue.toLocaleString()}`}
+          icon={DollarSign}
+          color="green"
+          trend="Parts + Labour"
+          trendType="up"
+          subtitle="Total cumulative repair billing"
+        />
+        <MetricCard
+          title="Total Spare Parts Replaced"
+          value={`${totalPartsUsed} Parts`}
+          icon={Package}
+          color="amber"
+          trend="Inventory Used"
+          trendType="neutral"
+          subtitle="Brake pads, clutch plates, batteries"
+        />
+        <MetricCard
+          title="Avg Repair Cost"
+          value={`₹${repairRecords.length > 0 ? Math.round(totalRepairRevenue / repairRecords.length).toLocaleString() : 0}`}
+          icon={ClipboardList}
+          color="blue"
+          trend="Per Job"
+          trendType="neutral"
+          subtitle="Per completed workshop job"
+        />
       </div>
 
       {/* Main Table Card */}
       <div className="table-card">
         <div className="table-header">
           <div className="table-title">
-            <ClipboardList size={20} color="#356DF3" />
-            <span>Bike-Wise Repair History & Parts Replacement (Requirement 4)</span>
+            <div className="table-title-icon">
+              <ClipboardList size={20} />
+            </div>
+            <div>
+              <div style={{ fontSize: '16px', fontWeight: 800, color: '#101828', lineHeight: 1.25 }}>
+                Bike-Wise Repair History & Parts Replacement
+              </div>
+              <div style={{ fontSize: '12.5px', fontWeight: 500, color: '#667085', marginTop: '2px' }}>
+                Detailed mechanical repair logs, replaced spare parts, labour charges, and printable invoices
+              </div>
+            </div>
           </div>
           <button 
             type="button" 
@@ -311,8 +318,23 @@ export default function RepairHistoryPage() {
                     <span style={{ fontSize: '10.5px', color: '#94a3b8' }}>ID: {rep.id}</span>
                   </td>
                   <td>
-                    <div style={{ fontWeight: 800, color: '#1e293b' }}>{rep.regNo}</div>
-                    <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 600 }}>{rep.status || 'Completed'}</span>
+                    <div style={{
+                      display: 'inline-block',
+                      background: '#F8FAFC',
+                      border: '1px solid #E2E8F0',
+                      borderRadius: '8px',
+                      padding: '4px 10px',
+                      fontWeight: 800,
+                      color: '#101828',
+                      fontSize: '12.5px',
+                      letterSpacing: '0.3px',
+                      marginBottom: '4px'
+                    }}>
+                      {rep.regNo}
+                    </div>
+                    <div>
+                      <StatusBadge status={rep.status || 'Completed'} />
+                    </div>
                   </td>
                   <td>
                     <div style={{ fontWeight: 600 }}>{rep.ownerName}</div>
@@ -342,38 +364,39 @@ export default function RepairHistoryPage() {
                     )}
                   </td>
                   <td>
-                    <div style={{ fontWeight: 800, color: '#dc2626', fontSize: '14px' }}>
+                    <div style={{ fontWeight: 800, color: '#059669', fontSize: '14px' }}>
                       ₹{(rep.totalCost || 0).toLocaleString()}
                     </div>
                     {rep.laborCost > 0 && (
-                      <div style={{ fontSize: '10px', color: '#64748b' }}>
+                      <div style={{ fontSize: '11px', color: '#64748b' }}>
                         Labor: ₹{rep.laborCost}
                       </div>
                     )}
                   </td>
                   <td>
-                    <span style={{ fontSize: '12px', color: '#334155', fontWeight: 600 }}>
+                    <span style={{ fontSize: '12.5px', color: '#334155', fontWeight: 600 }}>
                       {rep.technician || 'Mani'}
                     </span>
                   </td>
                   <td style={{ textAlign: 'center' }}>
-                    <div className="table-actions" style={{ justifyContent: 'center' }}>
+                    <div className="table-actions" style={{ justifyContent: 'center', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                       <button
                         type="button"
                         className="btn-outline-blue btn-sm"
                         onClick={() => setViewRepairModal(rep)}
                         title="View Detailed Repair Receipt"
                       >
-                        <Eye size={13} /> Invoice
+                        <FileText size={13} />
+                        <span>Invoice</span>
                       </button>
                       <button
                         type="button"
-                        className="btn-danger btn-sm"
-                        style={{ padding: '4px 7px' }}
+                        className="btn-outline-danger btn-sm"
                         onClick={() => handleDeleteRepair(rep)}
                         title="Delete repair record"
                       >
                         <Trash2 size={13} />
+                        <span>Delete</span>
                       </button>
                     </div>
                   </td>

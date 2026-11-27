@@ -1,125 +1,354 @@
-import React, { useState } from 'react';
-import { 
-  ClipboardCheck, 
-  Search, 
-  Plus, 
-  FileText, 
-  CheckCircle, 
-  Printer, 
-  User, 
-  Calendar,
+import React, { useState, useMemo } from 'react';
+import {
+  ClipboardCheck,
+  Search,
+  Plus,
+  CheckCircle2,
   Clock,
-  DollarSign,
-  Coins,
-  Sparkles,
-  Store,
-  Tag
+  AlertTriangle,
+  Wrench,
+  Calendar,
+  Gauge,
+  User,
+  Printer,
+  ArrowRight,
+  Bell
 } from 'lucide-react';
 import StatusBadge from '../../components/common/StatusBadge';
 import Modal from '../../components/common/Modal';
+import MetricCard from '../../components/common/MetricCard';
 import { useApp } from '../../context/AppContext';
-import { mockJobCards, mockBikes } from '../../data/mockData';
+
+const WORKFLOW_STAGES = [
+  'Service Booking',
+  'Job In Progress',
+  'Job Completed',
+  'Next Service Reminder'
+];
+
+// Map legacy mockJobCards statuses cleanly into the 4-stage workflow
+const mapLegacyStage = (status) => {
+  const s = (status || '').toLowerCase();
+  if (s === 'open' || s === 'service booking') return 'Service Booking';
+  if (s === 'in service' || s === 'ready' || s === 'job in progress') return 'Job In Progress';
+  if (s === 'completed' || s === 'job completed') return 'Job Completed';
+  if (s === 'next service reminder') return 'Next Service Reminder';
+  return 'Service Booking';
+};
 
 export default function JobCardsPage() {
-  const { membership, earnPoints } = useApp();
-  const [jobCards, setJobCards] = useState(mockJobCards);
-  const [filterTab, setFilterTab] = useState('All');
+  const {
+    bikesList,
+    membership,
+    earnPoints,
+    sendCustomerWhatsApp,
+    jobCardsList,
+    addJobCard,
+    updateJobCardStage
+  } = useApp();
+
+  const jobs = useMemo(() =>
+    (jobCardsList || []).map((j, idx) => {
+      const matchedBike = bikesList.find(b => b.regNo === j.regNo) || bikesList[idx % Math.max(1, bikesList.length)];
+      const odo = Number(j.odometerReading) || matchedBike?.currentKm || 12400;
+      const partsCost = Number(j.partsCost ?? 650);
+      const labourCost = Number(j.labourCost ?? j.labourCharges ?? 350);
+      const totalAmount = Number(j.totalAmount ?? j.totalCost ?? (partsCost + labourCost));
+      const stage = j.stage || mapLegacyStage(j.status);
+      return {
+        ...j,
+        stage,
+        status: j.status || stage,
+        customerPhone: j.customerPhone || matchedBike?.ownerPhone || matchedBike?.phone || '9876543210',
+        workPerformed: j.workPerformed || j.notes || 'Engine oil replacement, oil filter clean, chain tension & brake inspection',
+        partsReplaced: j.partsReplaced || 'Synthetic Engine Oil (1L), Oil Filter, Brake Pad Kit',
+        partsCost,
+        labourCost,
+        totalAmount,
+        completionDate: j.completionDate || (stage === 'Job Completed' ? j.date : 'Pending'),
+        odometerReading: odo,
+        nextServiceDate: j.nextServiceDate || matchedBike?.nextServiceDate || '2026-10-15',
+        nextServiceKm: Number(j.nextServiceKm) || matchedBike?.nextServiceKm || odo + 3000
+      };
+    }),
+  [jobCardsList, bikesList]);
+
+  const [filterStage, setFilterStage] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
-  
-  // Create Modal State
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [applySameBranchDiscount, setApplySameBranchDiscount] = useState(true);
-  const [newJob, setNewJob] = useState({
-    regNo: 'TN 30 AB 1234',
-    customer: 'Bharath',
-    brandModel: 'Yamaha FZ-S',
-    serviceType: 'General Service',
-    technician: 'Mani',
-    estimatedCost: '₹750',
-    notes: 'Engine oil replacement, oil filter check, brake adjustment. (Applied 500 GPS Loyalty Points discount)'
-  });
-
-  // View Modal State
   const [selectedJob, setSelectedJob] = useState(null);
+  const [applySameBranchDiscount, setApplySameBranchDiscount] = useState(true);
+  const [toastMsg, setToastMsg] = useState('');
 
-  const filteredJobCards = jobCards.filter((job) => {
-    const matchesTab = filterTab === 'All' || job.status.toLowerCase() === filterTab.toLowerCase();
-    const matchesSearch = job.jobNo.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          job.regNo.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          job.customer.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          job.brandModel.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesTab && matchesSearch;
+  const [newJobForm, setNewJobForm] = useState({
+    regNo: bikesList[0]?.regNo || 'TN 30 AB 1234',
+    customer: bikesList[0]?.ownerName || 'Bharath',
+    customerPhone: bikesList[0]?.ownerPhone || '9876543210',
+    brandModel: bikesList[0] ? `${bikesList[0].brand} ${bikesList[0].model}` : 'Yamaha FZ-S',
+    serviceType: 'General Periodic Service',
+    workPerformed: 'Engine oil & filter change, chain lube, brake adjustment',
+    partsReplaced: 'Motul 10W40 Oil, OEM Oil Filter',
+    partsCost: 750,
+    labourCost: 350,
+    odometerReading: bikesList[0]?.currentKm || 12450,
+    nextServiceDate: '2026-12-20',
+    nextServiceKm: (bikesList[0]?.currentKm || 12450) + 3000,
+    technician: 'Mani'
   });
 
-  const countByStatus = (status) => {
-    if (status === 'All') return jobCards.length;
-    return jobCards.filter(j => j.status.toLowerCase() === status.toLowerCase()).length;
+  const showToast = (msg) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(''), 3500);
   };
 
-  const handleCreateJobCard = (e) => {
-    e.preventDefault();
-    const newId = jobCards.length + 1;
-    const isDiscounted = applySameBranchDiscount && newJob.customer === 'Bharath';
-    
-    if (isDiscounted && membership.pointsBalance >= 500) {
-      earnPoints(-500, `Redeemed: ₹500 Service Discount on Job Card #JC-00${newId} (Salem Central Hub)`);
+  // Upcoming & Overdue Reminders summary from Fleet + Completed Jobs
+  const { overdueReminders, upcomingReminders } = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const overdue = [];
+    const upcoming = [];
+
+    bikesList.forEach(b => {
+      const curKm = parseInt(b.currentKm, 10) || 0;
+      const nextKm = parseInt(b.nextServiceKm, 10) || (curKm + 3000);
+      const kmLeft = nextKm - curKm;
+      let daysLeft = 999;
+      if (b.nextServiceDate) {
+        const d = new Date(b.nextServiceDate);
+        d.setHours(0, 0, 0, 0);
+        daysLeft = Math.ceil((d - today) / (1000 * 60 * 60 * 24));
+      }
+      if (kmLeft <= 0 || daysLeft < 0) {
+        overdue.push({ ...b, kmLeft, daysLeft });
+      } else if (kmLeft <= 500 || daysLeft <= 15) {
+        upcoming.push({ ...b, kmLeft, daysLeft });
+      }
+    });
+    return { overdueReminders: overdue, upcomingReminders: upcoming };
+  }, [bikesList]);
+
+  const filteredJobs = jobs.filter(job => {
+    const matchStage = filterStage === 'All' || job.stage === filterStage;
+    const q = searchQuery.toLowerCase();
+    const matchSearch =
+      job.jobNo.toLowerCase().includes(q) ||
+      job.regNo.toLowerCase().includes(q) ||
+      job.customer.toLowerCase().includes(q) ||
+      job.brandModel.toLowerCase().includes(q);
+    return matchStage && matchSearch;
+  });
+
+  const handleStageChange = (jobId, nextStage) => {
+    const targetJob = jobs.find(j => j.id === jobId);
+    if (!targetJob) return;
+
+    const todayIso = new Date().toISOString().split('T')[0];
+    if (nextStage === 'Job Completed' && targetJob.stage !== 'Job Completed' && targetJob.customer === 'Bharath') {
+      earnPoints(150, `Service Completed (${targetJob.jobNo}) at Salem Central Mega Hub`);
     }
 
-    const created = {
-      id: newId,
-      jobNo: `JC-00${newId}`,
-      regNo: newJob.regNo,
-      customer: newJob.customer,
-      brandModel: newJob.brandModel,
-      serviceType: newJob.serviceType,
-      date: '18 Sep 2026',
-      status: 'Open',
-      estimatedCost: isDiscounted ? '₹750' : newJob.estimatedCost,
-      originalCost: '₹1,250',
-      discountApplied: isDiscounted ? '₹500 (500 GPS Points Redeemed)' : 'None',
-      branch: 'Salem Central Mega Hub',
-      technician: newJob.technician,
-      notes: newJob.notes
-    };
-    setJobCards([created, ...jobCards]);
+    const updated = updateJobCardStage(jobId, nextStage, {
+      stage: nextStage,
+      status: nextStage,
+      completionDate: nextStage === 'Job Completed' || nextStage === 'Next Service Reminder'
+        ? (targetJob.completionDate && targetJob.completionDate !== 'Pending' ? targetJob.completionDate : todayIso)
+        : targetJob.completionDate,
+      partsCost: targetJob.partsCost,
+      labourCost: targetJob.labourCost,
+      labourCharges: targetJob.labourCost,
+      totalAmount: targetJob.totalAmount,
+      totalCost: targetJob.totalAmount,
+      partsReplaced: targetJob.partsReplaced,
+      workPerformed: targetJob.workPerformed,
+      odometerReading: targetJob.odometerReading,
+      nextServiceDate: targetJob.nextServiceDate,
+      nextServiceKm: targetJob.nextServiceKm
+    });
+
+    if (selectedJob && selectedJob.id === jobId) {
+      setSelectedJob(prev => ({
+        ...prev,
+        ...(updated || {}),
+        stage: nextStage,
+        status: nextStage
+      }));
+    }
+    showToast(
+      nextStage === 'Job Completed'
+        ? `Job moved to "${nextStage}" & synced with Service History & Bike Next Service.`
+        : `Job moved to "${nextStage}" stage.`
+    );
+  };
+
+  const handleCreateJob = (e) => {
+    e.preventDefault();
+    const nextSeq = jobs.length + 1;
+    const isDiscounted = applySameBranchDiscount && newJobForm.customer === 'Bharath' && membership.pointsBalance >= 500;
+    if (isDiscounted) {
+      earnPoints(-500, `Redeemed ₹500 Loyalty Discount on Job #JC-00${nextSeq}`);
+    }
+    const rawTotal = Number(newJobForm.partsCost || 0) + Number(newJobForm.labourCost || 0);
+    const finalTotal = isDiscounted ? Math.max(0, rawTotal - 500) : rawTotal;
+
+    const created = addJobCard({
+      jobNo: `JC-${String(nextSeq).padStart(3, '0')}`,
+      regNo: newJobForm.regNo,
+      customer: newJobForm.customer,
+      customerPhone: newJobForm.customerPhone,
+      brandModel: newJobForm.brandModel,
+      serviceType: newJobForm.serviceType,
+      date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+      stage: 'Service Booking',
+      status: 'Service Booking',
+      workPerformed: newJobForm.workPerformed,
+      partsReplaced: newJobForm.partsReplaced,
+      partsCost: Number(newJobForm.partsCost || 0),
+      labourCost: Number(newJobForm.labourCost || 0),
+      labourCharges: Number(newJobForm.labourCost || 0),
+      totalAmount: finalTotal,
+      totalCost: finalTotal,
+      estimatedCost: `₹${finalTotal.toLocaleString()}`,
+      discountApplied: isDiscounted ? '₹500 (500 Loyalty Points)' : 'None',
+      completionDate: 'Pending',
+      odometerReading: Number(newJobForm.odometerReading || 0),
+      nextServiceDate: newJobForm.nextServiceDate,
+      nextServiceKm: Number(newJobForm.nextServiceKm || 0),
+      technician: newJobForm.technician,
+      branch: 'Salem Central Mega Hub'
+    });
+
     setIsCreateModalOpen(false);
     setSelectedJob(created);
-  };
-
-  const handleUpdateStatus = (jobId, newStatus) => {
-    const updated = jobCards.map(j => {
-      if (j.id === jobId) {
-        if (newStatus === 'Completed' && j.status !== 'Completed' && j.customer === 'Bharath') {
-          earnPoints(150, `Repeat Visit Reward: Service Completed at Salem Central Mega Hub (${j.jobNo})`);
-        }
-        return { ...j, status: newStatus };
-      }
-      return j;
-    });
-    setJobCards(updated);
-    if (selectedJob && selectedJob.id === jobId) {
-      setSelectedJob({ ...selectedJob, status: newStatus });
-    }
+    showToast(`Created Service Booking #${created.jobNo}`);
   };
 
   return (
-    <div className="job-cards-page">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      {toastMsg && (
+        <div style={{
+          position: 'fixed', top: '24px', right: '24px', background: '#101828', color: '#fff',
+          padding: '12px 20px', borderRadius: '10px', fontSize: '13px', fontWeight: 600, zIndex: 99999,
+          display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
+        }}>
+          <CheckCircle2 size={16} color="#12b76a" />
+          <span>{toastMsg}</span>
+        </div>
+      )}
+
+      {/* 4-Stage Workflow Visual Strip */}
+      <div className="card" style={{ padding: '18px 22px' }}>
+        <div style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px' }}>
+          Service & Job Completion Pipeline
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '12px' }}>
+          {WORKFLOW_STAGES.map((stage, i) => {
+            const count = jobs.filter(j => j.stage === stage).length;
+            const isActive = filterStage === stage;
+            return (
+              <div
+                key={stage}
+                onClick={() => setFilterStage(isActive ? 'All' : stage)}
+                style={{
+                  background: isActive ? '#eff6ff' : '#f8fafc',
+                  border: isActive ? '1.5px solid #356DF3' : '1px solid #e2e8f0',
+                  borderRadius: '12px',
+                  padding: '12px 16px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <div>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b' }}>STAGE {i + 1}</div>
+                  <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#0f172a' }}>{stage}</div>
+                </div>
+                <span style={{
+                  fontSize: '15px', fontWeight: 800, color: isActive ? '#356DF3' : '#101828',
+                  background: '#ffffff', padding: '4px 10px', borderRadius: '8px', border: '1px solid #e2e8f0'
+                }}>
+                  {count}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* KPI Summary Row */}
+      <div className="metrics-row">
+        <MetricCard
+          title="Jobs Completed"
+          value={jobs.filter(j => j.stage === 'Job Completed' || j.stage === 'Next Service Reminder').length}
+          icon={CheckCircle2}
+          color="green"
+          trend="Ready for Reminder"
+          trendType="up"
+          subtitle="Completed service records"
+        />
+        <MetricCard
+          title="Jobs In Progress"
+          value={jobs.filter(j => j.stage === 'Job In Progress').length}
+          icon={Wrench}
+          color="blue"
+          trend="Active Bays"
+          trendType="neutral"
+          subtitle="Currently being serviced"
+        />
+        <MetricCard
+          title="Upcoming Reminders"
+          value={upcomingReminders.length}
+          icon={Clock}
+          color="amber"
+          trend="Due ≤ 500 km / 15d"
+          trendType="warning"
+          subtitle="Next service approaching"
+        />
+        <MetricCard
+          title="Overdue Reminders"
+          value={overdueReminders.length}
+          icon={AlertTriangle}
+          color="red"
+          trend="Action Required"
+          trendType="warning"
+          subtitle="Exceeded date or KM"
+        />
+      </div>
+
+      {/* Main Job Completion Table */}
       <div className="table-card">
-        {/* Controls Bar */}
-        <div className="table-controls-bar">
-          <div className="controls-left">
-            <div className="filter-tabs">
-              {['All', 'Open', 'In Service', 'Ready', 'Completed'].map((tab) => (
-                <button
-                  key={tab}
-                  type="button"
-                  className={`tab-pill ${filterTab === tab ? 'active' : ''}`}
-                  onClick={() => setFilterTab(tab)}
-                >
-                  {tab} ({countByStatus(tab)})
-                </button>
-              ))}
+        <div className="table-header">
+          <div className="table-title">
+            <div className="table-title-icon">
+              <ClipboardCheck size={20} />
             </div>
+            <div>
+              <div style={{ fontSize: '16px', fontWeight: 800, color: '#101828', lineHeight: 1.25 }}>
+                Job Completion & Service Reminders
+              </div>
+              <div style={{ fontSize: '12.5px', fontWeight: 500, color: '#667085', marginTop: '2px' }}>
+                Track Service Booking → Job In Progress → Job Completed → Next Service Reminder
+              </div>
+            </div>
+          </div>
+          <button type="button" className="btn-primary" onClick={() => setIsCreateModalOpen(true)}>
+            <Plus size={16} /> New Service Booking
+          </button>
+        </div>
+
+        <div className="table-controls-bar" style={{ flexWrap: 'wrap', gap: '12px' }}>
+          <div className="controls-left" style={{ flexWrap: 'wrap', gap: '6px' }}>
+            {['All', ...WORKFLOW_STAGES].map(tab => (
+              <button
+                key={tab}
+                type="button"
+                className={`tab-pill ${filterStage === tab ? 'active' : ''}`}
+                onClick={() => setFilterStage(tab)}
+              >
+                {tab} ({tab === 'All' ? jobs.length : jobs.filter(j => j.stage === tab).length})
+              </button>
+            ))}
           </div>
 
           <div className="controls-right">
@@ -127,76 +356,95 @@ export default function JobCardsPage() {
               <input
                 type="text"
                 className="search-input"
-                placeholder="Search by Job No, Reg No, Customer..."
+                placeholder="Search reg no, customer, job..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-              <button type="button" className="search-btn">
+              <button type="button" className="search-btn" aria-label="Search">
                 <Search size={15} />
               </button>
             </div>
-
-            <button 
-              type="button" 
-              className="btn-primary"
-              onClick={() => setIsCreateModalOpen(true)}
-            >
-              <Plus size={16} /> Create Job Card
-            </button>
           </div>
         </div>
 
-        {/* Job Cards Table */}
-        <div className="table-responsive">
+        <div style={{ overflowX: 'auto' }}>
           <table className="admin-data-table">
             <thead>
               <tr>
-                <th style={{ width: 40 }}>#</th>
-                <th>Job No</th>
-                <th>Reg No</th>
-                <th>Customer</th>
-                <th>Brand / Model</th>
-                <th>Service Type</th>
-                <th>Date</th>
-                <th>Technician</th>
-                <th>Status</th>
-                <th style={{ textAlign: 'center' }}>Action</th>
+                <th>Job & Reg No</th>
+                <th>Customer & Bike</th>
+                <th>Work Performed & Parts</th>
+                <th>Costs (Labour / Total)</th>
+                <th>Odometer & Completion</th>
+                <th>Next Service Target</th>
+                <th>Workflow Stage</th>
+                <th style={{ textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filteredJobCards.map((job, idx) => (
+              {filteredJobs.map(job => (
                 <tr key={job.id}>
-                  <td style={{ color: '#64748b' }}>{idx + 1}</td>
-                  <td style={{ fontWeight: 700, color: '#356DF3' }}>{job.jobNo}</td>
-                  <td style={{ fontWeight: 600 }}>{job.regNo}</td>
                   <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span>{job.customer}</span>
-                      {job.customer === 'Bharath' && (
-                        <span style={{ fontSize: '10px', background: '#ecfdf5', color: '#059669', padding: '1px 6px', borderRadius: '4px', fontWeight: 800 }}>
-                          GPS Loyalty
-                        </span>
+                    <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#356DF3', marginBottom: '4px' }}>{job.jobNo}</div>
+                    <span style={{
+                      display: 'inline-block',
+                      background: '#F8FAFC',
+                      border: '1px solid #E2E8F0',
+                      borderRadius: '8px',
+                      padding: '3px 9px',
+                      fontWeight: 800,
+                      color: '#101828',
+                      fontSize: '12.5px',
+                      letterSpacing: '0.3px',
+                      whiteSpace: 'nowrap'
+                    }}>
+                      {job.regNo}
+                    </span>
+                  </td>
+                  <td>
+                    <div style={{ fontWeight: 600, color: '#0f172a' }}>{job.customer}</div>
+                    <div style={{ fontSize: '12px', color: '#64748b' }}>{job.brandModel}</div>
+                  </td>
+                  <td style={{ maxWidth: '220px' }}>
+                    <div style={{ fontSize: '12.5px', color: '#0f172a', fontWeight: 600 }}>{job.workPerformed}</div>
+                    <div style={{ fontSize: '11.5px', color: '#64748b' }}>Parts: {job.partsReplaced}</div>
+                  </td>
+                  <td>
+                    <div style={{ fontSize: '12px', color: '#64748b' }}>Labour: ₹{job.labourCost}</div>
+                    <strong style={{ fontSize: '13.5px', color: '#10b981' }}>Total: ₹{job.totalAmount.toLocaleString()}</strong>
+                  </td>
+                  <td>
+                    <div style={{ fontSize: '12.5px', fontWeight: 600 }}>{job.odometerReading.toLocaleString()} km</div>
+                    <div style={{ fontSize: '11.5px', color: '#64748b' }}>Done: {job.completionDate}</div>
+                  </td>
+                  <td>
+                    <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#356DF3' }}>{job.nextServiceDate}</div>
+                    <div style={{ fontSize: '11.5px', color: '#64748b' }}>At {job.nextServiceKm.toLocaleString()} km</div>
+                  </td>
+                  <td>
+                    <StatusBadge status={job.stage === 'Job Completed' ? 'Completed' : job.stage === 'Job In Progress' ? 'In Service' : 'Pending'} />
+                    <div style={{ fontSize: '11px', fontWeight: 600, color: '#475569', marginTop: '3px' }}>{job.stage}</div>
+                  </td>
+                  <td style={{ textAlign: 'right' }}>
+                    <div className="table-actions" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-end', gap: '6px', flexWrap: 'nowrap' }}>
+                      <button type="button" className="btn-outline-blue btn-sm" onClick={() => setSelectedJob(job)}>
+                        Details
+                      </button>
+                      {job.stage !== 'Next Service Reminder' && (
+                        <button
+                          type="button"
+                          className="btn-primary btn-sm"
+                          onClick={() => {
+                            const nextIdx = WORKFLOW_STAGES.indexOf(job.stage) + 1;
+                            if (nextIdx < WORKFLOW_STAGES.length) handleStageChange(job.id, WORKFLOW_STAGES[nextIdx]);
+                          }}
+                          title="Advance to next workflow stage"
+                        >
+                          <span>Next</span>
+                          <ArrowRight size={13} />
+                        </button>
                       )}
                     </div>
-                  </td>
-                  <td style={{ color: '#64748b' }}>{job.brandModel}</td>
-                  <td>{job.serviceType}</td>
-                  <td style={{ color: '#64748b' }}>{job.date}</td>
-                  <td>
-                    <span className="tech-badge">{job.technician}</span>
-                  </td>
-                  <td>
-                    <StatusBadge status={job.status} />
-                  </td>
-                  <td style={{ textAlign: 'center' }}>
-                    <button
-                      type="button"
-                      className="btn-action-icon"
-                      title="View Job Card"
-                      onClick={() => setSelectedJob(job)}
-                    >
-                      <FileText size={15} />
-                    </button>
                   </td>
                 </tr>
               ))}
@@ -205,37 +453,111 @@ export default function JobCardsPage() {
         </div>
       </div>
 
-      {/* Modal: Create Job Card */}
+      {/* Upcoming & Overdue Service Reminders Section */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
+        <div className="card">
+          <div className="card-header">
+            <div className="card-title">
+              <AlertTriangle size={18} color="#ef4444" />
+              <span>Overdue Service Reminders ({overdueReminders.length})</span>
+            </div>
+          </div>
+          <div className="card-body" style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {overdueReminders.length === 0 ? (
+              <div style={{ fontSize: '13px', color: '#64748b' }}>No overdue service reminders.</div>
+            ) : (
+              overdueReminders.map(b => (
+                <div key={b.id} style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '10px', padding: '12px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
+                  <div>
+                    <strong style={{ fontSize: '13px', color: '#991b1b' }}>{b.regNo} • {b.ownerName || b.customer}</strong>
+                    <div style={{ fontSize: '11.5px', color: '#b91c1c' }}>
+                      {b.brand} {b.model} • Current: {(b.currentKm || 0).toLocaleString()} km (Target: {(b.nextServiceKm || 0).toLocaleString()} km)
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn-danger btn-sm"
+                    onClick={() => {
+                      sendCustomerWhatsApp(b.ownerPhone || b.phone, `Reminder: Your ${b.model} (${b.regNo}) is due for service.`);
+                      showToast(`Reminder sent to ${b.ownerName || b.customer}`);
+                    }}
+                  >
+                    <Bell size={13} /> Remind
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        <div className="card">
+          <div className="card-header">
+            <div className="card-title">
+              <Clock size={18} color="#f59e0b" />
+              <span>Upcoming Service Reminders ({upcomingReminders.length})</span>
+            </div>
+          </div>
+          <div className="card-body" style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {upcomingReminders.length === 0 ? (
+              <div style={{ fontSize: '13px', color: '#64748b' }}>No upcoming reminders in the next 15 days / 500 km.</div>
+            ) : (
+              upcomingReminders.map(b => (
+                <div key={b.id} style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '10px', padding: '12px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
+                  <div>
+                    <strong style={{ fontSize: '13px', color: '#92400e' }}>{b.regNo} • {b.ownerName || b.customer}</strong>
+                    <div style={{ fontSize: '11.5px', color: '#b45309' }}>
+                      Due Date: {b.nextServiceDate || 'Scheduled'} • {b.kmLeft} km remaining
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn-outline-blue btn-sm"
+                    onClick={() => {
+                      sendCustomerWhatsApp(b.ownerPhone || b.phone, `Upcoming service reminder for ${b.model} (${b.regNo}).`);
+                      showToast(`Upcoming reminder sent to ${b.ownerName || b.customer}`);
+                    }}
+                  >
+                    <Bell size={13} /> Notify
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Create Service Booking Modal */}
       <Modal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
-        title="Create Workshop Job Card"
+        title="New Service Booking & Job Completion Record"
         size="md"
       >
-        <form onSubmit={handleCreateJobCard}>
+        <form onSubmit={handleCreateJob}>
           <div className="form-grid-2">
             <div className="form-group">
-              <label className="form-label">Bike Registration *</label>
+              <label className="form-label">Select Vehicle *</label>
               <select
                 className="form-input no-left-icon"
-                value={newJob.regNo}
+                value={newJobForm.regNo}
                 onChange={(e) => {
-                  const reg = e.target.value;
-                  const found = mockBikes.find(b => b.regNo === reg);
+                  const found = bikesList.find(b => b.regNo === e.target.value);
                   if (found) {
-                    setNewJob({
-                      ...newJob,
-                      regNo: reg,
-                      customer: found.owner,
-                      brandModel: `${found.brand} ${found.model}`
+                    const curKm = found.currentKm || 10000;
+                    setNewJobForm({
+                      ...newJobForm,
+                      regNo: found.regNo,
+                      customer: found.ownerName || found.customer,
+                      customerPhone: found.ownerPhone || found.phone || '9876543210',
+                      brandModel: `${found.brand} ${found.model}`,
+                      odometerReading: curKm,
+                      nextServiceKm: curKm + 3000
                     });
-                  } else {
-                    setNewJob({ ...newJob, regNo: reg });
                   }
                 }}
               >
-                {mockBikes.map(b => (
-                  <option key={b.id} value={b.regNo}>{b.regNo} - {b.brand} {b.model}</option>
+                {bikesList.map(b => (
+                  <option key={b.id} value={b.regNo}>{b.regNo} — {b.brand} {b.model} ({b.ownerName || b.customer})</option>
                 ))}
               </select>
             </div>
@@ -244,264 +566,173 @@ export default function JobCardsPage() {
               <input
                 type="text"
                 className="form-input no-left-icon"
-                value={newJob.customer}
-                onChange={(e) => setNewJob({ ...newJob, customer: e.target.value })}
+                value={newJobForm.customer}
+                onChange={(e) => setNewJobForm({ ...newJobForm, customer: e.target.value })}
                 required
               />
             </div>
           </div>
-
-          <div className="form-grid-2">
-            <div className="form-group">
-              <label className="form-label">Brand / Model *</label>
-              <input
-                type="text"
-                className="form-input no-left-icon"
-                value={newJob.brandModel}
-                onChange={(e) => setNewJob({ ...newJob, brandModel: e.target.value })}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Service Type *</label>
-              <select
-                className="form-input no-left-icon"
-                value={newJob.serviceType}
-                onChange={(e) => setNewJob({ ...newJob, serviceType: e.target.value })}
-              >
-                <option value="General Service">General Service</option>
-                <option value="Oil Change">Oil Change</option>
-                <option value="Brake Service">Brake Service</option>
-                <option value="Engine Repair">Engine Repair</option>
-                <option value="Battery Check">Battery Check</option>
-                <option value="Chain & Sprocket">Chain & Sprocket</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="form-grid-2">
-            <div className="form-group">
-              <label className="form-label">Assigned Technician</label>
-              <select
-                className="form-input no-left-icon"
-                value={newJob.technician}
-                onChange={(e) => setNewJob({ ...newJob, technician: e.target.value })}
-              >
-                <option value="Mani">Mani</option>
-                <option value="Anitha">Anitha</option>
-                <option value="Karthik">Karthik</option>
-              </select>
-            </div>
-            <div className="form-group">
-              <label className="form-label">Estimated Cost</label>
-              <input
-                type="text"
-                className="form-input no-left-icon"
-                value={newJob.estimatedCost}
-                onChange={(e) => setNewJob({ ...newJob, estimatedCost: e.target.value })}
-              />
-            </div>
-          </div>
-
-          {/* Same-Branch Loyalty Points Deduction Option */}
-          {newJob.customer === 'Bharath' && (
-            <div style={{
-              background: '#f0fdf4',
-              border: '1.5px solid #bbf7d0',
-              borderRadius: '10px',
-              padding: '12px 14px',
-              marginBottom: '16px'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Coins size={15} color="#16a34a" />
-                  <span style={{ fontSize: '12.5px', fontWeight: 800, color: '#166534' }}>
-                    GPS Bike Owner • Salem Central Mega Hub
-                  </span>
-                </div>
-                <span style={{
-                  background: '#dcfce7',
-                  color: '#15803d',
-                  padding: '2px 8px',
-                  borderRadius: '6px',
-                  fontSize: '11px',
-                  fontWeight: 800
-                }}>
-                  {membership.pointsBalance} Points Available
-                </span>
-              </div>
-
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12.5px', color: '#14532d' }}>
-                <input
-                  type="checkbox"
-                  checked={applySameBranchDiscount}
-                  onChange={(e) => {
-                    setApplySameBranchDiscount(e.target.checked);
-                    setNewJob(prev => ({
-                      ...prev,
-                      estimatedCost: e.target.checked ? '₹750' : '₹1,250'
-                    }));
-                  }}
-                />
-                <span style={{ fontWeight: 700 }}>
-                  Apply Same-Branch GPS Loyalty Discount (-₹500 using 500 Pts)
-                </span>
-              </label>
-
-              <div style={{ fontSize: '11px', color: '#166534', marginTop: '4px', opacity: 0.9 }}>
-                Total invoice: {applySameBranchDiscount ? '₹750 (Saved ₹500 from ₹1,250)' : '₹1,250 (Full Rate)'} • +150 Points awarded to customer on job completion.
-              </div>
-            </div>
-          )}
 
           <div className="form-group">
-            <label className="form-label">Job Notes / Customer Complaints</label>
-            <textarea
+            <label className="form-label">Work Performed *</label>
+            <input
+              type="text"
               className="form-input no-left-icon"
-              rows={3}
-              value={newJob.notes}
-              onChange={(e) => setNewJob({ ...newJob, notes: e.target.value })}
+              value={newJobForm.workPerformed}
+              onChange={(e) => setNewJobForm({ ...newJobForm, workPerformed: e.target.value })}
+              required
             />
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '16px' }}>
-            <button 
-              type="button" 
-              className="btn-secondary"
-              onClick={() => setIsCreateModalOpen(false)}
-            >
-              Cancel
-            </button>
-            <button type="submit" className="btn-primary">
-              Generate Job Card
-            </button>
+          <div className="form-group">
+            <label className="form-label">Parts Replaced</label>
+            <input
+              type="text"
+              className="form-input no-left-icon"
+              value={newJobForm.partsReplaced}
+              onChange={(e) => setNewJobForm({ ...newJobForm, partsReplaced: e.target.value })}
+            />
+          </div>
+
+          <div className="form-grid-2">
+            <div className="form-group">
+              <label className="form-label">Parts Cost (₹)</label>
+              <input
+                type="number"
+                className="form-input no-left-icon"
+                value={newJobForm.partsCost}
+                onChange={(e) => setNewJobForm({ ...newJobForm, partsCost: e.target.value })}
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Labour Cost (₹)</label>
+              <input
+                type="number"
+                className="form-input no-left-icon"
+                value={newJobForm.labourCost}
+                onChange={(e) => setNewJobForm({ ...newJobForm, labourCost: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <div className="form-grid-2">
+            <div className="form-group">
+              <label className="form-label">Odometer Reading (km)</label>
+              <input
+                type="number"
+                className="form-input no-left-icon"
+                value={newJobForm.odometerReading}
+                onChange={(e) => setNewJobForm({ ...newJobForm, odometerReading: e.target.value })}
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Next Service KM Target</label>
+              <input
+                type="number"
+                className="form-input no-left-icon"
+                value={newJobForm.nextServiceKm}
+                onChange={(e) => setNewJobForm({ ...newJobForm, nextServiceKm: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <div className="form-grid-2">
+            <div className="form-group">
+              <label className="form-label">Next Service Date</label>
+              <input
+                type="date"
+                className="form-input no-left-icon"
+                value={newJobForm.nextServiceDate}
+                onChange={(e) => setNewJobForm({ ...newJobForm, nextServiceDate: e.target.value })}
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Assigned Technician</label>
+              <input
+                type="text"
+                className="form-input no-left-icon"
+                value={newJobForm.technician}
+                onChange={(e) => setNewJobForm({ ...newJobForm, technician: e.target.value })}
+              />
+            </div>
+          </div>
+
+          {newJobForm.customer === 'Bharath' && membership.pointsBalance >= 500 && (
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px', background: '#fef3c7', padding: '10px 12px', borderRadius: '8px', marginBottom: '12px', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={applySameBranchDiscount}
+                onChange={(e) => setApplySameBranchDiscount(e.target.checked)}
+              />
+              <span>Redeem 500 Loyalty Points for ₹500 service discount</span>
+            </label>
+          )}
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '14px' }}>
+            <button type="button" className="btn-secondary" onClick={() => setIsCreateModalOpen(false)}>Cancel</button>
+            <button type="submit" className="btn-primary">Create Service Booking</button>
           </div>
         </form>
       </Modal>
 
-      {/* Modal: View Job Card Details */}
+      {/* Job Completion Detail Modal */}
       {selectedJob && (
         <Modal
           isOpen={Boolean(selectedJob)}
           onClose={() => setSelectedJob(null)}
-          title={`Job Card Details - ${selectedJob.jobNo}`}
+          title={`Job Completion Record — ${selectedJob.jobNo}`}
           size="md"
         >
-          <div>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              background: '#f8fafc',
-              padding: '14px 18px',
-              borderRadius: '8px',
-              border: '1px solid #e2e8f0',
-              marginBottom: '16px'
-            }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
               <div>
-                <span style={{ fontSize: '18px', fontWeight: 700, color: '#0f172a' }}>{selectedJob.regNo}</span>
-                <span style={{ display: 'block', fontSize: '13px', color: '#64748b' }}>{selectedJob.brandModel}</span>
-              </div>
-              <div style={{ textAlign: 'right' }}>
-                <StatusBadge status={selectedJob.status} />
-                <span style={{ display: 'block', fontSize: '12px', color: '#64748b', marginTop: '4px' }}>Date: {selectedJob.date}</span>
-              </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '16px', fontSize: '13px' }}>
-              <div>
-                <span style={{ color: '#64748b', display: 'block' }}>Customer Name</span>
-                <strong style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span>{selectedJob.customer}</span>
-                  {selectedJob.customer === 'Bharath' && (
-                    <span style={{ fontSize: '10px', background: '#ecfdf5', color: '#059669', padding: '1px 6px', borderRadius: '4px', fontWeight: 800 }}>
-                      GPS Owner
-                    </span>
-                  )}
-                </strong>
-              </div>
-              <div>
-                <span style={{ color: '#64748b', display: 'block' }}>Assigned Technician</span>
-                <strong>{selectedJob.technician}</strong>
-              </div>
-              <div>
-                <span style={{ color: '#64748b', display: 'block' }}>Service Type</span>
-                <strong>{selectedJob.serviceType}</strong>
-              </div>
-              <div>
-                <span style={{ color: '#64748b', display: 'block' }}>Estimated Cost</span>
-                <div>
-                  <strong style={{ color: '#059669', fontSize: '16px' }}>{selectedJob.estimatedCost}</strong>
-                  {selectedJob.discountApplied && selectedJob.discountApplied !== 'None' && (
-                    <div style={{ fontSize: '11px', color: '#059669', fontWeight: 700 }}>
-                      (-{selectedJob.discountApplied})
-                    </div>
-                  )}
+                <strong style={{ fontSize: '16px', color: '#0f172a' }}>{selectedJob.regNo} • {selectedJob.brandModel}</strong>
+                <div style={{ fontSize: '12.5px', color: '#64748b' }}>
+                  <User size={12} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
+                  {selectedJob.customer} ({selectedJob.customerPhone})
                 </div>
               </div>
+              <StatusBadge status={selectedJob.stage === 'Job Completed' ? 'Completed' : 'Pending'} />
             </div>
 
-            {selectedJob.customer === 'Bharath' && (
-              <div style={{
-                background: '#f0fdf4',
-                border: '1px solid #bbf7d0',
-                borderRadius: '8px',
-                padding: '10px 12px',
-                marginBottom: '16px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#166534', fontWeight: 700 }}>
-                  <Store size={14} color="#16a34a" />
-                  <span>Salem Central Mega Hub • Same-Branch GPS Loyalty Program</span>
-                </div>
-                <span style={{ fontSize: '11px', color: '#15803d', fontWeight: 800, background: '#dcfce7', padding: '2px 8px', borderRadius: '4px' }}>
-                  +150 Pts on Completion
-                </span>
-              </div>
-            )}
-
-            <div style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '16px' }}>
-              <span style={{ fontSize: '12px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '4px' }}>
-                Service Notes
-              </span>
-              <p style={{ fontSize: '13px', color: '#1e293b', margin: 0 }}>{selectedJob.notes}</p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '13px', background: '#ffffff', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+              <div><span style={{ color: '#64748b' }}>Odometer:</span> <strong>{selectedJob.odometerReading.toLocaleString()} km</strong></div>
+              <div><span style={{ color: '#64748b' }}>Completion Date:</span> <strong>{selectedJob.completionDate}</strong></div>
+              <div><span style={{ color: '#64748b' }}>Next Service Date:</span> <strong style={{ color: '#356DF3' }}>{selectedJob.nextServiceDate}</strong></div>
+              <div><span style={{ color: '#64748b' }}>Next Service KM:</span> <strong style={{ color: '#356DF3' }}>{selectedJob.nextServiceKm.toLocaleString()} km</strong></div>
+              <div><span style={{ color: '#64748b' }}>Labour Cost:</span> <strong>₹{selectedJob.labourCost}</strong></div>
+              <div><span style={{ color: '#64748b' }}>Total Service Amount:</span> <strong style={{ color: '#10b981' }}>₹{selectedJob.totalAmount.toLocaleString()}</strong></div>
             </div>
 
-            {/* Quick Status Updater */}
-            <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '16px', marginBottom: '16px' }}>
-              <span style={{ fontSize: '12px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '8px' }}>
-                Change Workshop Status:
+            <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '13px' }}>
+              <div><strong>Work Performed:</strong> {selectedJob.workPerformed}</div>
+              <div style={{ marginTop: '6px' }}><strong>Parts Replaced:</strong> {selectedJob.partsReplaced}</div>
+            </div>
+
+            <div>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '8px' }}>
+                Update Workflow Stage:
               </span>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                {['Open', 'In Service', 'Ready', 'Completed'].map((st) => (
+                {WORKFLOW_STAGES.map(st => (
                   <button
                     key={st}
                     type="button"
-                    className={`tab-pill ${selectedJob.status === st ? 'active' : ''}`}
-                    onClick={() => handleUpdateStatus(selectedJob.id, st)}
+                    className={`tab-pill ${selectedJob.stage === st ? 'active' : ''}`}
+                    onClick={() => handleStageChange(selectedJob.id, st)}
                   >
-                    Mark as {st}
+                    {st}
                   </button>
                 ))}
               </div>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <button 
-                type="button" 
-                className="btn-secondary"
-                onClick={() => alert(`Printing Job Card #${selectedJob.jobNo}... (Mock print preview)`)}
-              >
-                <Printer size={15} /> Print Job Card
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', borderTop: '1px solid #e2e8f0', paddingTop: '12px' }}>
+              <button type="button" className="btn-secondary" onClick={() => window.print()}>
+                <Printer size={14} /> Print Summary
               </button>
-              <button 
-                type="button" 
-                className="btn-primary"
-                onClick={() => setSelectedJob(null)}
-              >
-                Done
+              <button type="button" className="btn-primary" onClick={() => setSelectedJob(null)}>
+                Close
               </button>
             </div>
           </div>
@@ -510,4 +741,3 @@ export default function JobCardsPage() {
     </div>
   );
 }
-

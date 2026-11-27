@@ -1,14 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import WelcomePopup from '../common/WelcomePopup';
+import { useApp } from '../../context/AppContext';
 
 export default function AdminLayout() {
+  const { currentUser, currentRole } = useApp();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(() => {
     return localStorage.getItem('bsp_sidebar_collapsed') === 'true';
   });
+  const [showWelcome, setShowWelcome] = useState(() => {
+    const pending = sessionStorage.getItem('bsp_welcome_pending') === '1';
+    if (pending) {
+      sessionStorage.removeItem('bsp_welcome_pending');
+    }
+    return pending;
+  });
   const location = useLocation();
+
+  useEffect(() => {
+    if (sessionStorage.getItem('bsp_welcome_pending') === '1') {
+      sessionStorage.removeItem('bsp_welcome_pending');
+      setShowWelcome(true);
+    }
+  }, [location.pathname]);
 
   const handleToggleCollapse = () => {
     setIsCollapsed(prev => {
@@ -41,10 +58,22 @@ export default function AdminLayout() {
         subtitle: 'Comprehensive bike-wise repair logs, parts replacements, and labor costs'
       };
     }
-    if (path.includes('fines')) {
+    if (path.includes('sales')) {
       return {
-        title: 'Traffic Police Fines & E-Challans',
-        subtitle: 'Fleet-wide violation tracking, penalty collection, and e-challan settlements'
+        title: 'Sales & Revenue Analytics',
+        subtitle: 'Daily, weekly, monthly, and yearly service, spare parts, and labour revenue insights'
+      };
+    }
+    if (path.includes('ratings')) {
+      return {
+        title: 'Customer Ratings & Feedback',
+        subtitle: 'Overall satisfaction score, 5-star distribution, and service-wise customer reviews'
+      };
+    }
+    if (path.includes('service-prediction')) {
+      return {
+        title: 'Vehicle Service Prediction',
+        subtitle: 'Estimated next service dates, remaining kilometres, and component maintenance alerts'
       };
     }
     if (path.includes('reports')) {
@@ -107,8 +136,8 @@ export default function AdminLayout() {
     }
     if (path.includes('job-cards')) {
       return {
-        title: 'Job Cards',
-        subtitle: 'Create and manage service job cards and workshop bays'
+        title: 'Job Completion & Service Reminders',
+        subtitle: 'Track Service Booking → In Progress → Job Completed → Next Service Reminder'
       };
     }
     if (path.includes('users')) {
@@ -164,6 +193,13 @@ export default function AdminLayout() {
           <Outlet />
         </main>
       </div>
+
+      <WelcomePopup
+        isOpen={showWelcome}
+        onClose={() => setShowWelcome(false)}
+        user={currentUser}
+        isSuperAdmin={currentRole === 'super_admin'}
+      />
     </div>
   );
 }

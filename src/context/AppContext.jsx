@@ -9,7 +9,8 @@ import {
   mockCustomerFines, 
   initialMembership,
   mockCustomerGeofences,
-  mockPendingServices
+  mockPendingServices,
+  mockJobCards
 } from '../data/mockData';
 import {
   defaultServiceIntervals,
@@ -194,6 +195,44 @@ export function AppProvider({ children }) {
     }
   });
 
+  const normalizeJobCard = (job) => {
+    const rawStatus = job?.status || 'Service Booking';
+    const statusMap = {
+      Open: 'Service Booking',
+      'In Service': 'Job In Progress',
+      Completed: 'Job Completed'
+    };
+    const normalizedStatus = statusMap[rawStatus] || rawStatus;
+    const numericCost = Number(String(job?.totalCost ?? job?.estimatedCost ?? 0).replace(/[^0-9.]/g, '')) || 0;
+    return {
+      ...job,
+      status: normalizedStatus,
+      totalCost: job?.totalCost ?? numericCost,
+      labourCharges: job?.labourCharges ?? 0,
+      partsReplaced: job?.partsReplaced ?? '',
+      workPerformed: job?.workPerformed ?? job?.notes ?? '',
+      odometerReading: job?.odometerReading ?? '',
+      nextServiceDate: job?.nextServiceDate ?? '',
+      nextServiceKm: job?.nextServiceKm ?? '',
+      completionDate: job?.completionDate ?? '',
+      syncedServiceId: job?.syncedServiceId ?? null
+    };
+  };
+
+  // Persistent Offline Storage Database: Job Cards / Job Completion
+  const [jobCardsList, setJobCardsList] = useState(() => {
+    try {
+      const stored = localStorage.getItem('bike_service_system_job_cards');
+      const parsed = stored ? JSON.parse(stored) : null;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed.map(normalizeJobCard);
+      }
+      return mockJobCards.map(normalizeJobCard);
+    } catch {
+      return mockJobCards.map(normalizeJobCard);
+    }
+  });
+
   // Automatic offline persistence to localStorage
   useEffect(() => {
     try {
@@ -226,6 +265,14 @@ export function AppProvider({ children }) {
       console.error('Failed to sync intervals to localStorage', e);
     }
   }, [serviceIntervals]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('bike_service_system_job_cards', JSON.stringify(jobCardsList));
+    } catch (e) {
+      console.error('Failed to sync job cards to localStorage', e);
+    }
+  }, [jobCardsList]);
 
   // Mobile Customer & Fleet: Traffic Police Fines / E-Challans
   const [customerFines, setCustomerFines] = useState(() => {
@@ -889,6 +936,7 @@ export function AppProvider({ children }) {
 
     const newRecord = {
       id: srvId,
+      jobNo: serviceData.jobNo || null,
       bikeId: serviceData.bikeId,
       regNo: (serviceData.regNo || '').trim().toUpperCase(),
       ownerName: serviceData.ownerName || '',
@@ -994,6 +1042,96 @@ export function AppProvider({ children }) {
     setServiceIntervals(prev => ({ ...prev, ...newIntervals }));
   };
 
+  // 4b. Job Completion Actions (Persisted + Synced to Service Records & Bikes)
+  const addJobCard = (jobData) => {
+    const newJob = normalizeJobCard({
+      id: Date.now(),
+      jobNo: jobData.jobNo || `JC-${String(jobCardsList.length + 1).padStart(3, '0')}`,
+      date: jobData.date || new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+      status: jobData.status || 'Service Booking',
+      ...jobData
+    });
+    setJobCardsList(prev => [newJob, ...prev]);
+    return newJob;
+  };
+
+  const updateJobCardStage = (jobId, nextStage, details = {}) => {
+    const existingJob = jobCardsList.find(j => j.id === jobId);
+    if (!existingJob) return null;
+
+    const mergedJob = normalizeJobCard({
+      ...existingJob,
+      ...details,
+      status: nextStage
+    });
+
+    if (nextStage === 'Job Completed') {
+      const alreadySynced = Boolean(existingJob.syncedServiceId) ||
+        serviceRecords.some(sr => sr.jobNo && sr.jobNo === existingJob.jobNo);
+
+      if (!alreadySynced) {
+        const regNormalized = (mergedJob.regNo || '').trim().toUpperCase();
+        const matchingBike = bikesList.find(
+          b => b.regNo && b.regNo.trim().toUpperCase() === regNormalized
+        );
+        const parsedOdometer = parseInt(mergedJob.odometerReading, 10);
+        const serviceKm = Number.isFinite(parsedOdometer) && parsedOdometer > 0
+          ? parsedOdometer
+          : (parseInt(matchingBike?.currentKm, 10) || 0);
+        const intervalKm = parseInt(serviceIntervals.generalServiceKm, 10) || 3000;
+        const parsedNextKm = parseInt(mergedJob.nextServiceKm, 10);
+        const nextServiceKm = Number.isFinite(parsedNextKm) && parsedNextKm > 0
+          ? parsedNextKm
+          : (serviceKm + intervalKm);
+        const completionDate = mergedJob.completionDate || new Date().toISOString().split('T')[0];
+
+        let nextServiceDate = mergedJob.nextServiceDate;
+        if (!nextServiceDate) {
+          const nextD = new Date(completionDate);
+          if (!Number.isNaN(nextD.getTime())) {
+            nextD.setDate(nextD.getDate() + 90);
+            nextServiceDate = nextD.toISOString().split('T')[0];
+          }
+        }
+
+        const totalCost = Number(mergedJob.totalCost) ||
+          Number(String(mergedJob.estimatedCost || 0).replace(/[^0-9.]/g, '')) || 0;
+
+        const workSummary = [
+          mergedJob.workPerformed,
+          mergedJob.partsReplaced ? `Parts: ${mergedJob.partsReplaced}` : '',
+          mergedJob.labourCharges ? `Labour: ₹${mergedJob.labourCharges}` : ''
+        ].filter(Boolean).join(' | ');
+
+        const createdService = addServiceRecord({
+          jobNo: mergedJob.jobNo,
+          bikeId: matchingBike?.id || `bike-${regNormalized || existingJob.id}`,
+          regNo: regNormalized,
+          ownerName: mergedJob.customer || matchingBike?.ownerName || '',
+          ownerPhone: matchingBike?.ownerPhone || '',
+          serviceDate: completionDate,
+          serviceKm,
+          serviceCost: totalCost,
+          serviceType: mergedJob.serviceType || 'General Periodic Service',
+          technician: mergedJob.technician || 'Mani',
+          notes: workSummary || mergedJob.notes || '',
+          nextServiceDate,
+          nextServiceKm
+        });
+
+        mergedJob.syncedServiceId = createdService.id;
+        mergedJob.completionDate = completionDate;
+        mergedJob.nextServiceDate = createdService.nextServiceDate;
+        mergedJob.nextServiceKm = createdService.nextServiceKm;
+        mergedJob.odometerReading = serviceKm;
+        mergedJob.totalCost = totalCost;
+      }
+    }
+
+    setJobCardsList(prev => prev.map(j => (j.id === jobId ? mergedJob : j)));
+    return mergedJob;
+  };
+
   // 5. Offline Storage Backup & Restoration (PC / Pendrive JSON)
   const exportDatabaseBackup = () => {
     const backupPayload = {
@@ -1004,6 +1142,7 @@ export function AppProvider({ children }) {
       serviceRecords: serviceRecords,
       repairRecords: repairRecords,
       serviceIntervals: serviceIntervals,
+      jobCards: jobCardsList,
       branding: branding
     };
 
@@ -1037,6 +1176,11 @@ export function AppProvider({ children }) {
         setServiceIntervals(parsed.serviceIntervals);
         localStorage.setItem('bike_service_system_intervals', JSON.stringify(parsed.serviceIntervals));
       }
+      if (parsed.jobCards && Array.isArray(parsed.jobCards)) {
+        const normalizedJobs = parsed.jobCards.map(normalizeJobCard);
+        setJobCardsList(normalizedJobs);
+        localStorage.setItem('bike_service_system_job_cards', JSON.stringify(normalizedJobs));
+      }
       return { success: true };
     } catch (err) {
       return { success: false, error: err.message };
@@ -1048,10 +1192,12 @@ export function AppProvider({ children }) {
     setServiceRecords(initialServiceRecords);
     setRepairRecords(initialRepairRecords);
     setServiceIntervals(defaultServiceIntervals);
+    setJobCardsList(mockJobCards.map(normalizeJobCard));
     localStorage.removeItem('bike_service_system_bikes');
     localStorage.removeItem('bike_service_system_services');
     localStorage.removeItem('bike_service_system_repairs');
     localStorage.removeItem('bike_service_system_intervals');
+    localStorage.removeItem('bike_service_system_job_cards');
   };
 
   // 6. WhatsApp & SMS Customer Notifications Integration
@@ -1116,6 +1262,9 @@ export function AppProvider({ children }) {
         deleteRepairRecord,
         serviceIntervals,
         updateServiceIntervals,
+        jobCardsList,
+        addJobCard,
+        updateJobCardStage,
         exportDatabaseBackup,
         restoreDatabaseFromBackup,
         resetDatabaseToDefaults,

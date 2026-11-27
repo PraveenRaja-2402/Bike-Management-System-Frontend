@@ -26,6 +26,7 @@ import {
 import { useApp } from '../../context/AppContext';
 import StatusBadge from '../../components/common/StatusBadge';
 import Modal from '../../components/common/Modal';
+import MetricCard from '../../components/common/MetricCard';
 
 export default function ServiceTrackingPage() {
   const { 
@@ -210,54 +211,60 @@ export default function ServiceTrackingPage() {
       )}
 
       {/* Summary KPI Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '20px' }}>
-        <div className="card" style={{ padding: '16px 20px', borderLeft: '4px solid #356DF3' }}>
-          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Total Services Logged</div>
-          <div style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', marginTop: '4px' }}>
-            {serviceRecords.length}
-          </div>
-          <div style={{ fontSize: '11px', color: '#10b981', marginTop: '4px' }}>
-            ✓ Across all registered bikes
-          </div>
-        </div>
-
-        <div className="card" style={{ padding: '16px 20px', borderLeft: '4px solid #10b981' }}>
-          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Total Service Revenue</div>
-          <div style={{ fontSize: '26px', fontWeight: 800, color: '#059669', marginTop: '4px' }}>
-            ₹{totalRevenue.toLocaleString()}
-          </div>
-          <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
-            Workshop maintenance billing
-          </div>
-        </div>
-
-        <div className="card" style={{ padding: '16px 20px', borderLeft: '4px solid #f59e0b' }}>
-          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Engine Oil Services</div>
-          <div style={{ fontSize: '26px', fontWeight: 800, color: '#d97706', marginTop: '4px' }}>
-            {serviceRecords.filter(r => r.items?.engineOil).length}
-          </div>
-          <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
-            Lubricant replacements
-          </div>
-        </div>
-
-        <div className="card" style={{ padding: '16px 20px', borderLeft: '4px solid #7c3aed' }}>
-          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Active Technicians</div>
-          <div style={{ fontSize: '26px', fontWeight: 800, color: '#7c3aed', marginTop: '4px' }}>
-            3 Available
-          </div>
-          <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
-            Mani, Anitha, Karthik
-          </div>
-        </div>
+      <div className="metrics-row">
+        <MetricCard
+          title="Total Services Logged"
+          value={serviceRecords.length}
+          icon={Wrench}
+          color="blue"
+          trend="All Bikes"
+          trendType="up"
+          subtitle="Across all registered bikes"
+        />
+        <MetricCard
+          title="Total Service Revenue"
+          value={`₹${totalRevenue.toLocaleString()}`}
+          icon={DollarSign}
+          color="green"
+          trend="Billing"
+          trendType="up"
+          subtitle="Workshop maintenance billing"
+        />
+        <MetricCard
+          title="Engine Oil Services"
+          value={serviceRecords.filter(r => r.items?.engineOil).length}
+          icon={Droplet}
+          color="amber"
+          trend="Lubrication"
+          trendType="neutral"
+          subtitle="Lubricant replacements"
+        />
+        <MetricCard
+          title="Active Technicians"
+          value="3 Available"
+          icon={CheckCircle2}
+          color="info"
+          trend="Workshop Team"
+          trendType="neutral"
+          subtitle="Mani, Anitha, Karthik"
+        />
       </div>
 
       {/* Main Table Card */}
       <div className="table-card">
         <div className="table-header">
           <div className="table-title">
-            <Wrench size={20} color="#356DF3" />
-            <span>Service Tracking & Maintenance Logs (Requirement 2)</span>
+            <div className="table-title-icon">
+              <Wrench size={20} />
+            </div>
+            <div>
+              <div style={{ fontSize: '16px', fontWeight: 800, color: '#101828', lineHeight: 1.25 }}>
+                Service Tracking & Maintenance Logs
+              </div>
+              <div style={{ fontSize: '12.5px', fontWeight: 500, color: '#667085', marginTop: '2px' }}>
+                Track periodic checklists, service costs, next service benchmarks, and invoices
+              </div>
+            </div>
           </div>
           <button 
             type="button" 
@@ -338,8 +345,21 @@ export default function ServiceTrackingPage() {
                     <span style={{ fontSize: '10.5px', color: '#94a3b8' }}>ID: {srv.id}</span>
                   </td>
                   <td>
-                    <div style={{ fontWeight: 800, color: '#1e293b' }}>{srv.regNo}</div>
-                    <span style={{ fontSize: '11px', color: '#64748b' }}>{srv.serviceType}</span>
+                    <div style={{
+                      display: 'inline-block',
+                      background: '#F8FAFC',
+                      border: '1px solid #E2E8F0',
+                      borderRadius: '8px',
+                      padding: '4px 10px',
+                      fontWeight: 800,
+                      color: '#101828',
+                      fontSize: '12.5px',
+                      letterSpacing: '0.3px',
+                      marginBottom: '4px'
+                    }}>
+                      {srv.regNo}
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#64748b' }}>{srv.serviceType}</div>
                   </td>
                   <td>
                     <div style={{ fontWeight: 600 }}>{srv.ownerName}</div>
@@ -414,23 +434,24 @@ export default function ServiceTrackingPage() {
                     </span>
                   </td>
                   <td style={{ textAlign: 'center' }}>
-                    <div className="table-actions" style={{ justifyContent: 'center' }}>
+                    <div className="table-actions" style={{ justifyContent: 'center', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                       <button
                         type="button"
                         className="btn-outline-blue btn-sm"
                         onClick={() => setViewServiceReceipt(srv)}
                         title="View & Print Service Receipt"
                       >
-                        <Eye size={13} /> Invoice
+                        <FileText size={13} />
+                        <span>Invoice</span>
                       </button>
                       <button
                         type="button"
-                        className="btn-danger btn-sm"
-                        style={{ padding: '4px 7px' }}
+                        className="btn-outline-danger btn-sm"
                         onClick={() => handleDeleteRecord(srv)}
                         title="Delete service record"
                       >
                         <Trash2 size={13} />
+                        <span>Delete</span>
                       </button>
                     </div>
                   </td>

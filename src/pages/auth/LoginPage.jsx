@@ -99,6 +99,7 @@ export default function LoginPage() {
       setIsSubmitting(false);
 
       if (res.success) {
+        sessionStorage.setItem('bsp_welcome_pending', '1');
         if (res.user.role === 'super_admin') {
           navigate('/admin/admins', { replace: true });
         } else {
@@ -284,7 +285,7 @@ export default function LoginPage() {
             </h1>
             <p className="saas-form-subtitle">
               {authMode === 'signin' 
-                ? 'Select your administrative clearance and enter credentials.'
+                ? 'Enter your account credentials to access your workspace.'
                 : 'Provision a new administrative account for your workshop team.'
               }
             </p>
@@ -337,52 +338,7 @@ export default function LoginPage() {
               ================================================================= */}
           {authMode === 'signin' && (
             <>
-              {/* Compact Role Selection Cards */}
-              <div className="saas-role-selector-wrap">
-                <div className="saas-role-selector-label">
-                  <span>Administrative Clearance:</span>
-                </div>
-
-                <div className="saas-role-grid">
-                  {/* Operations Admin Card */}
-                  <div
-                    className={`saas-role-card ${signInRole === 'admin' ? 'active ops-admin' : ''}`}
-                    onClick={() => handleSignInRoleSwitch('admin')}
-                  >
-                    <div className="saas-role-card-top">
-                      <div className="saas-role-icon-pill ops">
-                        <ShieldCheck size={16} />
-                      </div>
-                      <div className="saas-role-check-indicator">
-                        {signInRole === 'admin' && <Check size={10} strokeWidth={3} />}
-                      </div>
-                    </div>
-                    <div className="saas-role-name">Operations Admin</div>
-                    <div className="saas-role-scope">Customer Onboarding & Workshop Jobs</div>
-                    <span className="saas-role-clearance ops">Branch Ops Active</span>
-                  </div>
-
-                  {/* Super Admin Card */}
-                  <div
-                    className={`saas-role-card ${signInRole === 'super_admin' ? 'active super-admin' : ''}`}
-                    onClick={() => handleSignInRoleSwitch('super_admin')}
-                  >
-                    <div className="saas-role-card-top">
-                      <div className="saas-role-icon-pill super">
-                        <Crown size={16} />
-                      </div>
-                      <div className="saas-role-check-indicator">
-                        {signInRole === 'super_admin' && <Check size={10} strokeWidth={3} />}
-                      </div>
-                    </div>
-                    <div className="saas-role-name">Super Admin</div>
-                    <div className="saas-role-scope">Multi-Branch Hubs & Master Root</div>
-                    <span className="saas-role-clearance super">Root Clearance</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Sign In Form */}
+              {/* Unified Common Sign In Form */}
               <form onSubmit={handleSignInSubmit} className="saas-form">
                 <div className="saas-field-group">
                   <label className="saas-label">
@@ -445,19 +401,14 @@ export default function LoginPage() {
 
                 <button
                   type="submit"
-                  className={`saas-submit-btn ${signInRole === 'super_admin' ? 'btn-super' : 'btn-ops'}`}
+                  className="saas-submit-btn btn-ops"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? (
                     <span>Authenticating Workspace...</span>
                   ) : (
                     <>
-                      <span>
-                        {signInRole === 'super_admin' 
-                          ? 'Enter Super Admin Console' 
-                          : 'Enter Operations Dashboard'
-                        }
-                      </span>
+                      <span>Sign In to Workspace</span>
                       <ArrowRight size={15} />
                     </>
                   )}

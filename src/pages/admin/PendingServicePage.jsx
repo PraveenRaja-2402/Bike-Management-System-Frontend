@@ -20,6 +20,7 @@ import {
 import { useApp } from '../../context/AppContext';
 import StatusBadge from '../../components/common/StatusBadge';
 import Modal from '../../components/common/Modal';
+import MetricCard from '../../components/common/MetricCard';
 
 export default function PendingServicePage() {
   const navigate = useNavigate();
@@ -96,46 +97,73 @@ export default function PendingServicePage() {
       )}
 
       {/* Top Highlight Cards for Service Pending Monitoring */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '20px' }}>
-        <div className="card" style={{ padding: '16px 20px', borderLeft: '4px solid #ef4444' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#ef4444', textTransform: 'uppercase' }}>Critical Overdue</span>
-            <AlertCircle size={20} color="#ef4444" />
-          </div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a' }}>{criticalCount} Bikes</div>
-          <div style={{ fontSize: '11px', color: '#64748b' }}>Overdue maintenance past interval</div>
-        </div>
-
-        <div className="card" style={{ padding: '16px 20px', borderLeft: '4px solid #f59e0b' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#d97706', textTransform: 'uppercase' }}>Due in &lt; 7 Days</span>
-            <Clock size={20} color="#f59e0b" />
-          </div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a' }}>{dueSoonCount} Bikes</div>
-          <div style={{ fontSize: '11px', color: '#64748b' }}>High priority slots required</div>
-        </div>
-
-        <div className="card" style={{ padding: '16px 20px', borderLeft: '4px solid #356DF3' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#356DF3', textTransform: 'uppercase' }}>Pending Work Value</span>
-            <TrendingUp size={20} color="#356DF3" />
-          </div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a' }}>₹{totalPendingRevenue.toLocaleString()}</div>
-          <div style={{ fontSize: '11px', color: '#64748b' }}>Estimated revenue from pending services</div>
-        </div>
-
-        <div className="card" style={{ padding: '16px 20px', borderLeft: '4px solid #10b981' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#059669', textTransform: 'uppercase' }}>Total Monitoring</span>
-            <Wrench size={20} color="#10b981" />
-          </div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a' }}>{pendingServices.length} Vehicles</div>
-          <div style={{ fontSize: '11px', color: '#64748b' }}>In pending service lifecycle</div>
-        </div>
+      <div className="metrics-row">
+        <MetricCard
+          title="Critical Overdue"
+          value={`${criticalCount} Bikes`}
+          icon={AlertCircle}
+          color="red"
+          trend="Urgent Action"
+          trendType="warning"
+          subtitle="Overdue maintenance past interval"
+        />
+        <MetricCard
+          title="Due in < 7 Days"
+          value={`${dueSoonCount} Bikes`}
+          icon={Clock}
+          color="amber"
+          trend="High Priority"
+          trendType="warning"
+          subtitle="High priority slots required"
+        />
+        <MetricCard
+          title="Pending Work Value"
+          value={`₹${totalPendingRevenue.toLocaleString()}`}
+          icon={TrendingUp}
+          color="blue"
+          trend="Estimated"
+          trendType="neutral"
+          subtitle="Estimated revenue from pending services"
+        />
+        <MetricCard
+          title="Total Monitoring"
+          value={`${pendingServices.length} Vehicles`}
+          icon={Wrench}
+          color="green"
+          trend="Active Queue"
+          trendType="up"
+          subtitle="In pending service lifecycle"
+        />
       </div>
 
       {/* Main Table Card */}
       <div className="table-card">
+        <div className="table-header">
+          <div className="table-title">
+            <div className="table-title-icon">
+              <AlertCircle size={20} />
+            </div>
+            <div>
+              <div style={{ fontSize: '16px', fontWeight: 800, color: '#101828', lineHeight: 1.25 }}>
+                Service Pending Monitoring
+              </div>
+              <div style={{ fontSize: '12.5px', fontWeight: 500, color: '#667085', marginTop: '2px' }}>
+                Monitor overdue and upcoming vehicle maintenance across all workshop hubs
+              </div>
+            </div>
+          </div>
+          <span style={{
+            fontSize: '11.5px',
+            fontWeight: 700,
+            background: '#FEF3F2',
+            color: '#B42318',
+            border: '1px solid #FECDCA',
+            padding: '4px 12px',
+            borderRadius: '9999px'
+          }}>
+            {criticalCount} Critical Overdue
+          </span>
+        </div>
         {/* Table Filters */}
         <div className="table-controls-bar">
           <div className="controls-left">
@@ -201,15 +229,27 @@ export default function PendingServicePage() {
                   <tr key={item.id} style={{ background: isOverdue ? '#fff8f8' : 'inherit' }}>
                     <td>
                       <div>
-                        <div style={{ fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span>{item.regNo}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                          <span style={{
+                            background: '#F8FAFC',
+                            border: '1px solid #E2E8F0',
+                            borderRadius: '8px',
+                            padding: '3px 9px',
+                            fontWeight: 800,
+                            color: '#101828',
+                            fontSize: '12.5px',
+                            letterSpacing: '0.3px',
+                            whiteSpace: 'nowrap'
+                          }}>
+                            {item.regNo}
+                          </span>
                           {isOverdue && (
-                            <span style={{ fontSize: '10px', background: '#fee2e2', color: '#b91c1c', padding: '1px 6px', borderRadius: '4px', fontWeight: 700 }}>
+                            <span style={{ fontSize: '10px', background: '#fee2e2', color: '#b91c1c', padding: '2px 7px', borderRadius: '9999px', fontWeight: 800 }}>
                               OVERDUE
                             </span>
                           )}
                         </div>
-                        <div style={{ fontSize: '12px', color: '#64748b' }}>{item.model}</div>
+                        <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>{item.model}</div>
                       </div>
                     </td>
 
@@ -234,6 +274,7 @@ export default function PendingServicePage() {
                         borderRadius: '9999px',
                         fontSize: '12px',
                         fontWeight: 700,
+                        whiteSpace: 'nowrap',
                         background: isOverdue ? '#fef2f2' : item.serviceDueDays <= 7 ? '#fffbeb' : '#eff6ff',
                         color: isOverdue ? '#dc2626' : item.serviceDueDays <= 7 ? '#d97706' : '#356DF3'
                       }}>
@@ -278,14 +319,15 @@ export default function PendingServicePage() {
                     </td>
 
                     <td style={{ textAlign: 'center' }}>
-                      <div className="table-actions" style={{ justifyContent: 'center' }}>
+                      <div className="table-actions" style={{ justifyContent: 'center', display: 'inline-flex', alignItems: 'center', gap: '6px', flexWrap: 'nowrap' }}>
                         <button
                           type="button"
                           className="btn-primary btn-sm"
                           onClick={() => handleSendReminder(item)}
                           title="Dispatch Urgent SMS & WhatsApp alert"
                         >
-                          <Send size={12} /> Remind
+                          <Send size={13} />
+                          <span>Remind</span>
                         </button>
                         <button
                           type="button"
@@ -293,7 +335,8 @@ export default function PendingServicePage() {
                           onClick={() => handleCreateJobCard(item)}
                           title="Generate Job Card"
                         >
-                          <FileText size={12} /> Job Card
+                          <FileText size={13} />
+                          <span>Job Card</span>
                         </button>
                         <button
                           type="button"
@@ -302,9 +345,10 @@ export default function PendingServicePage() {
                             setActiveItemForAction(item);
                             setActionModalOpen(true);
                           }}
-                          title="Change Stage"
+                          title="Change Monitoring Stage"
                         >
-                          Status
+                          <Wrench size={13} />
+                          <span>Status</span>
                         </button>
                       </div>
                     </td>

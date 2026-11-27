@@ -215,7 +215,14 @@ export default function Header({ onToggleSidebar, title, subtitle, breadcrumb })
               <button 
                 type="button" 
                 className="dropdown-item" 
-                onClick={() => { switchRole(isSuperAdmin ? 'admin' : 'super_admin'); setShowProfileMenu(false); }}
+                onClick={() => {
+                  const next = isSuperAdmin ? 'admin' : 'super_admin';
+                  setTargetRole(next);
+                  setSwitchPassword('');
+                  setSwitchError('');
+                  setIsSwitchModalOpen(true);
+                  setShowProfileMenu(false);
+                }}
               >
                 {isSuperAdmin ? <ShieldCheck size={16} /> : <Crown size={16} />}
                 <span>Switch to {isSuperAdmin ? 'Admin Role' : 'Super Admin Role'}</span>

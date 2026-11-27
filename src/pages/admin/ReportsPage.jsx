@@ -345,76 +345,68 @@ export default function ReportsPage() {
   return (
     <div className="reports-page" style={{ paddingBottom: '40px' }}>
       {/* Header Banner - Premium Light SaaS Style */}
-      <div style={{
-        background: '#ffffff',
-        border: '1px solid #EAECF0',
-        borderRadius: '14px',
-        padding: '18px 24px',
-        marginBottom: '20px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '16px',
-        boxShadow: '0px 1px 3px rgba(16, 24, 40, 0.08), 0px 1px 2px rgba(16, 24, 40, 0.04)'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+      <div className="dash-hero-card">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <div style={{
-            width: 44,
-            height: 44,
+            width: 46,
+            height: 46,
             borderRadius: '12px',
             background: 'linear-gradient(135deg, #EFF4FE, #DBEAFE)',
             color: '#356DF3',
             border: '1px solid #BFDBFE',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
+            flexShrink: 0
           }}>
             <FileText size={22} />
           </div>
           <div>
-            <div style={{ fontSize: '17px', fontWeight: 700, color: '#101828', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ fontSize: '17px', fontWeight: 700, color: '#101828', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
               <span>Workshop Service & Repair Reports</span>
               <span style={{ 
                 fontSize: '11px', 
                 background: '#ECFDF3', 
                 color: '#12B76A', 
                 border: '1px solid #A6F4C5',
-                padding: '2px 8px', 
+                padding: '2px 9px', 
                 borderRadius: '9999px', 
                 fontWeight: 700 
               }}>
                 6 SYSTEM REPORTS
               </span>
             </div>
-            <div style={{ fontSize: '13px', color: '#667085', marginTop: '2px' }}>
+            <div style={{ fontSize: '13px', color: '#667085', marginTop: '3px' }}>
               Daily, weekly & monthly summaries • Bike service histories • Repair audits • Printable & CSV/JSON exports
             </div>
           </div>
         </div>
 
         {/* Global Export & Print Action Buttons */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
           <button
             type="button"
             onClick={handleExportCSV}
             className="btn-secondary btn-sm"
           >
-            <FileSpreadsheet size={14} color="#12B76A" /> Export CSV
+            <FileSpreadsheet size={14} color="#12B76A" />
+            <span>Export CSV</span>
           </button>
           <button
             type="button"
             onClick={handleExportJSON}
             className="btn-secondary btn-sm"
           >
-            <FileCode size={14} color="#356DF3" /> Export JSON
+            <FileCode size={14} color="#356DF3" />
+            <span>Export JSON</span>
           </button>
           <button
             type="button"
             onClick={handlePrint}
             className="btn-primary btn-sm"
           >
-            <Printer size={14} /> Print Report
+            <Printer size={14} />
+            <span>Print Report</span>
           </button>
         </div>
       </div>
@@ -422,63 +414,68 @@ export default function ReportsPage() {
       {/* Report Selection Tabs */}
       <div style={{
         display: 'flex',
-        gap: '8px',
+        alignItems: 'center',
+        gap: '6px',
+        background: '#ffffff',
+        border: '1px solid #EAECF0',
+        padding: '6px',
+        borderRadius: '14px',
         overflowX: 'auto',
-        paddingBottom: '8px',
-        marginBottom: '16px'
+        marginBottom: '20px',
+        boxShadow: '0 1px 3px rgba(16, 24, 40, 0.04)'
       }}>
         <button
           type="button"
           onClick={() => setActiveReportTab('daily')}
-          className={`btn-sm ${activeReportTab === 'daily' ? 'btn-primary' : 'btn-secondary'}`}
-          style={{ whiteSpace: 'nowrap' }}
+          className={`profile-tab-pill ${activeReportTab === 'daily' ? 'active' : ''}`}
         >
-          📅 Daily Service Report
+          <Calendar size={15} />
+          <span>Daily Service Report</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveReportTab('weekly')}
-          className={`btn-sm ${activeReportTab === 'weekly' ? 'btn-primary' : 'btn-secondary'}`}
-          style={{ whiteSpace: 'nowrap' }}
+          className={`profile-tab-pill ${activeReportTab === 'weekly' ? 'active' : ''}`}
         >
-          📅 Weekly Service Report
+          <Calendar size={15} />
+          <span>Weekly Service Report</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveReportTab('monthly')}
-          className={`btn-sm ${activeReportTab === 'monthly' ? 'btn-primary' : 'btn-secondary'}`}
-          style={{ whiteSpace: 'nowrap' }}
+          className={`profile-tab-pill ${activeReportTab === 'monthly' ? 'active' : ''}`}
         >
-          📊 Monthly Service Report
+          <TrendingUp size={15} />
+          <span>Monthly Service Report</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveReportTab('bike_history')}
-          className={`btn-sm ${activeReportTab === 'bike_history' ? 'btn-primary' : 'btn-secondary'}`}
-          style={{ whiteSpace: 'nowrap' }}
+          className={`profile-tab-pill ${activeReportTab === 'bike_history' ? 'active' : ''}`}
         >
-          🏍️ Individual Bike History
+          <Bike size={15} />
+          <span>Individual Bike History</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveReportTab('repairs')}
-          className={`btn-sm ${activeReportTab === 'repairs' ? 'btn-primary' : 'btn-secondary'}`}
-          style={{ whiteSpace: 'nowrap' }}
+          className={`profile-tab-pill ${activeReportTab === 'repairs' ? 'active' : ''}`}
         >
-          🔧 Repair & Maintenance Report
+          <Wrench size={15} />
+          <span>Repair & Maintenance</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveReportTab('upcoming_overdue')}
-          className={`btn-sm ${activeReportTab === 'upcoming_overdue' ? 'btn-primary' : 'btn-secondary'}`}
-          style={{ whiteSpace: 'nowrap' }}
+          className={`profile-tab-pill ${activeReportTab === 'upcoming_overdue' ? 'active' : ''}`}
         >
-          ⚠️ Upcoming & Overdue Report
+          <AlertTriangle size={15} />
+          <span>Upcoming & Overdue</span>
         </button>
       </div>
 
@@ -533,7 +530,7 @@ export default function ReportsPage() {
             </div>
 
             <div className="table-responsive">
-              <table className="data-table">
+              <table className="admin-data-table">
                 <thead>
                   <tr>
                     <th>Service ID</th>
@@ -583,7 +580,7 @@ export default function ReportsPage() {
             </div>
 
             <div className="table-responsive">
-              <table className="data-table">
+              <table className="admin-data-table">
                 <thead>
                   <tr>
                     <th>Repair ID</th>
@@ -718,7 +715,7 @@ export default function ReportsPage() {
             </div>
 
             <div className="table-responsive">
-              <table className="data-table">
+              <table className="admin-data-table">
                 <thead>
                   <tr>
                     <th>Service ID</th>
@@ -770,7 +767,7 @@ export default function ReportsPage() {
             </div>
 
             <div className="table-responsive">
-              <table className="data-table">
+              <table className="admin-data-table">
                 <thead>
                   <tr>
                     <th>Repair ID</th>
@@ -886,7 +883,7 @@ export default function ReportsPage() {
             </div>
 
             <div className="table-responsive">
-              <table className="data-table">
+              <table className="admin-data-table">
                 <thead>
                   <tr>
                     <th>Type</th>
@@ -1014,7 +1011,7 @@ export default function ReportsPage() {
               </div>
 
               <div className="table-responsive">
-                <table className="data-table">
+                <table className="admin-data-table">
                   <thead>
                     <tr>
                       <th>Event Type</th>
@@ -1143,7 +1140,7 @@ export default function ReportsPage() {
             </div>
 
             <div className="table-responsive">
-              <table className="data-table">
+              <table className="admin-data-table">
                 <thead>
                   <tr>
                     <th>Repair ID</th>
@@ -1218,7 +1215,7 @@ export default function ReportsPage() {
             </div>
 
             <div className="table-responsive">
-              <table className="data-table">
+              <table className="admin-data-table">
                 <thead>
                   <tr>
                     <th>Vehicle Reg</th>
@@ -1296,7 +1293,7 @@ export default function ReportsPage() {
             </div>
 
             <div className="table-responsive">
-              <table className="data-table">
+              <table className="admin-data-table">
                 <thead>
                   <tr>
                     <th>Vehicle Reg</th>
@@ -1362,7 +1359,7 @@ export default function ReportsPage() {
             </div>
 
             <div className="table-responsive">
-              <table className="data-table">
+              <table className="admin-data-table">
                 <thead>
                   <tr>
                     <th>Vehicle Reg</th>

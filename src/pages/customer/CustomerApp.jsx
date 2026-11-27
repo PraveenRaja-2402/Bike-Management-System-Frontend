@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Menu, 
@@ -68,6 +68,8 @@ export default function CustomerApp() {
   const { 
     branding, 
     bikesList, 
+    serviceRecords,
+    serviceIntervals,
     customerFines, 
     payFine, 
     membership, 
@@ -80,10 +82,41 @@ export default function CustomerApp() {
     logoutCustomer
   } = useApp();
 
-  // Rider's assigned bike (matches assignedBike from customer profile or defaults to first bike)
-  const bharathBike = currentCustomer 
-    ? (bikesList.find(b => b.regNo === currentCustomer.assignedBike || (b.customer && currentCustomer.name && b.customer.toLowerCase().includes(currentCustomer.name.toLowerCase().split(' ')[0]))) || bikesList[0])
+  // Rider's assigned bike (matches assignedBike, ownerPhone, or ownerName; safe fallback if none assigned yet)
+  const normalizePhoneDigits = (val) => String(val || '').replace(/[\s\-\+]/g, '').replace(/^91/, '').trim();
+  const matchedCustomerBike = currentCustomer
+    ? bikesList.find(b => {
+        const regMatch = currentCustomer.assignedBike && b.regNo &&
+          b.regNo.trim().toUpperCase() === currentCustomer.assignedBike.trim().toUpperCase();
+        const phoneMatch = currentCustomer.phone && b.ownerPhone &&
+          normalizePhoneDigits(b.ownerPhone) === normalizePhoneDigits(currentCustomer.phone);
+        const ownerStr = (b.ownerName || b.customer || '').toLowerCase();
+        const nameFirst = (currentCustomer.name || '').toLowerCase().split(' ')[0];
+        const nameMatch = Boolean(nameFirst && ownerStr && ownerStr.includes(nameFirst));
+        return regMatch || phoneMatch || nameMatch;
+      })
     : bikesList[0];
+
+  const bharathBike = matchedCustomerBike || {
+    regNo: currentCustomer?.assignedBike || 'No Bike Linked',
+    model: 'No Vehicle Assigned',
+    brand: 'Yamaha',
+    battery: '12.6V',
+    fuel: 'N/A',
+    status: 'Offline',
+    lastUpdated: 'Just now',
+    lastLocation: 'Not linked to GPS yet',
+    nextService: 'Not scheduled',
+    daysLeft: '--',
+    lastService: 'Not recorded',
+    lastServiceKm: '0 km',
+    nextServiceKm: '3,000 km',
+    purchasedDate: 'N/A',
+    sevenDaysDistance: '0 km',
+    sevenDaysChange: '--',
+    oneMonthDistance: '0 km',
+    oneMonthChange: '--'
+  };
 
   // Rider Login State
   const [customerLoginError, setCustomerLoginError] = useState('');
@@ -155,6 +188,33 @@ export default function CustomerApp() {
 
   const unpaidFines = userFines.filter(f => f.status === 'Unpaid');
   const totalUnpaidFineAmount = unpaidFines.reduce((sum, f) => sum + (Number(f.amount) || 0), 0);
+
+  const riderServiceHistory = useMemo(() => {
+    const regUpper = (bharathBike?.regNo || '').trim().toUpperCase();
+    const live = (serviceRecords || [])
+      .filter(sr => regUpper && (sr.regNo || '').trim().toUpperCase() === regUpper)
+      .sort((a, b) => new Date(b.serviceDate || 0) - new Date(a.serviceDate || 0))
+      .map(sr => ({
+        id: sr.id,
+        serviceType: sr.serviceType || 'General Periodic Service',
+        cost: `₹${(Number(sr.serviceCost) || 0).toLocaleString()}`,
+        date: sr.serviceDate || 'N/A',
+        odometer: `${(Number(sr.serviceKm) || 0).toLocaleString()} km`,
+        technician: sr.technician || 'Workshop Team'
+      }));
+    if (live.length > 0) return live;
+    if (regUpper === 'TN 30 AB 1234') return mockCustomerServiceHistory;
+    return [];
+  }, [serviceRecords, bharathBike]);
+
+  const serviceIntervalKm = Number(serviceIntervals?.generalServiceKm) || 3000;
+  const currentBikeKm = Number(String(bharathBike?.currentKm ?? 0).replace(/[^0-9]/g, '')) || 0;
+  const lastSrvKm = Number(String(bharathBike?.lastServiceKm ?? 0).replace(/[^0-9]/g, '')) || 0;
+  const nextSrvKm = Number(String(bharathBike?.nextServiceKm ?? 0).replace(/[^0-9]/g, '')) || (lastSrvKm + serviceIntervalKm);
+  const kmProgressPct = nextSrvKm > lastSrvKm
+    ? Math.min(100, Math.max(8, Math.round(((currentBikeKm - lastSrvKm) / (nextSrvKm - lastSrvKm)) * 100)))
+    : 40;
+  const kmRemaining = Math.max(0, nextSrvKm - currentBikeKm);
 
   // Playback player loop
   useEffect(() => {
@@ -468,7 +528,7 @@ export default function CustomerApp() {
 
                 <div className="home-user-greeting">
                   <span style={{ fontSize: '12px', color: '#93c5fd', fontWeight: 600 }}>Salem, TN • 28°C Clear ☀️</span>
-                  <h2 className="user-name-title">Hello, Bharath</h2>
+                  <h2 className="user-name-title">Hello, {currentCustomer?.name?.split(' ')[0] || 'Rider'}</h2>
                   <div className="bike-safe-status">
                     <span className="bike-safe-dot" />
                     <span>Live GPS Telemetry Active • Safe Zone</span>
@@ -477,7 +537,7 @@ export default function CustomerApp() {
 
                 {/* Vehicle Selector Card with Live Telemetry Chips */}
                 <div className="bike-selector-card" onClick={() => setActiveTab('bike')}>
-                  <BrandLogo brand="Yamaha" size={44} />
+                  <BrandLogo brand={bharathBike.brand || 'Yamaha'} size={44} />
                   <div className="bike-card-info">
                     <div className="bike-card-reg-row">
                       <span>{bharathBike.regNo}</span>
@@ -639,7 +699,7 @@ export default function CustomerApp() {
                   onClick={() => setActiveTab('fines')}
                 >
                   <div className="action-icon-box" style={{ background: 'linear-gradient(135deg, #f43f5e, #e11d48)' }}>
-                    <DollarSign size={22} />
+                    <ShieldAlert size={22} strokeWidth={2.2} />
                   </div>
                   <span className="action-label">Fines</span>
                 </button>
@@ -649,8 +709,8 @@ export default function CustomerApp() {
                   className="quick-action-item"
                   onClick={() => setActiveTab('distance')}
                 >
-                  <div className="action-icon-box" style={{ background: 'linear-gradient(135deg, #3b82f6, #2957CC)' }}>
-                    <Navigation size={22} />
+                  <div className="action-icon-box" style={{ background: 'linear-gradient(135deg, #3b82f6, #2563eb)' }}>
+                    <Activity size={22} strokeWidth={2.2} />
                   </div>
                   <span className="action-label">Distance</span>
                 </button>
@@ -660,8 +720,8 @@ export default function CustomerApp() {
                   className="quick-action-item"
                   onClick={() => setActiveTab('playback')}
                 >
-                  <div className="action-icon-box" style={{ background: 'linear-gradient(135deg, #d946ef, #a21caf)' }}>
-                    <Play size={22} />
+                  <div className="action-icon-box" style={{ background: 'linear-gradient(135deg, #a855f7, #7e22ce)' }}>
+                    <Play size={21} strokeWidth={2.2} />
                   </div>
                   <span className="action-label">Playback</span>
                 </button>
@@ -671,10 +731,10 @@ export default function CustomerApp() {
                   className="quick-action-item"
                   onClick={() => setActiveTab('geolocation')}
                 >
-                  <div className="action-icon-box" style={{ background: 'linear-gradient(135deg, #10b981, #047857)' }}>
-                    <Compass size={22} />
+                  <div className="action-icon-box" style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
+                    <MapPin size={22} strokeWidth={2.2} />
                   </div>
-                  <span className="action-label">Geo Location</span>
+                  <span className="action-label">Geo Zone</span>
                 </button>
               </div>
 
@@ -1627,108 +1687,250 @@ export default function CustomerApp() {
                 </button>
               </div>
 
-              <div className="service-screen-container">
-                <div className="service-bike-header-card" onClick={() => setActiveTab('bike')}>
-                  <BrandLogo brand="Yamaha" size={38} />
+              <div className="service-screen-container" style={{ gap: '14px', paddingBottom: '24px' }}>
+                {/* Vehicle Summary Strip */}
+                <div
+                  className="service-bike-header-card"
+                  onClick={() => setActiveTab('bike')}
+                  style={{
+                    borderRadius: '16px',
+                    padding: '14px',
+                    border: '1px solid #e2e8f0',
+                    boxShadow: '0 2px 10px rgba(15, 23, 42, 0.04)'
+                  }}
+                >
+                  <BrandLogo brand={bharathBike.brand || 'Yamaha'} size={40} />
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>{bharathBike.regNo}</div>
+                    <div style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a' }}>{bharathBike.regNo}</div>
                     <div style={{ fontSize: '12px', color: '#64748b' }}>{bharathBike.model}</div>
                   </div>
+                  <span style={{
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    background: '#eff6ff',
+                    color: '#2563eb',
+                    padding: '4px 10px',
+                    borderRadius: '9999px'
+                  }}>
+                    {currentBikeKm.toLocaleString()} km
+                  </span>
                   <ChevronRight size={18} color="#94a3b8" />
                 </div>
 
-                <div className="service-due-highlight-card">
-                  <div className="due-card-header-row">
-                    <div className="wrench-blue-box">
-                      <Wrench size={24} />
+                {/* Next Service Hero Card */}
+                <div style={{
+                  background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%)',
+                  borderRadius: '20px',
+                  padding: '18px',
+                  color: '#ffffff',
+                  boxShadow: '0 12px 24px -6px rgba(30, 58, 138, 0.38)'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', marginBottom: '14px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: '14px',
+                        background: 'rgba(255, 255, 255, 0.14)',
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0
+                      }}>
+                        <Wrench size={22} color="#93c5fd" strokeWidth={2.2} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '11px', color: '#93c5fd', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                          Next Scheduled Service
+                        </div>
+                        <div style={{ fontSize: '18px', fontWeight: 800, marginTop: '2px' }}>
+                          {bharathBike.nextServiceDate || bharathBike.nextService || 'Not scheduled'}
+                        </div>
+                      </div>
                     </div>
-                    <div className="due-card-texts">
-                      <span className="due-title-sub">Next Service Due</span>
-                      <span className="due-date-bold">{bharathBike.nextService}</span>
-                      <span className="due-days-pill">(In {bharathBike.daysLeft} Days)</span>
+                    <span style={{
+                      fontSize: '10.5px',
+                      fontWeight: 800,
+                      padding: '4px 10px',
+                      borderRadius: '9999px',
+                      background: kmRemaining <= 300 ? 'rgba(245, 158, 11, 0.22)' : 'rgba(16, 185, 129, 0.22)',
+                      color: kmRemaining <= 300 ? '#fcd34d' : '#6ee7b7',
+                      border: `1px solid ${kmRemaining <= 300 ? 'rgba(251, 191, 36, 0.45)' : 'rgba(52, 211, 153, 0.45)'}`
+                    }}>
+                      {kmRemaining <= 0 ? 'Due Now' : `${kmRemaining.toLocaleString()} km left`}
+                    </span>
+                  </div>
+
+                  {/* Odometer Progress Bar */}
+                  <div style={{ marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#cbd5e1', marginBottom: '6px' }}>
+                      <span>Service Cycle Progress</span>
+                      <span style={{ fontWeight: 700, color: '#ffffff' }}>{kmProgressPct}%</span>
+                    </div>
+                    <div style={{ height: '7px', background: 'rgba(255,255,255,0.16)', borderRadius: '9999px', overflow: 'hidden' }}>
+                      <div style={{
+                        width: `${kmProgressPct}%`,
+                        height: '100%',
+                        background: kmRemaining <= 300 ? 'linear-gradient(90deg, #fbbf24, #f59e0b)' : 'linear-gradient(90deg, #38bdf8, #34d399)',
+                        borderRadius: '9999px'
+                      }} />
                     </div>
                   </div>
 
                   <button 
                     type="button" 
-                    className="book-service-btn-full"
                     onClick={() => setBookingModalOpen(true)}
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      borderRadius: '13px',
+                      border: 'none',
+                      background: '#ffffff',
+                      color: '#0f172a',
+                      fontSize: '13.5px',
+                      fontWeight: 800,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      cursor: 'pointer',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                    }}
                   >
-                    Book Service Slot
+                    <Calendar size={17} color="#2563eb" strokeWidth={2.3} />
+                    <span>Book Service Slot</span>
                   </button>
                 </div>
 
-                <div className="service-details-card">
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>Service Details</span>
-                    <ChevronRight size={16} color="#94a3b8" />
+                {/* 2-Column Quick Service Stats */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div style={{
+                    background: '#ffffff',
+                    borderRadius: '16px',
+                    border: '1px solid #e2e8f0',
+                    padding: '13px 14px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#64748b', fontWeight: 600, marginBottom: '4px' }}>
+                      <CheckCircle2 size={14} color="#10b981" />
+                      <span>Last Service</span>
+                    </div>
+                    <div style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>
+                      {bharathBike.lastServiceDate || bharathBike.lastService || 'Not recorded'}
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                      At {lastSrvKm.toLocaleString()} km
+                    </div>
                   </div>
 
-                  <div className="service-detail-item-row">
-                    <div className="detail-row-left">
-                      <div className="detail-icon-circle icon-green-circle">
-                        <CheckCircle2 size={16} />
-                      </div>
-                      <div className="detail-text-col">
-                        <span className="detail-title">Last Service</span>
-                        <span className="detail-date">{bharathBike.lastService}</span>
-                      </div>
+                  <div style={{
+                    background: '#ffffff',
+                    borderRadius: '16px',
+                    border: '1px solid #e2e8f0',
+                    padding: '13px 14px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#64748b', fontWeight: 600, marginBottom: '4px' }}>
+                      <Clock size={14} color="#2563eb" />
+                      <span>Service Interval</span>
                     </div>
-                    <span className="detail-km-badge">{bharathBike.lastServiceKm}</span>
-                  </div>
-
-                  <div className="service-detail-item-row">
-                    <div className="detail-row-left">
-                      <div className="detail-icon-circle icon-blue-circle">
-                        <Clock size={16} />
-                      </div>
-                      <div className="detail-text-col">
-                        <span className="detail-title">Next Service</span>
-                        <span className="detail-date">{bharathBike.nextService}</span>
-                      </div>
+                    <div style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>
+                      Every {serviceIntervalKm.toLocaleString()} km
                     </div>
-                    <span className="detail-km-badge">{bharathBike.nextServiceKm}</span>
-                  </div>
-
-                  <div className="service-detail-item-row">
-                    <div className="detail-row-left">
-                      <div className="detail-icon-circle icon-gray-circle">
-                        <Wrench size={16} />
-                      </div>
-                      <div className="detail-text-col">
-                        <span className="detail-title">Service Interval</span>
-                      </div>
+                    <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                      Next target: {nextSrvKm.toLocaleString()} km
                     </div>
-                    <span className="detail-km-badge">Every 5,000 km</span>
                   </div>
                 </div>
 
-                <div className="service-history-card">
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>Service History</span>
+                {/* Component Health Checklist */}
+                <div className="service-details-card" style={{ borderRadius: '18px', padding: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                    <span style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>Component Health</span>
+                    <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>Auto-monitored</span>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                    {[
+                      { name: 'Engine Oil', ok: kmRemaining > 400 },
+                      { name: 'Brake Pads', ok: kmRemaining > 300 },
+                      { name: 'Chain & Lube', ok: (currentBikeKm - lastSrvKm) < (Number(serviceIntervals?.chainMaintenanceKm) || 500) },
+                      { name: 'Air Filter', ok: (currentBikeKm - lastSrvKm) < (Number(serviceIntervals?.airFilterKm) || 6000) }
+                    ].map(part => (
+                      <div key={part.name} style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        background: '#f8fafc',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '12px',
+                        padding: '10px 12px'
+                      }}>
+                        <span style={{ fontSize: '12px', fontWeight: 700, color: '#0f172a' }}>{part.name}</span>
+                        <span style={{
+                          fontSize: '10px',
+                          fontWeight: 800,
+                          color: part.ok ? '#059669' : '#d97706',
+                          background: part.ok ? '#ecfdf5' : '#fffbeb',
+                          padding: '2px 7px',
+                          borderRadius: '9999px'
+                        }}>
+                          {part.ok ? 'Good' : 'Check'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Service History */}
+                <div className="service-history-card" style={{ borderRadius: '18px', padding: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                    <span style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>Service History</span>
                     <button 
                       type="button" 
                       className="section-link-blue"
                       onClick={() => setActiveTab('service-history')}
                     >
-                      View All
+                      View All &rarr;
                     </button>
                   </div>
 
-                  {mockCustomerServiceHistory.slice(0, 3).map((item) => (
-                    <div key={item.id} className="service-history-row">
-                      <div className="detail-row-left">
-                        <div className="detail-icon-circle icon-blue-circle">
-                          <Wrench size={15} />
-                        </div>
-                        <div className="detail-text-col">
-                          <span className="detail-title">{item.serviceType}</span>
-                          <span className="detail-date">{item.date}</span>
-                        </div>
-                      </div>
-                      <span className="history-cost-tag">{item.cost}</span>
+                  {riderServiceHistory.length === 0 ? (
+                    <div style={{
+                      textAlign: 'center',
+                      padding: '20px 12px',
+                      background: '#f8fafc',
+                      border: '1px dashed #cbd5e1',
+                      borderRadius: '12px',
+                      color: '#64748b',
+                      fontSize: '12px'
+                    }}>
+                      No completed service records for {bharathBike.regNo} yet.
                     </div>
-                  ))}
+                  ) : (
+                    riderServiceHistory.slice(0, 3).map((item) => (
+                      <div key={item.id} className="service-history-row" style={{ padding: '10px 0' }}>
+                        <div className="detail-row-left">
+                          <div className="detail-icon-circle icon-blue-circle">
+                            <Wrench size={15} />
+                          </div>
+                          <div className="detail-text-col">
+                            <span className="detail-title">{item.serviceType}</span>
+                            <span className="detail-date">{item.date} • {item.odometer}</span>
+                          </div>
+                        </div>
+                        <span style={{
+                          fontSize: '12px',
+                          fontWeight: 800,
+                          color: '#2563eb',
+                          background: '#eff6ff',
+                          padding: '4px 10px',
+                          borderRadius: '9999px'
+                        }}>
+                          {item.cost}
+                        </span>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             </div>
@@ -1835,10 +2037,10 @@ export default function CustomerApp() {
                     {currentCustomer?.name ? currentCustomer.name.charAt(0).toUpperCase() : 'B'}
                   </div>
                   <div>
-                    <div style={{ fontSize: '17px', fontWeight: 800, color: '#0f172a' }}>{currentCustomer?.name || 'Bharath Kumar'}</div>
-                    <div style={{ fontSize: '12px', color: '#64748b' }}>{currentCustomer?.phone || '+91 98765 43210'}</div>
+                    <div style={{ fontSize: '17px', fontWeight: 800, color: '#0f172a' }}>{currentCustomer?.name || 'Rider'}</div>
+                    <div style={{ fontSize: '12px', color: '#64748b' }}>{currentCustomer?.phone || 'Not provided'}</div>
                     <div style={{ fontSize: '11.5px', color: '#f59e0b', fontWeight: 800, marginTop: '2px' }}>
-                      ⭐ GPS Loyalty Member ({currentCustomer?.membershipPoints || membership.pointsBalance} Points)
+                      ⭐ GPS Loyalty Member ({currentCustomer?.membershipPoints ?? membership.pointsBalance} Points)
                     </div>
                   </div>
                 </div>
@@ -1976,7 +2178,7 @@ export default function CustomerApp() {
             className={`bottom-nav-item ${activeTab === 'home' ? 'active' : ''}`}
             onClick={() => setActiveTab('home')}
           >
-            <Home size={19} />
+            <Home size={20} strokeWidth={activeTab === 'home' ? 2.4 : 1.9} />
             <span>Home</span>
           </button>
 
@@ -1985,7 +2187,7 @@ export default function CustomerApp() {
             className={`bottom-nav-item ${activeTab === 'distance' ? 'active' : ''}`}
             onClick={() => setActiveTab('distance')}
           >
-            <Navigation size={19} />
+            <Activity size={20} strokeWidth={activeTab === 'distance' ? 2.4 : 1.9} />
             <span>Distance</span>
           </button>
 
@@ -1994,7 +2196,7 @@ export default function CustomerApp() {
             className={`bottom-nav-item ${activeTab === 'playback' ? 'active' : ''}`}
             onClick={() => setActiveTab('playback')}
           >
-            <Play size={19} />
+            <Play size={20} strokeWidth={activeTab === 'playback' ? 2.4 : 1.9} />
             <span>Playback</span>
           </button>
 
@@ -2003,7 +2205,7 @@ export default function CustomerApp() {
             className={`bottom-nav-item ${activeTab === 'membership' ? 'active' : ''}`}
             onClick={() => setActiveTab('membership')}
           >
-            <Award size={19} />
+            <Award size={20} strokeWidth={activeTab === 'membership' ? 2.4 : 1.9} />
             <span>Points</span>
           </button>
 
@@ -2012,7 +2214,7 @@ export default function CustomerApp() {
             className={`bottom-nav-item ${activeTab === 'profile' ? 'active' : ''}`}
             onClick={() => setActiveTab('profile')}
           >
-            <User size={19} />
+            <User size={20} strokeWidth={activeTab === 'profile' ? 2.4 : 1.9} />
             <span>Profile</span>
           </button>
         </div>
@@ -2166,10 +2368,10 @@ export default function CustomerApp() {
         <form onSubmit={handleBookService}>
           <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '14px', fontSize: '13px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-              <span>Vehicle: <strong>Yamaha FZ-S ({bharathBike.regNo})</strong></span>
+              <span>Vehicle: <strong>{bharathBike.model} ({bharathBike.regNo})</strong></span>
               <span style={{ color: '#10b981', fontWeight: 700, fontSize: '11px' }}>● GPS Module Online</span>
             </div>
-            <div>Registered Owner: <strong>Bharath</strong> (9876543210)</div>
+            <div>Registered Owner: <strong>{currentCustomer?.name || 'Rider'}</strong> ({currentCustomer?.phone || 'N/A'})</div>
           </div>
 
           <div className="form-group">

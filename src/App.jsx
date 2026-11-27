@@ -10,7 +10,9 @@ import BikesPage from './pages/admin/BikesPage';
 import ServiceTrackingPage from './pages/admin/ServiceTrackingPage';
 import RepairHistoryPage from './pages/admin/RepairHistoryPage';
 import NextServicePage from './pages/admin/NextServicePage';
-import PoliceFinesPage from './pages/admin/PoliceFinesPage';
+import SalesAnalyticsPage from './pages/admin/SalesAnalyticsPage';
+import CustomerRatingsPage from './pages/admin/CustomerRatingsPage';
+import ServicePredictionPage from './pages/admin/ServicePredictionPage';
 import ReportsPage from './pages/admin/ReportsPage';
 import LiveTrackingPage from './pages/admin/LiveTrackingPage';
 import PendingServicePage from './pages/admin/PendingServicePage';
@@ -35,6 +37,9 @@ function AppRoutes() {
 
       {/* 2. Customer Mobile Interface (Public / Rider Access) */}
       <Route path="/customer" element={<CustomerApp />} />
+      <Route path="/customer/*" element={<CustomerApp />} />
+      <Route path="/mobile" element={<Navigate to="/customer" replace />} />
+      <Route path="/rider" element={<Navigate to="/customer" replace />} />
 
       {/* 3. Protected Admin Routes (Require Active Authenticated Session) */}
       <Route element={<ProtectedRoute />}>
@@ -55,7 +60,9 @@ function AppRoutes() {
           <Route path="services" element={<ServiceTrackingPage />} />
           <Route path="repairs" element={<RepairHistoryPage />} />
           <Route path="next-service" element={<NextServicePage />} />
-          <Route path="fines" element={<PoliceFinesPage />} />
+          <Route path="sales" element={<SalesAnalyticsPage />} />
+          <Route path="ratings" element={<CustomerRatingsPage />} />
+          <Route path="service-prediction" element={<ServicePredictionPage />} />
           <Route path="reports" element={<ReportsPage />} />
 
           {/* Fleet Telemetry & Operations */}

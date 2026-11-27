@@ -107,6 +107,45 @@ export default function SettingsPage() {
 
   return (
     <div className="settings-page" style={{ paddingBottom: '36px' }}>
+      {/* Top SaaS Header Banner */}
+      <div className="dash-hero-card">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div style={{
+            width: 46,
+            height: 46,
+            borderRadius: '12px',
+            background: 'linear-gradient(135deg, #EFF4FE, #DBEAFE)',
+            color: '#356DF3',
+            border: '1px solid #BFDBFE',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0
+          }}>
+            <Settings size={22} />
+          </div>
+          <div>
+            <div style={{ fontSize: '17px', fontWeight: 700, color: '#101828', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              <span>System Settings & Local Storage</span>
+              <span style={{
+                fontSize: '11px',
+                background: '#ECFDF3',
+                color: '#12B76A',
+                border: '1px solid #A6F4C5',
+                padding: '2px 9px',
+                borderRadius: '9999px',
+                fontWeight: 700
+              }}>
+                OFFLINE SYNCED
+              </span>
+            </div>
+            <div style={{ fontSize: '13px', color: '#667085', marginTop: '3px' }}>
+              Configure service interval benchmarks, manage JSON database backups, workshop info, and alert channels
+            </div>
+          </div>
+        </div>
+      </div>
+
       {savedSuccess && (
         <div style={{
           background: '#ecfdf5',

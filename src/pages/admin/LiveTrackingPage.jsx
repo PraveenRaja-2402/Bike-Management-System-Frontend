@@ -143,35 +143,38 @@ export default function LiveTrackingPage() {
     <div className="live-tracking-page">
       {/* Explicit Backend Integration & Simulated Telemetry Notice */}
       <div style={{
-        background: '#EFF4FE',
+        background: '#ffffff',
         border: '1px solid #BFDBFE',
-        borderRadius: '12px',
+        borderLeft: '4px solid #356DF3',
+        borderRadius: '14px',
         padding: '12px 18px',
         marginBottom: '16px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         flexWrap: 'wrap',
-        gap: '10px'
+        gap: '10px',
+        boxShadow: '0 1px 3px rgba(16, 24, 40, 0.04)'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
           <span style={{
-            fontSize: '10px',
+            fontSize: '10.5px',
             fontWeight: 800,
-            letterSpacing: '0.6px',
-            background: '#356DF3',
-            color: '#ffffff',
-            padding: '3px 8px',
-            borderRadius: '4px',
+            letterSpacing: '0.5px',
+            background: '#EFF4FE',
+            color: '#2957CC',
+            border: '1px solid #BFDBFE',
+            padding: '3px 9px',
+            borderRadius: '9999px',
             textTransform: 'uppercase'
           }}>
             Sample Data Preview
           </span>
-          <span style={{ fontSize: '13px', color: '#1E40AF', fontWeight: 500 }}>
-            Simulated Telemetry Preview • Backend Integration Ready. Showing sample IoT hardware coordinates for UI preview (never presented as real GPS hardware feeds).
+          <span style={{ fontSize: '13px', color: '#334155', fontWeight: 500 }}>
+            Simulated Telemetry Preview • Backend Integration Ready. Showing sample IoT hardware coordinates for UI preview.
           </span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11.5px', color: '#667085' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#059669', fontWeight: 600, background: '#ECFDF3', padding: '4px 10px', borderRadius: '9999px', border: '1px solid #A6F4C5' }}>
           <ShieldCheck size={14} color="#12B76A" />
           <span>MQTT / WebSocket Stub Ready</span>
         </div>
@@ -253,7 +256,7 @@ export default function LiveTrackingPage() {
             </div>
 
             {/* Quick Filter Pills */}
-            <div style={{ display: 'flex', gap: '4px', overflowX: 'auto', paddingBottom: '2px' }}>
+            <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px' }}>
               {[
                 { label: 'ALL', count: bikes.length },
                 { label: 'MOVING', count: movingCount },
@@ -265,7 +268,7 @@ export default function LiveTrackingPage() {
                   key={label}
                   type="button"
                   className={`tab-pill ${filterStatus === label ? 'active' : ''}`}
-                  style={{ fontSize: '11px', padding: '4px 7px', whiteSpace: 'nowrap' }}
+                  style={{ fontSize: '11px', padding: '5px 9px', whiteSpace: 'nowrap', flexShrink: 0 }}
                   onClick={() => setFilterStatus(label)}
                 >
                   {label} ({count})
@@ -603,10 +606,11 @@ export default function LiveTrackingPage() {
                 )}
               </div>
 
-              <div className="floating-card-actions" style={{ display: 'flex', gap: '8px' }}>
+              <div className="floating-card-actions" style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
                 <button
                   type="button"
-                  className="card-action-btn primary"
+                  className="btn-secondary btn-sm"
+                  style={{ flex: 1, height: '36px', fontSize: '12px' }}
                   onClick={() => {
                     setSelectedBike({ ...selectedBike });
                   }}
@@ -615,20 +619,8 @@ export default function LiveTrackingPage() {
                 </button>
                 <button
                   type="button"
-                  className="card-action-btn"
-                  style={{
-                    background: '#356DF3',
-                    color: '#ffffff',
-                    border: 'none',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '8px 12px',
-                    borderRadius: '8px',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    cursor: 'pointer'
-                  }}
+                  className="btn-primary btn-sm"
+                  style={{ flex: 1, height: '36px', fontSize: '12px' }}
                   onClick={() => handleStartPlayback(selectedBike)}
                   title="Watch animated historical trip playback"
                 >

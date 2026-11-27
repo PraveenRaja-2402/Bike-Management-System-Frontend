@@ -1191,13 +1191,13 @@ export default function ProfilePage() {
               {/* Module 6 */}
               <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <strong style={{ fontSize: '13.5px', color: '#0f172a' }}>Police Fines & E-Challans</strong>
+                  <strong style={{ fontSize: '13.5px', color: '#0f172a' }}>Sales Analytics & Predictions</strong>
                   <span style={{ fontSize: '11px', fontWeight: 800, color: '#059669' }}>
                     ● Granted (Both Roles)
                   </span>
                 </div>
                 <p style={{ margin: 0, fontSize: '12px', color: '#64748b', lineHeight: 1.4 }}>
-                  Record traffic violations, monitor unpaid fines, dispatch official legal notices, and settle fines.
+                  Monitor service & spare parts revenue, customer ratings, and predictive vehicle maintenance schedules.
                 </p>
               </div>
             </div>

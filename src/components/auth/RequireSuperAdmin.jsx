@@ -1,45 +1,27 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   ShieldAlert, 
   Lock, 
-  Crown, 
+  Crown,
+  Sparkles,
   ArrowLeft, 
-  KeyRound, 
-  AlertCircle, 
-  CheckCircle2, 
   Building2, 
   Users,
   Palette,
   Check,
-  X,
-  Sparkles
+  X
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
 export default function RequireSuperAdmin({ children, moduleName = "Super Admin Feature" }) {
-  const { currentRole, currentUser, switchAccountWithPassword } = useApp();
+  const { currentRole, currentUser } = useApp();
   const navigate = useNavigate();
-
-  const [elevationPassword, setElevationPassword] = useState('superadmin');
-  const [errorMessage, setErrorMessage] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
 
   // If already Super Admin, render children normally!
   if (currentRole === 'super_admin') {
     return children;
   }
-
-  const handleElevate = (pwd = elevationPassword) => {
-    setErrorMessage('');
-    const res = switchAccountWithPassword('super_admin', pwd);
-    if (res.success) {
-      setSuccessMessage('Elevated to Super Admin session successfully!');
-      setTimeout(() => setSuccessMessage(''), 1500);
-    } else {
-      setErrorMessage(res.error || 'Incorrect Super Admin password. (Hint: password is "superadmin" or "SuperAdmin@2026!")');
-    }
-  };
 
   return (
     <div className="access-denied-container">
@@ -100,40 +82,6 @@ export default function RequireSuperAdmin({ children, moduleName = "Super Admin 
               </div>
             </div>
           </div>
-        </div>
-
-        {errorMessage && (
-          <div className="auth-error-banner" style={{ marginTop: '0', marginBottom: '16px' }}>
-            <AlertCircle size={16} />
-            <span style={{ fontSize: '12px' }}>{errorMessage}</span>
-          </div>
-        )}
-
-        {successMessage && (
-          <div style={{ background: '#ecfdf5', color: '#065f46', border: '1px solid #10b981', padding: '10px', borderRadius: '10px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-            <CheckCircle2 size={16} />
-            <span>{successMessage}</span>
-          </div>
-        )}
-
-        {/* 1-Click Instant Elevation Button */}
-        <div style={{ marginBottom: '16px' }}>
-          <button
-            type="button"
-            className="btn-primary"
-            style={{ 
-              width: '100%', 
-              background: 'linear-gradient(135deg, #f59e0b, #d97706)', 
-              padding: '12px 18px', 
-              fontSize: '13.5px', 
-              fontWeight: 800,
-              justifyContent: 'center',
-              boxShadow: '0 4px 14px rgba(245, 158, 11, 0.35)'
-            }}
-            onClick={() => handleElevate('superadmin')}
-          >
-            <Crown size={16} /> ⚡ 1-Click Switch to Super Admin (Pass: superadmin)
-          </button>
         </div>
 
         <div className="access-footer-actions">

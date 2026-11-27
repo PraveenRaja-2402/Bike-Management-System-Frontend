@@ -28,12 +28,16 @@ import {
   CircleDot,
   Settings2,
   Sparkles,
-  Calendar
+  Calendar,
+  Star,
+  IndianRupee,
+  BarChart3
 } from 'lucide-react';
 import MetricCard from '../../components/common/MetricCard';
 import LeafletMap from '../../components/common/LeafletMap';
 import { useApp } from '../../context/AppContext';
-import { mockBikes } from '../../data/mockData';
+import { mockBikes, mockCustomerRatings } from '../../data/mockData';
+import { computeSalesAnalytics } from '../../utils/salesAnalytics';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -46,11 +50,19 @@ export default function DashboardPage() {
     bikesList,
     serviceRecords,
     repairRecords,
+    jobCardsList,
+    pendingServices,
     serviceIntervals,
     exportDatabaseBackup,
     sendCustomerWhatsApp,
     sendCustomerSms
   } = useApp();
+
+  const liveSales = useMemo(
+    () => computeSalesAnalytics({ serviceRecords, repairRecords, jobCardsList }),
+    [serviceRecords, repairRecords, jobCardsList]
+  );
+  const maxDashboardMonthlyTotal = Math.max(...liveSales.monthlyComparison.map(m => m.total), 1);
 
   const [selectedBike, setSelectedBike] = useState(mockBikes[0]);
   const [activeChartFilter, setActiveChartFilter] = useState('all'); // 'all', 'services', 'repairs'
@@ -246,19 +258,7 @@ export default function DashboardPage() {
       )}
 
       {/* Top Professional White SaaS Header Card */}
-      <div style={{
-        background: '#ffffff',
-        border: '1px solid #EAECF0',
-        borderRadius: '14px',
-        padding: '18px 24px',
-        marginBottom: '24px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '16px',
-        boxShadow: '0px 1px 3px rgba(16, 24, 40, 0.08), 0px 1px 2px rgba(16, 24, 40, 0.04)'
-      }}>
+      <div className="dash-hero-card">
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <div style={{
             width: 46,
@@ -335,25 +335,15 @@ export default function DashboardPage() {
 
       {/* Critical Overdue Alert Banner if overdue bikes exist */}
       {overdueCount > 0 && (
-        <div style={{
-          background: '#FEF3F2',
-          border: '1px solid #FECDCA',
-          borderRadius: '12px',
-          padding: '14px 20px',
-          marginBottom: '24px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '12px'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div className="dash-alert-banner">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: '1 1 300px' }}>
             <div style={{
-              width: 34,
-              height: 34,
-              borderRadius: '8px',
-              background: '#FEE4E2',
+              width: 36,
+              height: 36,
+              borderRadius: '10px',
+              background: '#FEF3F2',
               color: '#F04438',
+              border: '1px solid #FECDCA',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -362,10 +352,10 @@ export default function DashboardPage() {
               <AlertTriangle size={18} />
             </div>
             <div>
-              <strong style={{ color: '#B42318', fontSize: '13.5px' }}>
+              <strong style={{ color: '#101828', fontSize: '13.5px' }}>
                 Maintenance Reminders Required:
               </strong>
-              <span style={{ color: '#D92D20', fontSize: '13px', marginLeft: '6px' }}>
+              <span style={{ color: '#475467', fontSize: '13px', marginLeft: '6px' }}>
                 {overdueCount} {overdueCount === 1 ? 'bike is' : 'bikes are'} currently overdue for service. Remind customers via WhatsApp/SMS to prevent engine wear.
               </span>
             </div>
@@ -376,23 +366,25 @@ export default function DashboardPage() {
             className="btn-danger btn-sm"
             onClick={() => navigate('/admin/next-service')}
           >
-            Review Reminders ({overdueCount}) &rarr;
+            <span>Review Reminders</span>
+            <span style={{
+              background: 'rgba(255, 255, 255, 0.22)',
+              color: '#ffffff',
+              padding: '1px 7px',
+              borderRadius: '9999px',
+              fontSize: '11.5px',
+              fontWeight: 800,
+              lineHeight: 1.3
+            }}>
+              {overdueCount}
+            </span>
+            <ArrowRight size={14} />
           </button>
         </div>
       )}
 
-      {/* 5 Core Required Metrics Row */}
-      <div className="metrics-row-5">
-        <MetricCard
-          title="Total Registered Bikes"
-          value={totalRegisteredBikes}
-          icon={Bike}
-          color="blue"
-          trend="+12% this month"
-          trendType="up"
-          subtitle="All active customer bikes"
-          onClick={() => navigate('/admin/bikes')}
-        />
+      {/* 8 Core Required Business & Operations KPIs */}
+      <div className="metrics-row" style={{ marginBottom: '16px' }}>
         <MetricCard
           title="Total Customers"
           value={totalCustomers}
@@ -402,6 +394,16 @@ export default function DashboardPage() {
           trendType="neutral"
           subtitle="Vehicle owners in fleet"
           onClick={() => navigate('/admin/users')}
+        />
+        <MetricCard
+          title="Total Registered Bikes"
+          value={totalRegisteredBikes}
+          icon={Bike}
+          color="blue"
+          trend="+12% this month"
+          trendType="up"
+          subtitle="All active customer bikes"
+          onClick={() => navigate('/admin/bikes')}
         />
         <MetricCard
           title="Completed Services"
@@ -414,17 +416,50 @@ export default function DashboardPage() {
           onClick={() => navigate('/admin/services')}
         />
         <MetricCard
-          title="Upcoming Services"
+          title="Pending Services"
+          value={pendingServices?.length || 0}
+          icon={Wrench}
+          color="amber"
+          trend="In Queue"
+          trendType="warning"
+          subtitle="Awaiting completion"
+          onClick={() => navigate('/admin/pending-services')}
+        />
+      </div>
+
+      <div className="metrics-row" style={{ marginBottom: '24px' }}>
+        <MetricCard
+          title="Monthly Sales (Live)"
+          value={`₹${liveSales.summary.monthlySales.toLocaleString()}`}
+          icon={IndianRupee}
+          color="green"
+          trend={`Total ₹${liveSales.summary.totalRevenue.toLocaleString()}`}
+          trendType="up"
+          subtitle="Service, parts & labour"
+          onClick={() => navigate('/admin/sales')}
+        />
+        <MetricCard
+          title="Customer Satisfaction (Sample)"
+          value={`${mockCustomerRatings.overallRating} ★`}
+          icon={Star}
+          color="amber"
+          trend={`${mockCustomerRatings.totalReviews} reviews`}
+          trendType="up"
+          subtitle="5-star rating average"
+          onClick={() => navigate('/admin/ratings')}
+        />
+        <MetricCard
+          title="Upcoming Service Reminders"
           value={upcomingCount}
           icon={Clock}
-          color="amber"
+          color="blue"
           trend="≤ 500 km / 15d"
-          trendType="warning"
+          trendType="neutral"
           subtitle="Due for service soon"
           onClick={() => navigate('/admin/next-service')}
         />
         <MetricCard
-          title="Overdue Services"
+          title="Overdue Service Reminders"
           value={overdueCount}
           icon={AlertTriangle}
           color="red"
@@ -436,19 +471,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick Operational Action Dock */}
-      <div style={{
-        background: '#ffffff',
-        border: '1px solid #EAECF0',
-        borderRadius: '12px',
-        padding: '12px 18px',
-        marginBottom: '24px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '12px',
-        boxShadow: '0px 1px 2px rgba(16, 24, 40, 0.05)'
-      }}>
+      <div className="dash-quick-dock">
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Sparkles size={16} color="#356DF3" />
           <span style={{ fontSize: '13px', fontWeight: 700, color: '#101828' }}>
@@ -506,7 +529,7 @@ export default function DashboardPage() {
       {/* Service Statistics Charts Section (Requirement 3: Service statistics charts) */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: '1.3fr 1fr',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
         gap: '24px',
         marginBottom: '24px'
       }}>
@@ -547,24 +570,24 @@ export default function DashboardPage() {
                     <div style={{ display: 'flex', alignItems: 'flex-end', gap: '6px', width: '100%', justifyContent: 'center' }}>
                       {/* Periodic Service Bar */}
                       <div 
+                        className="dash-chart-bar"
                         title={`${item.month}: ${item.services} Periodic Services`}
                         style={{
                           width: '18px',
                           height: `${Math.max(srvHeight, 14)}px`,
                           background: 'linear-gradient(180deg, #356DF3 0%, #2957CC 100%)',
-                          borderRadius: '4px 4px 0 0',
-                          transition: 'height 0.3s ease'
+                          borderRadius: '6px 6px 0 0'
                         }}
                       />
                       {/* Repair Bar */}
                       <div 
+                        className="dash-chart-bar"
                         title={`${item.month}: ${item.repairs} Mechanical Repairs`}
                         style={{
                           width: '18px',
                           height: `${Math.max(repHeight, 10)}px`,
                           background: 'linear-gradient(180deg, #12B76A 0%, #059669 100%)',
-                          borderRadius: '4px 4px 0 0',
-                          transition: 'height 0.3s ease'
+                          borderRadius: '6px 6px 0 0'
                         }}
                       />
                     </div>
@@ -649,8 +672,99 @@ export default function DashboardPage() {
 
       </div>
 
+      {/* Business Analytics Graphical Reports Row (Sample Data Clearly Labelled) */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+        gap: '24px',
+        marginBottom: '24px'
+      }}>
+        {/* 1. Monthly Sales Chart */}
+        <div className="card">
+          <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="card-title" style={{ fontSize: '15px' }}>
+              <BarChart3 size={18} color="#356DF3" />
+              <span>Monthly Sales (Live)</span>
+            </div>
+            <button type="button" className="btn-outline-blue btn-sm" onClick={() => navigate('/admin/sales')}>
+              Full Analytics
+            </button>
+          </div>
+          <div className="card-body" style={{ padding: '18px 20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '10px', alignItems: 'end', height: '140px' }}>
+              {liveSales.monthlyComparison.map((m) => {
+                const h = Math.max(4, Math.round((m.total / maxDashboardMonthlyTotal) * 105));
+                return (
+                  <div key={m.month} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                    <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#0f172a' }}>
+                      {m.total >= 1000 ? `₹${(m.total / 1000).toFixed(1)}k` : `₹${m.total}`}
+                    </span>
+                    <div className="dash-chart-bar" style={{ width: '100%', maxWidth: '28px', height: `${h}px`, background: 'linear-gradient(180deg, #356DF3 0%, #60a5fa 100%)', borderRadius: '6px 6px 2px 2px' }} />
+                    <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>{m.month}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* 2. Customer Rating Distribution */}
+        <div className="card">
+          <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="card-title" style={{ fontSize: '15px' }}>
+              <Star size={18} color="#f59e0b" />
+              <span>Customer Ratings (Sample)</span>
+            </div>
+            <button type="button" className="btn-outline-blue btn-sm" onClick={() => navigate('/admin/ratings')}>
+              {mockCustomerRatings.overallRating} ★ View All
+            </button>
+          </div>
+          <div className="card-body" style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {mockCustomerRatings.distribution.map((row) => (
+              <div key={row.stars} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '12px' }}>
+                <span style={{ width: '44px', fontWeight: 700, color: '#0f172a' }}>{row.stars} ★</span>
+                <div style={{ flex: 1, height: '8px', background: '#f1f5f9', borderRadius: '9999px', overflow: 'hidden' }}>
+                  <div style={{ width: `${row.percentage}%`, height: '100%', background: row.stars >= 4 ? '#10b981' : row.stars === 3 ? '#f59e0b' : '#ef4444' }} />
+                </div>
+                <span style={{ width: '40px', textAlign: 'right', color: '#64748b', fontWeight: 600 }}>{row.percentage}%</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 3. Most Serviced Bike Models */}
+        <div className="card">
+          <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="card-title" style={{ fontSize: '15px' }}>
+              <Bike size={18} color="#10b981" />
+              <span>Most Serviced Bike Models</span>
+            </div>
+            <span style={{ fontSize: '11px', color: '#64748b' }}>Sample + Fleet</span>
+          </div>
+          <div className="card-body" style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {[
+              { model: 'Yamaha FZ-S', count: 42, pct: 88, color: '#356DF3' },
+              { model: 'Honda Activa 6G', count: 38, pct: 78, color: '#10b981' },
+              { model: 'Royal Enfield Classic 350', count: 29, pct: 62, color: '#f59e0b' },
+              { model: 'Bajaj Pulsar 150', count: 24, pct: 50, color: '#6366f1' },
+              { model: 'TVS Apache RTR 160', count: 19, pct: 40, color: '#0284c7' }
+            ].map((m) => (
+              <div key={m.model}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' }}>
+                  <strong style={{ color: '#0f172a' }}>{m.model}</strong>
+                  <span style={{ color: '#64748b', fontWeight: 600 }}>{m.count} services</span>
+                </div>
+                <div style={{ height: '6px', background: '#f1f5f9', borderRadius: '9999px', overflow: 'hidden' }}>
+                  <div style={{ width: `${m.pct}%`, height: '100%', background: m.color, borderRadius: '9999px' }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* Main Grid: Recent Service Activities + Fleet Map */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.25fr 1fr', gap: '24px', marginBottom: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', marginBottom: '24px' }}>
         
         {/* Left: Recent Service Activities (Required Dashboard Feature) */}
         <div className="card">

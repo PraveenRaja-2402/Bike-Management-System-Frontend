@@ -18,11 +18,15 @@ import {
   Smartphone,
   Copy,
   ExternalLink,
-  Check
+  Check,
+  UploadCloud,
+  FileCheck,
+  Info
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import StatusBadge from '../../components/common/StatusBadge';
 import Modal from '../../components/common/Modal';
+import { mockCustomerVerifications } from '../../data/mockData';
 
 export default function UsersPage() {
   const { currentRole, usersList, addUser, updateUser, deleteUser, bikesList } = useApp();
@@ -40,6 +44,57 @@ export default function UsersPage() {
   const [copiedInvite, setCopiedInvite] = useState(false);
   const [successToast, setSuccessToast] = useState('');
   const [errorToast, setErrorToast] = useState('');
+  // In-memory only KYC preview state (never stored in localStorage)
+  const [kycState, setKycState] = useState(mockCustomerVerifications);
+
+  const getCustomerKyc = (userId) => {
+    return kycState[userId] || {
+      aadhaar: { status: 'Not Submitted', maskedRef: '—', verifiedDate: '—', fileName: '' },
+      pan: { status: 'Not Submitted', maskedRef: '—', verifiedDate: '—', fileName: '' },
+      voterId: { status: 'Not Submitted', maskedRef: '—', verifiedDate: '—', fileName: '' }
+    };
+  };
+
+  const handleMockDocUpload = (userId, docKey, file) => {
+    if (!file) return;
+    const todayStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    const maskedMap = {
+      aadhaar: 'XXXX-XXXX-0000 (Sample)',
+      pan: 'XXXXX****X (Sample)',
+      voterId: 'XX/00/****/000 (Sample)'
+    };
+    const current = getCustomerKyc(userId);
+    setKycState({
+      ...kycState,
+      [userId]: {
+        ...current,
+        [docKey]: {
+          status: 'Pending',
+          maskedRef: maskedMap[docKey],
+          verifiedDate: `Uploaded ${todayStr} (Pending Review)`,
+          fileName: file.name
+        }
+      }
+    });
+    setSuccessToast(`Sample document "${file.name}" queued for ${docKey.toUpperCase()} review (not stored in LocalStorage).`);
+    setTimeout(() => setSuccessToast(''), 4000);
+  };
+
+  const handleKycStatusChange = (userId, docKey, newStatus) => {
+    const todayStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    const current = getCustomerKyc(userId);
+    setKycState({
+      ...kycState,
+      [userId]: {
+        ...current,
+        [docKey]: {
+          ...current[docKey],
+          status: newStatus,
+          verifiedDate: newStatus === 'Verified' ? todayStr : newStatus === 'Rejected' ? `${todayStr} (Rejected)` : newStatus === 'Pending' ? 'Pending Review' : '—'
+        }
+      }
+    });
+  };
 
   const [formData, setFormData] = useState({
     name: '',
@@ -326,7 +381,7 @@ export default function UsersPage() {
                 <th>Role</th>
                 <th>Membership Points</th>
                 <th>Status</th>
-                <th style={{ textAlign: 'center' }}>Action</th>
+                <th style={{ textAlign: 'right' }}>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -367,28 +422,20 @@ export default function UsersPage() {
                     <td>
                       <StatusBadge status={user.status} />
                     </td>
-                    <td style={{ textAlign: 'center' }}>
-                      <div className="table-actions" style={{ justifyContent: 'center' }}>
+                    <td style={{ textAlign: 'right' }}>
+                      <div className="table-actions" style={{ justifyContent: 'flex-end', display: 'inline-flex', alignItems: 'center', gap: '6px', flexWrap: 'nowrap' }}>
                         {isCustomer && (
                           <button 
                             type="button" 
-                            className="btn-outline-blue btn-sm"
-                            style={{ 
-                              display: 'inline-flex', 
-                              alignItems: 'center', 
-                              gap: '4px', 
-                              background: '#ecfdf5', 
-                              borderColor: '#10b981', 
-                              color: '#065f46',
-                              fontWeight: 700
-                            }}
+                            className="btn-outline-green btn-sm"
                             onClick={() => {
                               setShareModalUser(user);
                               setCopiedInvite(false);
                             }}
                             title="Share Customer Mobile App link and login credentials"
                           >
-                            <Smartphone size={12} /> Mobile Access
+                            <Smartphone size={13} />
+                            <span>Mobile Access</span>
                           </button>
                         )}
                         <button 
@@ -396,23 +443,25 @@ export default function UsersPage() {
                           className="btn-outline-blue btn-sm"
                           onClick={() => setViewModalUser(user)}
                         >
-                          View
+                          <Eye size={13} />
+                          <span>View</span>
                         </button>
                         <button 
                           type="button" 
                           className="btn-secondary btn-sm"
                           onClick={() => handleOpenEdit(user)}
                         >
-                          Edit
+                          <Edit2 size={13} />
+                          <span>Edit</span>
                         </button>
                         <button
                           type="button"
-                          className="btn-danger btn-sm"
-                          style={{ padding: '4px 8px' }}
+                          className="btn-outline-danger btn-sm"
                           onClick={() => handleDelete(user)}
                           title="Delete User"
                         >
                           <Trash2 size={13} />
+                          <span>Delete</span>
                         </button>
                       </div>
                     </td>
@@ -745,7 +794,8 @@ export default function UsersPage() {
         <Modal
           isOpen={Boolean(viewModalUser)}
           onClose={() => setViewModalUser(null)}
-          title="User Profile Details"
+          title="User Profile & Identity Verification"
+          size={viewModalUser.role === 'Customer' ? 'lg' : 'md'}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '16px' }}>
             <div className="user-initial-avatar" style={{ width: 48, height: 48, fontSize: '20px' }}>
@@ -786,6 +836,89 @@ export default function UsersPage() {
               </>
             )}
           </div>
+
+          {/* Customer Identity Verification Section (Sample UI - No Real IDs Stored) */}
+          {viewModalUser.role === 'Customer' && (
+            <div style={{ marginTop: '18px', borderTop: '1px solid #e2e8f0', paddingTop: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <FileCheck size={17} color="#356DF3" />
+                  <strong style={{ fontSize: '14px', color: '#0f172a' }}>Customer Identity Verification (KYC Preview)</strong>
+                </div>
+                <span style={{ fontSize: '11px', fontWeight: 700, background: '#eff6ff', color: '#1d4ed8', padding: '2px 8px', borderRadius: '9999px' }}>
+                  Sample Placeholder UI
+                </span>
+              </div>
+
+              <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '8px 12px', fontSize: '11.5px', color: '#1e40af', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Info size={14} style={{ flexShrink: 0 }} />
+                <span>Frontend UI preview only. Real identity numbers and document images are not stored in LocalStorage and will connect to secure backend storage.</span>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
+                {[
+                  { key: 'aadhaar', label: 'Aadhaar Card' },
+                  { key: 'pan', label: 'PAN Card' },
+                  { key: 'voterId', label: 'Voter ID' }
+                ].map(({ key, label }) => {
+                  const doc = getCustomerKyc(viewModalUser.id)[key];
+                  const statusColor =
+                    doc.status === 'Verified' ? { bg: '#ecfdf5', text: '#059669', border: '#a7f3d0' } :
+                    doc.status === 'Pending' ? { bg: '#fffbeb', text: '#d97706', border: '#fde68a' } :
+                    doc.status === 'Rejected' ? { bg: '#fef2f2', text: '#dc2626', border: '#fecaca' } :
+                    { bg: '#f1f5f9', text: '#64748b', border: '#cbd5e1' };
+
+                  return (
+                    <div key={key} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <strong style={{ fontSize: '13px', color: '#0f172a' }}>{label}</strong>
+                        <span style={{
+                          fontSize: '10.5px', fontWeight: 700, padding: '2px 8px', borderRadius: '9999px',
+                          background: statusColor.bg, color: statusColor.text, border: `1px solid ${statusColor.border}`
+                        }}>
+                          {doc.status}
+                        </span>
+                      </div>
+
+                      <div style={{ fontSize: '11.5px', color: '#475569' }}>
+                        <div>Masked Ref: <code style={{ fontWeight: 700, color: '#0f172a' }}>{doc.maskedRef}</code></div>
+                        <div>Date: <strong>{doc.verifiedDate}</strong></div>
+                        {doc.fileName && <div style={{ color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>File: {doc.fileName}</div>}
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: 'auto', paddingTop: '6px', borderTop: '1px solid #f1f5f9' }}>
+                        <label style={{
+                          flex: 1, fontSize: '11px', fontWeight: 700, color: '#356DF3', background: '#eff6ff',
+                          padding: '5px 8px', borderRadius: '6px', textAlign: 'center', cursor: 'pointer',
+                          display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '4px'
+                        }}>
+                          <UploadCloud size={12} />
+                          <span>Upload</span>
+                          <input
+                            type="file"
+                            accept=".jpg,.jpeg,.png,.pdf"
+                            style={{ display: 'none' }}
+                            onChange={(e) => handleMockDocUpload(viewModalUser.id, key, e.target.files?.[0])}
+                          />
+                        </label>
+                        <select
+                          value={doc.status}
+                          onChange={(e) => handleKycStatusChange(viewModalUser.id, key, e.target.value)}
+                          style={{ fontSize: '11px', padding: '4px 6px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#f8fafc', color: '#334155' }}
+                          title="Preview verification status"
+                        >
+                          <option value="Not Submitted">Not Submitted</option>
+                          <option value="Pending">Pending</option>
+                          <option value="Verified">Verified</option>
+                          <option value="Rejected">Rejected</option>
+                        </select>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           <div style={{ textAlign: 'right', marginTop: '16px' }}>
             <button type="button" className="btn-primary" onClick={() => setViewModalUser(null)}>

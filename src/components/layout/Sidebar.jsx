@@ -22,13 +22,15 @@ import {
   EyeOff,
   AlertTriangle,
   Sparkles,
-  ShieldAlert,
   Bike,
   Wrench,
   FileText,
   HardDrive,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  TrendingUp,
+  Star,
+  Activity
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import DynamicBrandLogo from '../common/DynamicBrandLogo';
@@ -42,8 +44,7 @@ export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggle
     pendingServices, 
     logout, 
     switchAccountWithPassword,
-    bikesList,
-    customerFines 
+    bikesList
   } = useApp();
   const navigate = useNavigate();
 
@@ -66,11 +67,6 @@ export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggle
       return curKm >= nextKm || dateOver;
     }).length;
   }, [bikesList]);
-
-  // Calculate unpaid police fines count
-  const unpaidFinesCount = useMemo(() => {
-    return (customerFines || []).filter(f => f.status === 'Unpaid').length;
-  }, [customerFines]);
 
   // Password-authenticated Role Switch Modal
   const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false);
@@ -124,13 +120,9 @@ export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggle
       badge: overdueCount > 0 ? `${overdueCount} Due` : null, 
       badgeColor: '#ef4444' 
     },
-    { 
-      name: 'Police Fines', 
-      path: '/admin/fines', 
-      icon: ShieldAlert, 
-      badge: unpaidFinesCount > 0 ? `${unpaidFinesCount} Due` : null, 
-      badgeColor: '#ef4444' 
-    },
+    { name: 'Service Prediction', path: '/admin/service-prediction', icon: Activity },
+    { name: 'Sales Analytics', path: '/admin/sales', icon: TrendingUp },
+    { name: 'Customer Ratings', path: '/admin/ratings', icon: Star },
     { name: 'Reports & Export', path: '/admin/reports', icon: FileText }
   ];
 
@@ -144,7 +136,7 @@ export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggle
       badge: criticalOverdueCount > 0 ? `${criticalOverdueCount} Due` : null,
       badgeColor: '#f59e0b'
     },
-    { name: 'Job Cards', path: '/admin/job-cards', icon: ClipboardCheck },
+    { name: 'Job Completion', path: '/admin/job-cards', icon: ClipboardCheck },
     { name: 'Customers & Users', path: '/admin/users', icon: Users },
     { name: 'Manage Brands', path: '/admin/manage-brands', icon: Tag }
   ];
@@ -155,11 +147,11 @@ export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggle
     { name: 'My Profile', path: '/admin/profile', icon: User }
   ];
 
-  // Super Admin Only Master Modules (No redundant text badges in super admin mode)
+  // Super Admin Only Master Modules
   const superAdminNavItems = [
-    { name: 'Admin Management', path: '/admin/admins', icon: Crown, badge: !isSuperAdmin ? '🔒' : null },
-    { name: 'Store Locations', path: '/admin/stores', icon: Store, badge: !isSuperAdmin ? '🔒' : null },
-    { name: 'Logo & Branding', path: '/admin/branding', icon: Palette, badge: !isSuperAdmin ? '🔒' : null }
+    { name: 'Admin Management', path: '/admin/admins', icon: Crown },
+    { name: 'Store Locations', path: '/admin/stores', icon: Store },
+    { name: 'Logo & Branding', path: '/admin/branding', icon: Palette }
   ];
 
   return (
@@ -237,46 +229,41 @@ export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggle
 
         {/* Navigation Items */}
         <nav className="sidebar-nav">
-          {/* Super Admin Modules */}
-          <div className="nav-section-title">
-            <span>SUPER ADMIN CONTROLS</span>
-            <span style={{ 
-              fontSize: '9px', 
-              background: isSuperAdmin ? '#f59e0b25' : '#ef444420', 
-              color: isSuperAdmin ? '#f59e0b' : '#ef4444', 
-              padding: '1px 6px', 
-              borderRadius: '4px', 
-              fontWeight: 800,
-              letterSpacing: '0.4px'
-            }}>
-              {isSuperAdmin ? 'MASTER' : 'RESTRICTED'}
-            </span>
-          </div>
-          
-          {superAdminNavItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                onClick={onClose}
-                className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''} ${!isSuperAdmin ? 'restricted-item' : ''}`}
-                style={{ opacity: isSuperAdmin ? 1 : 0.8 }}
-                title={!isSuperAdmin ? `${item.name} (Super Admin Password Required)` : item.name}
-              >
-                <Icon size={18} className="nav-item-icon" color={isSuperAdmin ? '#f59e0b' : '#94a3b8'} />
-                <span className="nav-item-label">{item.name}</span>
-                {item.badge && (
-                  <span className="nav-item-badge" style={{
-                    background: isSuperAdmin ? '#fef3c7' : '#fee2e2',
-                    color: isSuperAdmin ? '#b45309' : '#dc2626'
-                  }}>
-                    {item.badge}
-                  </span>
-                )}
-              </NavLink>
-            );
-          })}
+          {/* Super Admin Modules (Visible strictly to Super Admin) */}
+          {isSuperAdmin && (
+            <>
+              <div className="nav-section-title">
+                <span>SUPER ADMIN CONTROLS</span>
+                <span style={{ 
+                  fontSize: '9px', 
+                  background: '#f59e0b25', 
+                  color: '#f59e0b', 
+                  padding: '1px 6px', 
+                  borderRadius: '4px', 
+                  fontWeight: 800,
+                  letterSpacing: '0.4px'
+                }}>
+                  MASTER
+                </span>
+              </div>
+              
+              {superAdminNavItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <NavLink
+                    key={item.path}
+                    to={item.path}
+                    onClick={onClose}
+                    className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`}
+                    title={item.name}
+                  >
+                    <Icon size={18} className="nav-item-icon" color="#f59e0b" />
+                    <span className="nav-item-label">{item.name}</span>
+                  </NavLink>
+                );
+              })}
+            </>
+          )}
 
           {/* Section: Bike Repair & Service System */}
           <div className="nav-section-title" style={{ marginTop: '10px' }}>

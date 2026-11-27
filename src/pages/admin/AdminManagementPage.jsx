@@ -243,36 +243,36 @@ export default function AdminManagementPage() {
       )}
 
       {/* Top Super Admin Metric Summary */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '20px' }}>
-        <div className="card" style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <div style={{ width: 44, height: 44, borderRadius: '12px', background: '#eff6ff', color: '#356DF3', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Crown size={24} />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '18px', marginBottom: '24px' }}>
+        <div className="sa-stat-card">
+          <div style={{ width: 46, height: 46, borderRadius: '12px', background: '#eff6ff', color: '#356DF3', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Crown size={22} />
           </div>
           <div>
-            <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Total Administrators</div>
-            <div style={{ fontSize: '22px', fontWeight: 800, color: '#0f172a' }}>{adminsList.length}</div>
+            <div style={{ fontSize: '12.5px', color: '#667085', fontWeight: 600 }}>Total Administrators</div>
+            <div style={{ fontSize: '24px', fontWeight: 800, color: '#101828', letterSpacing: '-0.5px' }}>{adminsList.length}</div>
           </div>
         </div>
 
-        <div className="card" style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <div style={{ width: 44, height: 44, borderRadius: '12px', background: '#ecfdf5', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <ShieldCheck size={24} />
+        <div className="sa-stat-card">
+          <div style={{ width: 46, height: 46, borderRadius: '12px', background: '#ecfdf5', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <ShieldCheck size={22} />
           </div>
           <div>
-            <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Active Super Admins</div>
-            <div style={{ fontSize: '22px', fontWeight: 800, color: '#0f172a' }}>
+            <div style={{ fontSize: '12.5px', color: '#667085', fontWeight: 600 }}>Active Super Admins</div>
+            <div style={{ fontSize: '24px', fontWeight: 800, color: '#101828', letterSpacing: '-0.5px' }}>
               {adminsList.filter(a => a.role === 'Super Admin').length}
             </div>
           </div>
         </div>
 
-        <div className="card" style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <div style={{ width: 44, height: 44, borderRadius: '12px', background: '#fdf4ff', color: '#c026d3', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Building2 size={24} />
+        <div className="sa-stat-card">
+          <div style={{ width: 46, height: 46, borderRadius: '12px', background: '#fdf4ff', color: '#c026d3', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Building2 size={22} />
           </div>
           <div>
-            <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Branches Managed</div>
-            <div style={{ fontSize: '22px', fontWeight: 800, color: '#0f172a' }}>{storesList.length} Hubs</div>
+            <div style={{ fontSize: '12.5px', color: '#667085', fontWeight: 600 }}>Branches Managed</div>
+            <div style={{ fontSize: '24px', fontWeight: 800, color: '#101828', letterSpacing: '-0.5px' }}>{storesList.length} Hubs</div>
           </div>
         </div>
       </div>

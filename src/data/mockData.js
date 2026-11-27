@@ -1235,3 +1235,143 @@ export const mockPendingServices = [
     notes: "Customer prefers weekend morning drop-off."
   }
 ];
+
+// ============================================================================
+// SAMPLE DATA FOR SALES & REVENUE ANALYTICS (UI Preview until Backend API)
+// ============================================================================
+export const mockSalesAnalytics = {
+  summary: {
+    dailySales: 14850,
+    weeklySales: 96400,
+    monthlySales: 412500,
+    yearlySales: 4860000,
+    serviceRevenue: 198000,
+    sparePartsRevenue: 142500,
+    labourRevenue: 72000
+  },
+  monthlyComparison: [
+    { month: "Apr", service: 142000, parts: 98000, labour: 54000, total: 294000 },
+    { month: "May", service: 158000, parts: 112000, labour: 59000, total: 329000 },
+    { month: "Jun", service: 164000, parts: 118000, labour: 61000, total: 343000 },
+    { month: "Jul", service: 175000, parts: 126000, labour: 64000, total: 365000 },
+    { month: "Aug", service: 186000, parts: 134000, labour: 68000, total: 388000 },
+    { month: "Sep", service: 198000, parts: 142500, labour: 72000, total: 412500 }
+  ],
+  topSellingServices: [
+    { name: "General Periodic Service", count: 148, revenue: 125800, share: 36 },
+    { name: "Engine Oil & Filter Replacement", count: 124, revenue: 93000, share: 27 },
+    { name: "Chain & Sprocket Overhaul", count: 68, revenue: 64600, share: 18 },
+    { name: "Brake Pad & Disc Maintenance", count: 82, revenue: 45100, share: 13 },
+    { name: "Battery & Electrical Diagnostics", count: 34, revenue: 22100, share: 6 }
+  ],
+  topSellingParts: [
+    { name: "Motul 7100 10W40 Synthetic Oil", sku: "OIL-MOT-7100", unitsSold: 132, revenue: 79200 },
+    { name: "Rolon Brass Chain & Sprocket Kit", sku: "CHN-ROL-428", unitsSold: 42, revenue: 54600 },
+    { name: "Amaron Pro Bike Rider Battery (5Ah)", sku: "BAT-AMR-05", unitsSold: 24, revenue: 33600 },
+    { name: "Brembo / Nissin Front Brake Pads", sku: "BRK-NIS-01", unitsSold: 64, revenue: 28800 },
+    { name: "OEM Air Filter & Spark Plug Combo", sku: "FLT-OEM-12", unitsSold: 89, revenue: 22250 }
+  ]
+};
+
+// ============================================================================
+// SAMPLE DATA FOR CUSTOMER RATINGS & FEEDBACK (UI Preview until Backend API)
+// ============================================================================
+export const mockCustomerRatings = {
+  overallRating: 4.7,
+  totalReviews: 184,
+  distribution: [
+    { stars: 5, count: 136, percentage: 74 },
+    { stars: 4, count: 31, percentage: 17 },
+    { stars: 3, count: 11, percentage: 6 },
+    { stars: 2, count: 4, percentage: 2 },
+    { stars: 1, count: 2, percentage: 1 }
+  ],
+  serviceWiseRatings: [
+    { service: "General Periodic Service", rating: 4.8, reviews: 76 },
+    { service: "Engine Oil & Filter", rating: 4.9, reviews: 44 },
+    { service: "Chain & Brake Service", rating: 4.6, reviews: 32 },
+    { service: "Battery & Electrical", rating: 4.5, reviews: 18 },
+    { service: "Tyre & Suspension", rating: 4.7, reviews: 14 }
+  ],
+  monthlyTrend: [
+    { month: "Apr", rating: 4.4, reviews: 24 },
+    { month: "May", rating: 4.5, reviews: 28 },
+    { month: "Jun", rating: 4.6, reviews: 31 },
+    { month: "Jul", rating: 4.6, reviews: 33 },
+    { month: "Aug", rating: 4.7, reviews: 32 },
+    { month: "Sep", rating: 4.8, reviews: 36 }
+  ],
+  feedbackList: [
+    {
+      id: 1,
+      customerName: "Bharath",
+      bikeModel: "Yamaha FZ-S",
+      regNo: "TN 30 AB 1234",
+      serviceType: "General Service + Chain Lube",
+      rating: 5,
+      date: "18 Sep 2026",
+      comment: "Sample Review: Very smooth pickup after engine oil and chain adjustment. Transparent billing and timely SMS updates."
+    },
+    {
+      id: 2,
+      customerName: "Priya",
+      bikeModel: "Honda Activa",
+      regNo: "TN 28 CD 5678",
+      serviceType: "Periodic Maintenance",
+      rating: 5,
+      date: "15 Sep 2026",
+      comment: "Sample Review: Quick turnaround at Salem Central Hub. Scooter feels brand new."
+    },
+    {
+      id: 3,
+      customerName: "Karthik",
+      bikeModel: "Royal Enfield Classic",
+      regNo: "TN 30 XY 4321",
+      serviceType: "Tappet & Brake Overhaul",
+      rating: 4,
+      date: "12 Sep 2026",
+      comment: "Sample Review: Good mechanical work on tappet noise. Delivery was 20 mins later than promised, otherwise great."
+    },
+    {
+      id: 4,
+      customerName: "Suresh",
+      bikeModel: "Bajaj Pulsar 150",
+      regNo: "TN 30 EF 9012",
+      serviceType: "Battery & Electrical Check",
+      rating: 5,
+      date: "08 Sep 2026",
+      comment: "Sample Review: Diagnosed the stator coil issue accurately instead of just replacing the battery."
+    },
+    {
+      id: 5,
+      customerName: "Arun",
+      bikeModel: "TVS Apache RTR",
+      regNo: "TN 34 GH 3456",
+      serviceType: "Brake & Chain Service",
+      rating: 3,
+      date: "02 Sep 2026",
+      comment: "Sample Review: Service quality is good, waiting lounge could use more seating during weekend rush."
+    }
+  ]
+};
+
+// ============================================================================
+// SAMPLE DATA FOR CUSTOMER IDENTITY VERIFICATION (No Real IDs or LocalStorage)
+// ============================================================================
+export const mockCustomerVerifications = {
+  1: {
+    aadhaar: { status: "Verified", maskedRef: "XXXX-XXXX-4821", verifiedDate: "14 Sep 2026", fileName: "sample_aadhaar_placeholder.pdf" },
+    pan: { status: "Verified", maskedRef: "ABCDE****F", verifiedDate: "14 Sep 2026", fileName: "sample_pan_placeholder.jpg" },
+    voterId: { status: "Not Submitted", maskedRef: "—", verifiedDate: "—", fileName: "" }
+  },
+  2: {
+    aadhaar: { status: "Verified", maskedRef: "XXXX-XXXX-7390", verifiedDate: "10 Sep 2026", fileName: "sample_aadhaar_placeholder.png" },
+    pan: { status: "Pending", maskedRef: "FGHIJ****K", verifiedDate: "Pending Review", fileName: "sample_pan_upload.jpg" },
+    voterId: { status: "Not Submitted", maskedRef: "—", verifiedDate: "—", fileName: "" }
+  },
+  3: {
+    aadhaar: { status: "Pending", maskedRef: "XXXX-XXXX-1104", verifiedDate: "Pending Review", fileName: "sample_aadhaar_upload.jpg" },
+    pan: { status: "Not Submitted", maskedRef: "—", verifiedDate: "—", fileName: "" },
+    voterId: { status: "Rejected", maskedRef: "TN/12/****/884", verifiedDate: "05 Sep 2026 (Blurry Scan)", fileName: "sample_voter_blurry.jpg" }
+  }
+};
