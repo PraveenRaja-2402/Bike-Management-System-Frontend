@@ -17,10 +17,11 @@ import {
   Building2, 
   Key, 
   Check, 
-  Zap, 
-  MessageSquare, 
-  HardDrive, 
-  Shield
+  Wrench,
+  Droplet,
+  Bell,
+  Activity,
+  Bike
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import DynamicBrandLogo from '../../components/common/DynamicBrandLogo';
@@ -174,74 +175,79 @@ export default function LoginPage() {
               </div>
               <div>
                 <div className="saas-brand-title">{branding.companyName || 'Bike Service Pro'}</div>
-                <div className="saas-brand-subtitle">Commercial SaaS Platform</div>
+                <div className="saas-brand-subtitle">Motorcycle Care &amp; Service Management</div>
               </div>
             </div>
 
             <div className="saas-enterprise-badge">
-              <Shield size={11} /> ENTERPRISE SAAS
+              <Bike size={11} /> MOTORCYCLE CARE
             </div>
           </div>
 
-          {/* Balanced Product Introduction */}
+          {/* Motorcycle Experience Introduction */}
           <div className="saas-showcase-body">
             <div className="saas-hero-pill">
-              <Sparkles size={11} /> Workshop & Fleet Intelligence
+              <Wrench size={11} /> Precision Motorcycle Workshop
             </div>
 
             <h2 className="saas-hero-title">
-              Streamlined Workshop & Fleet Operations
+              Your Bike. Our Priority. Smarter Service.
             </h2>
 
             <p className="saas-hero-desc">
-              Automate maintenance schedules, track mechanical repairs, generate job cards, and manage customer communications in one unified platform.
+              One platform to manage workshop operations, vehicle maintenance and customer relationships.
             </p>
 
-            {/* Compact Feature Cards */}
+            {/* Four Compact Motorcycle Feature Highlights */}
             <div className="saas-feature-list">
               <div className="saas-feature-card">
                 <div className="saas-feature-icon-box">
-                  <Zap size={15} />
+                  <Droplet size={15} />
                 </div>
                 <div className="saas-feature-text">
-                  <h4>Automated Service Reminders</h4>
-                  <p>Predictive distance & date algorithms prevent missed maintenance.</p>
+                  <h4>Engine &amp; Oil Care</h4>
+                  <p>Scheduled oil changes and engine tune-ups for peak performance.</p>
                 </div>
               </div>
 
               <div className="saas-feature-card">
                 <div className="saas-feature-icon-box">
-                  <MessageSquare size={15} />
+                  <Bell size={15} />
                 </div>
                 <div className="saas-feature-text">
-                  <h4>Direct Customer Dispatch</h4>
-                  <p>1-click WhatsApp & SMS service receipts and reminders.</p>
+                  <h4>Smart Maintenance Reminders</h4>
+                  <p>Track upcoming service intervals by mileage and calendar dates.</p>
                 </div>
               </div>
 
               <div className="saas-feature-card">
                 <div className="saas-feature-icon-box">
-                  <HardDrive size={15} />
+                  <Wrench size={15} />
                 </div>
                 <div className="saas-feature-text">
-                  <h4>Offline-First Local Storage</h4>
-                  <p>100% browser data persistence with instant pendrive/PC backups.</p>
+                  <h4>Repair &amp; Service History</h4>
+                  <p>Complete repair logs, parts replaced, and past service records.</p>
+                </div>
+              </div>
+
+              <div className="saas-feature-card">
+                <div className="saas-feature-icon-box">
+                  <Activity size={15} />
+                </div>
+                <div className="saas-feature-text">
+                  <h4>Vehicle Health Monitoring</h4>
+                  <p>Stay ahead of brake, chain, tyre, battery, and clutch wear.</p>
                 </div>
               </div>
             </div>
 
-            {/* Honest Functional Capability Badges (No Unsupported Claims) */}
             <div className="saas-capability-strip">
               <span className="saas-capability-item">
-                <strong style={{ color: '#38bdf8' }}>📁</strong> Local PC Storage
+                <strong style={{ color: '#38bdf8' }}>•</strong> Service &amp; Repair Logs
               </span>
               <span className="saas-capability-bullet">•</span>
               <span className="saas-capability-item">
-                <strong style={{ color: '#34d399' }}>🛡️</strong> Role-Based Access
-              </span>
-              <span className="saas-capability-bullet">•</span>
-              <span className="saas-capability-item">
-                <strong style={{ color: '#fbbf24' }}>⚡</strong> Instant WhatsApp Dispatch
+                <strong style={{ color: '#60a5fa' }}>•</strong> Role-Based Access
               </span>
             </div>
           </div>
@@ -249,9 +255,9 @@ export default function LoginPage() {
           {/* Showcase Footer */}
           <div className="saas-showcase-footer">
             <div className="saas-security-guarantee">
-              <ShieldCheck size={13} /> Session Security • Offline Data Engine
+              <ShieldCheck size={13} /> Bike Service Pro • Workshop Edition
             </div>
-            <span>v3.4.0 SaaS Edition</span>
+            <span>Motorcycle Service Platform</span>
           </div>
         </div>
       </div>
@@ -270,22 +276,22 @@ export default function LoginPage() {
               </div>
               <div>
                 <strong style={{ fontSize: '14.5px', color: '#0f172a' }}>{branding.companyName || 'Bike Service Pro'}</strong>
-                <div style={{ fontSize: '11px', color: '#64748b' }}>Enterprise SaaS Portal</div>
+                <div style={{ fontSize: '11px', color: '#64748b' }}>Motorcycle Service Portal</div>
               </div>
             </div>
             <span style={{ fontSize: '10px', background: '#eff6ff', color: '#356DF3', padding: '2px 8px', borderRadius: '9999px', fontWeight: 700 }}>
-              SaaS v3.4
+              Workshop Pro
             </span>
           </div>
 
           {/* Form Header */}
           <div className="saas-form-header">
             <h1 className="saas-form-title">
-              {authMode === 'signin' ? 'Sign In to Workspace' : 'Create Enterprise Account'}
+              {authMode === 'signin' ? 'Welcome Back' : 'Create Workshop Account'}
             </h1>
             <p className="saas-form-subtitle">
               {authMode === 'signin' 
-                ? 'Enter your account credentials to access your workspace.'
+                ? 'Sign in to your Bike Service Pro workspace.'
                 : 'Provision a new administrative account for your workshop team.'
               }
             </p>
@@ -394,8 +400,8 @@ export default function LoginPage() {
                     <span>Persist session on this workstation</span>
                   </label>
 
-                  <span className="saas-help-link" onClick={() => alert("For security assistance or password recovery, please contact your Super Administrator.")}>
-                    Need help?
+                  <span className="saas-help-link" onClick={() => alert("For password recovery or security assistance, please contact your Super Administrator.")}>
+                    Forgot password?
                   </span>
                 </div>
 
@@ -405,10 +411,10 @@ export default function LoginPage() {
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? (
-                    <span>Authenticating Workspace...</span>
+                    <span>Signing In...</span>
                   ) : (
                     <>
-                      <span>Sign In to Workspace</span>
+                      <span>Sign In</span>
                       <ArrowRight size={15} />
                     </>
                   )}

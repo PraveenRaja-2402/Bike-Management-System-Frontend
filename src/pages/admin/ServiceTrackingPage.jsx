@@ -47,9 +47,25 @@ export default function ServiceTrackingPage() {
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
   const [viewServiceReceipt, setViewServiceReceipt] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
+  const [kmError, setKmError] = useState('');
 
   // New Service Record Form State (Requirement 2)
   const [selectedBikeId, setSelectedBikeId] = useState(bikesList[0]?.id || '');
+
+  const getPreviousKmForBike = (bike) => {
+    if (!bike) return 0;
+    const regUpper = (bike.regNo || '').trim().toUpperCase();
+    const historyMax = serviceRecords
+      .filter(r => (r.regNo || '').trim().toUpperCase() === regUpper)
+      .reduce((max, r) => Math.max(max, parseInt(r.serviceKm, 10) || 0), 0);
+    return Math.max(parseInt(bike.currentKm, 10) || 0, parseInt(bike.lastServiceKm, 10) || 0, historyMax);
+  };
+
+  const selectedBikeObj = bikesList.find(b => b.id === selectedBikeId) || bikesList[0];
+  const previousBikeKm = getPreviousKmForBike(selectedBikeObj);
+  const parsedCurrentKm = Number(formData.serviceKm);
+  const isKmValid = formData.serviceKm !== '' && Number.isFinite(parsedCurrentKm) && parsedCurrentKm >= 0 && parsedCurrentKm >= previousBikeKm;
+  const distanceTravelled = isKmValid ? parsedCurrentKm - previousBikeKm : 0;
   const [formData, setFormData] = useState({
     serviceDate: new Date().toISOString().split('T')[0],
     serviceKm: bikesList[0]?.currentKm || 15000,
@@ -86,9 +102,10 @@ export default function ServiceTrackingPage() {
 
   const handleOpenLogModal = () => {
     const targetBike = bikesList[0] || {};
-    const km = targetBike.currentKm || 15000;
+    const km = getPreviousKmForBike(targetBike);
     const benchmarks = calculateBenchmarks(km, new Date().toISOString().split('T')[0]);
 
+    setKmError('');
     setSelectedBikeId(targetBike.id || '');
     setFormData({
       serviceDate: new Date().toISOString().split('T')[0],
@@ -115,9 +132,10 @@ export default function ServiceTrackingPage() {
 
   const handleBikeChange = (bikeId) => {
     setSelectedBikeId(bikeId);
+    setKmError('');
     const targetBike = bikesList.find(b => b.id === bikeId);
     if (targetBike) {
-      const km = targetBike.currentKm || 0;
+      const km = getPreviousKmForBike(targetBike);
       const benchmarks = calculateBenchmarks(km, formData.serviceDate);
       setFormData(prev => ({
         ...prev,
@@ -143,13 +161,28 @@ export default function ServiceTrackingPage() {
     const targetBike = bikesList.find(b => b.id === selectedBikeId) || bikesList[0];
     if (!targetBike) return;
 
+    const prevKm = getPreviousKmForBike(targetBike);
+    const enteredKm = Number(formData.serviceKm);
+    if (formData.serviceKm === '' || !Number.isFinite(enteredKm) || enteredKm < 0) {
+      setKmError('Please enter a valid non-negative Current Kilometer (KM) reading.');
+      return;
+    }
+    if (enteredKm < prevKm) {
+      setKmError(`Current Kilometer (KM) cannot be lower than the previous recorded reading (${prevKm.toLocaleString()} km).`);
+      return;
+    }
+
+    setKmError('');
+    const cleanKm = Math.round(enteredKm);
     addServiceRecord({
       bikeId: targetBike.id,
       regNo: targetBike.regNo,
       ownerName: targetBike.ownerName || targetBike.customer,
       ownerPhone: targetBike.ownerPhone || targetBike.phone,
       serviceDate: formData.serviceDate,
-      serviceKm: parseInt(formData.serviceKm, 10),
+      serviceKm: cleanKm,
+      previousKm: prevKm,
+      distanceTravelled: cleanKm - prevKm,
       serviceCost: parseFloat(formData.serviceCost),
       serviceType: formData.serviceType,
       technician: formData.technician,
@@ -160,7 +193,7 @@ export default function ServiceTrackingPage() {
     });
 
     setIsLogModalOpen(false);
-    setToastMessage(`Service record logged for ${targetBike.regNo} successfully! Next service benchmark set.`);
+    setToastMessage(`Service record logged for ${targetBike.regNo} (${cleanKm.toLocaleString()} km). Next service benchmark updated.`);
     setTimeout(() => setToastMessage(''), 4500);
   };
 
@@ -369,6 +402,11 @@ export default function ServiceTrackingPage() {
                     <span style={{ fontWeight: 800, fontSize: '13px', color: '#0f172a' }}>
                       {(srv.serviceKm || 0).toLocaleString()} km
                     </span>
+                    {Number(srv.distanceTravelled) > 0 && (
+                      <div style={{ fontSize: '10.5px', color: '#059669', fontWeight: 600 }}>
+                        +{Number(srv.distanceTravelled).toLocaleString()} km travelled
+                      </div>
+                    )}
                   </td>
                   <td>
                     {/* Maintenance Items Pill Checklist */}
@@ -518,14 +556,23 @@ export default function ServiceTrackingPage() {
               />
             </div>
             <div className="form-group">
-              <label className="form-label">Service Kilometre Reading *</label>
+              <label className="form-label">Current Kilometer (KM) *</label>
               <input
                 type="number"
                 className="form-input no-left-icon"
                 required
+                min={previousBikeKm}
                 value={formData.serviceKm}
                 onChange={(e) => {
                   const km = e.target.value;
+                  const num = Number(km);
+                  if (km === '' || !Number.isFinite(num) || num < 0) {
+                    setKmError('Please enter a valid non-negative Current Kilometer (KM) reading.');
+                  } else if (num < previousBikeKm) {
+                    setKmError(`Cannot be lower than previous recorded reading (${previousBikeKm.toLocaleString()} km).`);
+                  } else {
+                    setKmError('');
+                  }
                   const benchmarks = calculateBenchmarks(km, formData.serviceDate);
                   setFormData({
                     ...formData,
@@ -535,6 +582,34 @@ export default function ServiceTrackingPage() {
                 }}
               />
             </div>
+          </div>
+
+          {/* Previous KM & Distance Travelled Indicator */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '8px',
+            background: kmError ? '#fef2f2' : '#f8fafc',
+            border: `1px solid ${kmError ? '#fecaca' : '#e2e8f0'}`,
+            borderRadius: '10px',
+            padding: '10px 14px',
+            marginBottom: '14px',
+            fontSize: '12.5px'
+          }}>
+            <div>
+              <span style={{ color: '#64748b' }}>Previous KM: </span>
+              <strong style={{ color: '#0f172a' }}>{previousBikeKm.toLocaleString()} km</strong>
+            </div>
+            {kmError ? (
+              <span style={{ color: '#dc2626', fontWeight: 700 }}>{kmError}</span>
+            ) : (
+              <div>
+                <span style={{ color: '#64748b' }}>Distance Travelled: </span>
+                <strong style={{ color: '#059669' }}>{distanceTravelled.toLocaleString()} km</strong>
+              </div>
+            )}
           </div>
 
           <div className="form-grid-2">

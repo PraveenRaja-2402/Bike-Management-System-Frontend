@@ -57,6 +57,7 @@ import LeafletMap from '../../components/common/LeafletMap';
 import Modal from '../../components/common/Modal';
 import { useApp } from '../../context/AppContext';
 import DynamicBrandLogo from '../../components/common/DynamicBrandLogo';
+import roninMobileHero from '../../assets/ronin-mobile-hero.jpg';
 import { 
   mockCustomerServiceHistory, 
   mockCustomerAlerts,
@@ -310,74 +311,114 @@ export default function CustomerApp() {
       <div className="mobile-device-frame">
         {!currentCustomer ? (
           <div className="rider-login-container">
-            {/* Top Branding */}
-            <div className="rider-login-header">
-              <div className="rider-logo-circle">
-                <DynamicBrandLogo size={36} />
+            {/* Lifestyle Motorcycle Hero Header */}
+            <div
+              className="rider-login-hero-banner"
+              style={{
+                backgroundImage: `linear-gradient(180deg, rgba(16, 24, 40, 0.35) 0%, rgba(16, 24, 40, 0.92) 100%), url(${roninMobileHero})`
+              }}
+            >
+              <div className="rider-hero-top-row">
+                <div className="rider-logo-circle">
+                  <DynamicBrandLogo size={26} />
+                </div>
+                <span className="rider-portal-badge">Rider Portal</span>
               </div>
-              <h2 className="rider-portal-title">{branding.companyName}</h2>
-              <span className="rider-portal-badge">📱 Customer Mobile Portal</span>
-              <p className="rider-portal-subtitle">
-                Access your bike's live GPS telemetry, service history, and road assistance directly on your smartphone.
-              </p>
+
+              <div className="rider-hero-copy">
+                <h2 className="rider-portal-title">{branding.companyName}</h2>
+                <p className="rider-portal-subtitle">
+                  Your ride, always road-ready. Track servicing, upcoming care, and vehicle health in one place.
+                </p>
+                <div className="rider-hero-pills">
+                  <span>Service History</span>
+                  <span>Reminders</span>
+                  <span>Bike Health</span>
+                </div>
+              </div>
             </div>
 
-            {/* Error Alert */}
-            {customerLoginError && (
-              <div className="rider-login-error">
-                <AlertTriangle size={16} />
-                <span>{customerLoginError}</span>
-              </div>
-            )}
-
-            {/* Login Form */}
-            <form onSubmit={handleCustomerLoginSubmit} className="rider-login-form">
-              <div>
-                <label className="rider-form-label">Registered Mobile Number</label>
-                <div className="rider-input-group">
-                  <span className="rider-input-prefix">+91</span>
-                  <input
-                    type="tel"
-                    className="rider-input-field"
-                    placeholder="e.g. 98765 43210"
-                    value={loginPhone}
-                    onChange={(e) => setLoginPhone(e.target.value)}
-                    required
-                  />
+            {/* Clean Comfort White Sheet for Login */}
+            <div className="rider-login-sheet">
+              <div style={{ marginBottom: '14px' }}>
+                <div style={{ fontSize: '18px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.3px' }}>
+                  Welcome, Rider
+                </div>
+                <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+                  Sign in with your workshop-registered mobile number &amp; PIN.
                 </div>
               </div>
 
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <label className="rider-form-label">4-Digit Security PIN</label>
-                  <span style={{ fontSize: '11px', color: '#64748b' }}>Default: 1234</span>
+              {/* Error Alert */}
+              {customerLoginError && (
+                <div className="rider-login-error">
+                  <AlertTriangle size={16} />
+                  <span>{customerLoginError}</span>
                 </div>
-                <div className="rider-input-group">
-                  <Lock size={16} className="rider-input-icon" />
-                  <input
-                    type={showLoginPin ? "text" : "password"}
-                    maxLength={6}
-                    className="rider-input-field"
-                    placeholder="••••"
-                    value={loginPin}
-                    onChange={(e) => setLoginPin(e.target.value)}
-                    required
-                  />
-                  <button
-                    type="button"
-                    className="rider-input-toggle"
-                    onClick={() => setShowLoginPin(!showLoginPin)}
-                  >
-                    {showLoginPin ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-              </div>
+              )}
 
-              <button type="submit" className="rider-submit-btn">
-                <span>Sign In to My Bike</span>
-                <ArrowRight size={16} />
-              </button>
-            </form>
+              {/* Login Form */}
+              <form onSubmit={handleCustomerLoginSubmit} className="rider-login-form">
+                <div>
+                  <label className="rider-form-label">Registered Mobile Number</label>
+                  <div className="rider-input-group">
+                    <span className="rider-input-prefix">+91</span>
+                    <input
+                      type="tel"
+                      className="rider-input-field"
+                      placeholder="e.g. 98765 43210"
+                      value={loginPhone}
+                      onChange={(e) => setLoginPhone(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <label className="rider-form-label">4-Digit Security PIN</label>
+                    <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>Default: 1234</span>
+                  </div>
+                  <div className="rider-input-group">
+                    <Lock size={16} className="rider-input-icon" />
+                    <input
+                      type={showLoginPin ? "text" : "password"}
+                      maxLength={6}
+                      className="rider-input-field"
+                      placeholder="••••"
+                      value={loginPin}
+                      onChange={(e) => setLoginPin(e.target.value)}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="rider-input-toggle"
+                      onClick={() => setShowLoginPin(!showLoginPin)}
+                    >
+                      {showLoginPin ? <EyeOff size={17} /> : <Eye size={17} />}
+                    </button>
+                  </div>
+                </div>
+
+                <button type="submit" className="rider-submit-btn">
+                  <span>Sign In to My Bike</span>
+                  <ArrowRight size={17} />
+                </button>
+              </form>
+
+              <div style={{
+                marginTop: '12px',
+                padding: '9px 12px',
+                borderRadius: '12px',
+                background: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                fontSize: '11.5px',
+                color: '#475569',
+                lineHeight: 1.45
+              }}>
+                New rider? Your profile &amp; PIN are created when your bike is registered at the workshop.
+              </div>
+            </div>
 
             {/* 1-Tap Quick Demo Riders */}
             <div className="quick-demo-section">
@@ -606,6 +647,120 @@ export default function CustomerApp() {
                     </div>
                   </div>
                 </div>
+              </div>
+
+              {/* Signature TVS Ronin Charcoal Ember Hero Card */}
+              <div style={{ padding: '14px 16px 0 16px' }}>
+                <div style={{
+                  position: 'relative',
+                  borderRadius: '18px',
+                  overflow: 'hidden',
+                  backgroundColor: '#101828',
+                  backgroundImage: `linear-gradient(180deg, rgba(16, 24, 40, 0.25) 0%, rgba(16, 24, 40, 0.92) 100%), url(${roninMobileHero})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  minHeight: '150px',
+                  padding: '16px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'flex-end',
+                  color: '#ffffff',
+                  border: '1px solid rgba(53, 109, 243, 0.28)',
+                  boxShadow: '0 10px 24px rgba(15, 23, 42, 0.18)'
+                }}>
+                  <span style={{
+                    alignSelf: 'flex-start',
+                    fontSize: '10px',
+                    fontWeight: 800,
+                    letterSpacing: '0.4px',
+                    textTransform: 'uppercase',
+                    background: 'rgba(53, 109, 243, 0.28)',
+                    color: '#93c5fd',
+                    border: '1px solid rgba(96, 165, 250, 0.4)',
+                    padding: '2px 8px',
+                    borderRadius: '9999px',
+                    marginBottom: '6px'
+                  }}>
+                    TVS Ronin • Charcoal Ember
+                  </span>
+                  <div style={{ fontSize: '17px', fontWeight: 800, lineHeight: 1.25, letterSpacing: '-0.2px' }}>
+                    Every Ride Deserves Better Care.
+                  </div>
+                </div>
+              </div>
+
+              {/* 3 Core Ownership Summary Cards: My Bikes, Upcoming Services, Completed Services */}
+              <div style={{
+                padding: '12px 16px 0 16px',
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: '8px'
+              }}>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('bike')}
+                  style={{
+                    background: '#ffffff',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '14px',
+                    padding: '10px 8px',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 6px rgba(15, 23, 42, 0.04)'
+                  }}
+                >
+                  <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', marginBottom: '2px' }}>My Bikes</div>
+                  <div style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a' }}>
+                    {matchedCustomerBike ? '1 Active' : '0 Linked'}
+                  </div>
+                  <div style={{ fontSize: '10px', color: '#2563eb', fontWeight: 700, marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {bharathBike.regNo}
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('service')}
+                  style={{
+                    background: '#ffffff',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '14px',
+                    padding: '10px 8px',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 6px rgba(15, 23, 42, 0.04)'
+                  }}
+                >
+                  <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', marginBottom: '2px' }}>Upcoming</div>
+                  <div style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a' }}>
+                    {kmRemaining.toLocaleString()} km
+                  </div>
+                  <div style={{ fontSize: '10px', color: '#d97706', fontWeight: 700, marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {bharathBike.nextServiceDate || bharathBike.nextService || 'Schedule'}
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('service-history')}
+                  style={{
+                    background: '#ffffff',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '14px',
+                    padding: '10px 8px',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 6px rgba(15, 23, 42, 0.04)'
+                  }}
+                >
+                  <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', marginBottom: '2px' }}>Completed</div>
+                  <div style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a' }}>
+                    {riderServiceHistory.length} Done
+                  </div>
+                  <div style={{ fontSize: '10px', color: '#059669', fontWeight: 700, marginTop: '2px' }}>
+                    View History
+                  </div>
+                </button>
               </div>
 
               {/* Priority Alert Banners: Traffic Fines & Membership Points */}

@@ -66,6 +66,13 @@ export default function LeafletMap({
   selectedBike = null,
   showGeofence = false,
   geofences = [],
+  markedAreas = [],
+  selectedAreaId = null,
+  onSelectArea = null,
+  isDrawingArea = false,
+  drawingPoints = [],
+  onAddDrawingPoint = null,
+  focusTarget = null,
   stores = [],
   playbackRoute = null, // array of { lat, lng, speed, time, label }
   playbackIndex = 0,
@@ -78,6 +85,8 @@ export default function LeafletMap({
   const markersRef = useRef([]);
   const polylinesRef = useRef([]);
   const circlesRef = useRef([]);
+  const polygonsRef = useRef([]);
+  const drawingLayersRef = useRef([]);
   const [mapType, setMapType] = useState('street'); // 'street' or 'satellite'
   const tileLayerRef = useRef(null);
 
@@ -148,6 +157,31 @@ export default function LeafletMap({
 
     circlesRef.current.forEach(c => c.remove());
     circlesRef.current = [];
+
+    polygonsRef.current.forEach(pg => pg.remove());
+    polygonsRef.current = [];
+
+    // 0. Render Polygon Marked Areas
+    if (markedAreas && markedAreas.length > 0) {
+      markedAreas.forEach(area => {
+        if (!Array.isArray(area.points) || area.points.length < 3) return;
+        const isSel = selectedAreaId === area.id;
+        const polygon = L.polygon(area.points, {
+          color: area.color || '#2563eb',
+          fillColor: area.color || '#10b981',
+          fillOpacity: isSel ? 0.34 : 0.18,
+          weight: isSel ? 3 : 2
+        }).addTo(map).bindPopup(`
+          <div style="font-size: 12px; font-weight: 700; color: #0f172a;">${area.name}</div>
+          <div style="font-size: 11px; color: #475569; margin-top: 2px;">Marked Area • ${area.points.length} boundary points</div>
+          ${area.description ? `<div style="font-size: 11px; color: #64748b; margin-top: 2px;">${area.description}</div>` : ''}
+        `);
+        polygon.on('click', () => {
+          if (onSelectArea) onSelectArea(area);
+        });
+        polygonsRef.current.push(polygon);
+      });
+    }
 
     // 1. Render Geofence circles if provided
     if (geofences && geofences.length > 0) {
@@ -513,7 +547,74 @@ export default function LeafletMap({
     if (selectedBike && selectedBike.lat && selectedBike.lng) {
       map.flyTo([selectedBike.lat, selectedBike.lng], 15, { animate: true, duration: 0.8 });
     }
-  }, [bikes, selectedBike, showGeofence, geofences, stores, playbackRoute, playbackIndex, onSelectBike]);
+  }, [bikes, selectedBike, showGeofence, geofences, markedAreas, selectedAreaId, onSelectArea, stores, playbackRoute, playbackIndex, onSelectBike]);
+
+  // Handle interactive polygon drawing clicks & preview layers
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    const container = map.getContainer();
+    if (container) {
+      container.style.cursor = isDrawingArea ? 'crosshair' : '';
+    }
+
+    const handleMapClick = (e) => {
+      if (isDrawingArea && onAddDrawingPoint) {
+        onAddDrawingPoint([Number(e.latlng.lat.toFixed(5)), Number(e.latlng.lng.toFixed(5))]);
+      }
+    };
+
+    if (isDrawingArea) {
+      map.on('click', handleMapClick);
+    }
+
+    drawingLayersRef.current.forEach(layer => layer.remove());
+    drawingLayersRef.current = [];
+
+    if (isDrawingArea && drawingPoints.length > 0) {
+      drawingPoints.forEach((pt, idx) => {
+        const dot = L.circleMarker(pt, {
+          radius: 5,
+          color: '#1d4ed8',
+          fillColor: '#38bdf8',
+          fillOpacity: 1,
+          weight: 2
+        }).addTo(map).bindTooltip(`Point ${idx + 1}`, { direction: 'top' });
+        drawingLayersRef.current.push(dot);
+      });
+
+      if (drawingPoints.length === 2) {
+        const line = L.polyline(drawingPoints, {
+          color: '#2563eb',
+          weight: 2.5,
+          dashArray: '5, 5'
+        }).addTo(map);
+        drawingLayersRef.current.push(line);
+      } else if (drawingPoints.length >= 3) {
+        const previewPoly = L.polygon(drawingPoints, {
+          color: '#2563eb',
+          fillColor: '#38bdf8',
+          fillOpacity: 0.25,
+          weight: 2.5,
+          dashArray: '5, 5'
+        }).addTo(map);
+        drawingLayersRef.current.push(previewPoly);
+      }
+    }
+
+    return () => {
+      map.off('click', handleMapClick);
+      if (container) container.style.cursor = '';
+    };
+  }, [isDrawingArea, drawingPoints, onAddDrawingPoint]);
+
+  // Smooth pan/zoom when location search or marked area is focused
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map || !focusTarget || !Number.isFinite(focusTarget.lat) || !Number.isFinite(focusTarget.lng)) return;
+    map.flyTo([focusTarget.lat, focusTarget.lng], focusTarget.zoom || 15, { animate: true, duration: 0.7 });
+  }, [focusTarget]);
 
   const handleZoomIn = () => {
     if (mapInstanceRef.current) mapInstanceRef.current.zoomIn();

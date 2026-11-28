@@ -38,6 +38,7 @@ import LeafletMap from '../../components/common/LeafletMap';
 import { useApp } from '../../context/AppContext';
 import { mockBikes, mockCustomerRatings } from '../../data/mockData';
 import { computeSalesAnalytics } from '../../utils/salesAnalytics';
+import roninHeroImg from '../../assets/ronin-mobile-hero.jpg';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -329,6 +330,67 @@ export default function DashboardPage() {
           >
             <span>Customer Mobile App</span>
             <ExternalLink size={13} style={{ marginLeft: 4 }} />
+          </button>
+        </div>
+      </div>
+
+      {/* Signature TVS Ronin Charcoal Ember Role-Aware Overview Strip */}
+      <div style={{
+        position: 'relative',
+        borderRadius: '16px',
+        overflow: 'hidden',
+        backgroundColor: '#101828',
+        backgroundImage: `linear-gradient(90deg, rgba(16, 24, 40, 0.96) 0%, rgba(16, 24, 40, 0.88) 52%, rgba(16, 24, 40, 0.35) 100%), url(${roninHeroImg})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'right center',
+        border: '1px solid rgba(53, 109, 243, 0.28)',
+        padding: '20px 24px',
+        marginBottom: '18px',
+        color: '#ffffff',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '16px',
+        boxShadow: '0 8px 24px rgba(16, 24, 40, 0.14)'
+      }}>
+        <div style={{ maxWidth: '580px' }}>
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            fontSize: '11px',
+            fontWeight: 700,
+            color: '#60a5fa',
+            background: 'rgba(53, 109, 243, 0.18)',
+            border: '1px solid rgba(53, 109, 243, 0.35)',
+            padding: '3px 10px',
+            borderRadius: '9999px',
+            marginBottom: '8px'
+          }}>
+            <Bike size={12} />
+            <span>{isSuperAdmin ? 'Executive Business Oversight • TVS Ronin Flagship' : 'Daily Workshop Operations • Service Bay Control'}</span>
+          </div>
+          <h2 style={{ fontSize: '20px', fontWeight: 800, margin: '0 0 6px 0', letterSpacing: '-0.3px', color: '#ffffff' }}>
+            {isSuperAdmin ? 'Multi-Hub Performance & Revenue Command' : 'Precision Motorcycle Servicing & Job Readiness'}
+          </h2>
+          <p style={{ fontSize: '13px', color: '#cbd5e1', margin: 0, lineHeight: 1.5 }}>
+            {isSuperAdmin
+              ? `Overseeing ${storesList.length} active workshops, ${totalCustomers} riders, ₹${liveSales.summary.totalRevenue.toLocaleString()} recorded revenue, and ${mockCustomerRatings.overallRating} ★ satisfaction.`
+              : `Managing ${totalBikes} registered bikes, ${pendingServicesCount} pending services, and ${overdueCount} overdue maintenance reminders.`
+            }
+          </p>
+        </div>
+
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className="btn-primary btn-sm"
+            style={{ background: '#356DF3', borderColor: '#356DF3' }}
+            onClick={() => navigate(isSuperAdmin ? '/admin/sales' : '/admin/job-cards')}
+          >
+            <span>{isSuperAdmin ? 'Sales Analytics' : 'Open Job Completion'}</span>
+            <ArrowRight size={14} />
           </button>
         </div>
       </div>

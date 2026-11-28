@@ -16,19 +16,49 @@ import {
   Calendar,
   Gauge,
   Info,
-  ShieldCheck
+  ShieldCheck,
+  Pentagon,
+  Plus,
+  Edit2,
+  Trash2,
+  Check
 } from 'lucide-react';
 import LeafletMap from '../../components/common/LeafletMap';
 import StatusBadge from '../../components/common/StatusBadge';
+import { useApp } from '../../context/AppContext';
 import { mockBikes, mockRoutePlaybackTrip } from '../../data/mockData';
+import { findMarkedAreaForCoordinates, getPolygonCenter, isPointInPolygon } from '../../utils/geoUtils';
 
 export default function LiveTrackingPage() {
-  const [bikes, setBikes] = useState(mockBikes);
+  const {
+    currentRole,
+    storesList,
+    markedAreas,
+    addMarkedArea,
+    updateMarkedArea,
+    deleteMarkedArea
+  } = useApp();
+  const canManageAreas = currentRole === 'super_admin' || currentRole === 'admin';
+
+  const [bikes] = useState(mockBikes);
   const [selectedBike, setSelectedBike] = useState(mockBikes[0]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('ALL');
   const [isLiveActive, setIsLiveActive] = useState(true);
-  const [lastRefreshedTime, setLastRefreshedTime] = useState('Just now');
+  const [lastRefreshedTime, setLastRefreshedTime] = useState('Synced');
+
+  // Marked & Unmarked Area Mapping State
+  const [locationSearch, setLocationSearch] = useState('');
+  const [focusTarget, setFocusTarget] = useState(null);
+  const [selectedAreaId, setSelectedAreaId] = useState(markedAreas[0]?.id || null);
+  const [isDrawingArea, setIsDrawingArea] = useState(false);
+  const [drawingPoints, setDrawingPoints] = useState([]);
+  const [areaNameInput, setAreaNameInput] = useState('');
+  const [areaColorInput, setAreaColorInput] = useState('#2563eb');
+  const [editingAreaId, setEditingAreaId] = useState(null);
+  const [editingAreaName, setEditingAreaName] = useState('');
+  const [editingAreaColor, setEditingAreaColor] = useState('#2563eb');
+  const [areaFeedback, setAreaFeedback] = useState('');
 
   // Route playback state
   const [isPlaybackMode, setIsPlaybackMode] = useState(false);
@@ -43,34 +73,86 @@ export default function LiveTrackingPage() {
   const stoppedCount = bikes.filter((b) => b.status === 'Stopped').length;
   const offlineCount = bikes.filter((b) => b.status === 'Offline').length;
 
-  // Real-time GPS movement simulation for moving bikes (when not in playback mode)
-  useEffect(() => {
-    if (!isLiveActive || isPlaybackMode) return;
+  const selectedArea = markedAreas.find(a => a.id === selectedAreaId) || null;
+  const selectedBikeArea = selectedBike
+    ? findMarkedAreaForCoordinates(selectedBike.lat, selectedBike.lng, markedAreas)
+    : null;
+  const vehiclesInsideSelectedArea = selectedArea
+    ? bikes.filter(b => isPointInPolygon(Number(b.lat), Number(b.lng), selectedArea.points))
+    : [];
 
-    const interval = setInterval(() => {
-      setBikes((prevBikes) =>
-        prevBikes.map((b) => {
-          if (b.status === 'Moving') {
-            const deltaLat = (Math.random() - 0.48) * 0.0003;
-            const deltaLng = (Math.random() - 0.48) * 0.0003;
-            const updatedBike = {
-              ...b,
-              lat: Number((b.lat + deltaLat).toFixed(5)),
-              lng: Number((b.lng + deltaLng).toFixed(5)),
-              lastUpdated: 'Just now'
-            };
-            if (selectedBike && selectedBike.id === b.id) {
-              setSelectedBike(updatedBike);
-            }
-            return updatedBike;
-          }
-          return b;
-        })
-      );
-    }, 4000);
+  const handleStartDrawing = () => {
+    if (!canManageAreas) return;
+    setIsPlaybackMode(false);
+    setIsDrawingArea(true);
+    setDrawingPoints([]);
+    setAreaNameInput('');
+    setAreaFeedback('Click 3 or more points on the map to draw a Marked Area boundary.');
+  };
 
-    return () => clearInterval(interval);
-  }, [isLiveActive, isPlaybackMode, selectedBike]);
+  const handleCancelDrawing = () => {
+    setIsDrawingArea(false);
+    setDrawingPoints([]);
+    setAreaNameInput('');
+    setAreaFeedback('');
+  };
+
+  const handleSaveDrawnArea = (e) => {
+    e.preventDefault();
+    if (!canManageAreas || drawingPoints.length < 3 || !areaNameInput.trim()) return;
+    const created = addMarkedArea({
+      name: areaNameInput.trim(),
+      color: areaColorInput,
+      points: drawingPoints
+    });
+    setSelectedAreaId(created.id);
+    setIsDrawingArea(false);
+    setDrawingPoints([]);
+    setAreaNameInput('');
+    setAreaFeedback(`Marked Area "${created.name}" saved.`);
+    setTimeout(() => setAreaFeedback(''), 3500);
+  };
+
+  const handleFocusArea = (area) => {
+    setSelectedAreaId(area.id);
+    const [lat, lng] = getPolygonCenter(area.points);
+    setFocusTarget({ lat, lng, zoom: 15, ts: Date.now() });
+  };
+
+  const handleLocationSearchSubmit = (e) => {
+    e.preventDefault();
+    const q = locationSearch.trim();
+    if (!q) return;
+
+    const coordMatch = q.match(/^(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)$/);
+    if (coordMatch) {
+      setFocusTarget({ lat: Number(coordMatch[1]), lng: Number(coordMatch[2]), zoom: 15, ts: Date.now() });
+      return;
+    }
+
+    const qLower = q.toLowerCase();
+    const matchedArea = markedAreas.find(a => a.name.toLowerCase().includes(qLower));
+    if (matchedArea) {
+      handleFocusArea(matchedArea);
+      return;
+    }
+
+    const matchedStore = (storesList || []).find(
+      s => (s.name || '').toLowerCase().includes(qLower) || (s.city || '').toLowerCase().includes(qLower)
+    );
+    if (matchedStore && matchedStore.lat && matchedStore.lng) {
+      setFocusTarget({ lat: Number(matchedStore.lat), lng: Number(matchedStore.lng), zoom: 15, ts: Date.now() });
+      return;
+    }
+
+    const matchedBike = bikes.find(
+      b => (b.lastLocation || '').toLowerCase().includes(qLower) || (b.regNo || '').toLowerCase().includes(qLower)
+    );
+    if (matchedBike && matchedBike.lat && matchedBike.lng) {
+      setSelectedBike(matchedBike);
+      setFocusTarget({ lat: Number(matchedBike.lat), lng: Number(matchedBike.lng), zoom: 15, ts: Date.now() });
+    }
+  };
 
   // Route playback loop
   useEffect(() => {
@@ -236,6 +318,206 @@ export default function LiveTrackingPage() {
         </div>
       </div>
 
+      {/* Marked & Unmarked Areas Control Bar + Map Legend */}
+      <div className="card" style={{ padding: '14px 18px', marginBottom: '14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+          <form onSubmit={handleLocationSearchSubmit} style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: '1 1 260px', maxWidth: '420px' }}>
+            <input
+              type="text"
+              className="form-input no-left-icon"
+              style={{ height: '38px', fontSize: '13px' }}
+              placeholder="Search area, hub, bike reg, or lat, lng..."
+              value={locationSearch}
+              onChange={(e) => setLocationSearch(e.target.value)}
+            />
+            <button type="submit" className="btn-secondary btn-sm" style={{ height: '38px' }}>
+              Locate
+            </button>
+          </form>
+
+          {/* Map Legend */}
+          <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '14px', fontSize: '12px', color: '#334155' }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
+              <span style={{ width: 12, height: 12, borderRadius: 3, background: 'rgba(37, 99, 235, 0.25)', border: '2px solid #2563eb' }} />
+              Marked Area (Blue)
+            </span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
+              <span style={{ width: 12, height: 12, borderRadius: 3, background: 'rgba(16, 185, 129, 0.25)', border: '2px solid #10b981' }} />
+              Marked Area (Green)
+            </span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
+              <span style={{ width: 12, height: 12, borderRadius: 3, background: '#f1f5f9', border: '1.5px dashed #94a3b8' }} />
+              Unmarked Area (Outside Boundaries)
+            </span>
+          </div>
+
+          {canManageAreas && !isDrawingArea && (
+            <button type="button" className="btn-primary btn-sm" onClick={handleStartDrawing}>
+              <Plus size={14} /> Mark Area
+            </button>
+          )}
+        </div>
+
+        {/* Interactive Polygon Drawing Bar */}
+        {isDrawingArea && canManageAreas && (
+          <form onSubmit={handleSaveDrawnArea} style={{
+            marginTop: '12px',
+            paddingTop: '12px',
+            borderTop: '1px solid #e2e8f0',
+            display: 'flex',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '10px'
+          }}>
+            <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#1d4ed8', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              <Pentagon size={15} />
+              Points: {drawingPoints.length} (click map, min 3)
+            </span>
+            <input
+              type="text"
+              className="form-input no-left-icon"
+              style={{ width: '210px', height: '38px', fontSize: '13px' }}
+              placeholder="Assign Area Name *"
+              value={areaNameInput}
+              onChange={(e) => setAreaNameInput(e.target.value)}
+              required
+            />
+            <select
+              className="form-input no-left-icon"
+              style={{ width: '140px', height: '38px', fontSize: '13px' }}
+              value={areaColorInput}
+              onChange={(e) => setAreaColorInput(e.target.value)}
+            >
+              <option value="#2563eb">Blue Zone</option>
+              <option value="#10b981">Green Zone</option>
+            </select>
+            {drawingPoints.length > 0 && (
+              <button
+                type="button"
+                className="btn-secondary btn-sm"
+                onClick={() => setDrawingPoints(prev => prev.slice(0, -1))}
+              >
+                Undo Point
+              </button>
+            )}
+            <button type="button" className="btn-secondary" onClick={handleCancelDrawing}>
+              Cancel
+            </button>
+            <button type="submit" className="btn-primary" disabled={drawingPoints.length < 3 || !areaNameInput.trim()}>
+              Save Marked Area
+            </button>
+          </form>
+        )}
+
+        {/* Saved Marked Areas Chips + Selected Area Inspector */}
+        <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>
+              Marked Areas ({markedAreas.length}):
+            </span>
+            {markedAreas.map(area => {
+              const active = area.id === selectedAreaId;
+              return editingAreaId === area.id ? (
+                <span key={area.id} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#f8fafc', border: '1px solid #cbd5e1', padding: '4px 8px', borderRadius: '8px' }}>
+                  <input
+                    type="text"
+                    value={editingAreaName}
+                    onChange={(e) => setEditingAreaName(e.target.value)}
+                    style={{ width: '140px', fontSize: '12px', padding: '3px 6px', border: '1px solid #cbd5e1', borderRadius: '6px' }}
+                  />
+                  <select
+                    value={editingAreaColor}
+                    onChange={(e) => setEditingAreaColor(e.target.value)}
+                    style={{ fontSize: '12px', padding: '3px 6px', border: '1px solid #cbd5e1', borderRadius: '6px' }}
+                  >
+                    <option value="#2563eb">Blue</option>
+                    <option value="#10b981">Green</option>
+                  </select>
+                  <button
+                    type="button"
+                    className="btn-primary btn-sm"
+                    onClick={() => {
+                      if (editingAreaName.trim()) {
+                        updateMarkedArea(area.id, { name: editingAreaName.trim(), color: editingAreaColor });
+                      }
+                      setEditingAreaId(null);
+                    }}
+                  >
+                    <Check size={12} />
+                  </button>
+                  <button type="button" className="btn-secondary btn-sm" onClick={() => setEditingAreaId(null)}>
+                    Cancel
+                  </button>
+                </span>
+              ) : (
+                <div
+                  key={area.id}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '4px 10px',
+                    borderRadius: '9999px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    background: active ? `${area.color}18` : '#f8fafc',
+                    color: active ? area.color : '#334155',
+                    border: `1px solid ${active ? area.color : '#e2e8f0'}`,
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => handleFocusArea(area)}
+                >
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: area.color }} />
+                  <span>{area.name}</span>
+                  {canManageAreas && (
+                    <>
+                      <button
+                        type="button"
+                        title="Rename / edit area"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingAreaId(area.id);
+                          setEditingAreaName(area.name);
+                          setEditingAreaColor(area.color || '#2563eb');
+                        }}
+                        style={{ background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer', padding: '0 2px', display: 'inline-flex' }}
+                      >
+                        <Edit2 size={11} />
+                      </button>
+                      <button
+                        type="button"
+                        title="Delete area"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteMarkedArea(area.id);
+                          if (selectedAreaId === area.id) setSelectedAreaId(null);
+                        }}
+                        style={{ background: 'transparent', border: 'none', color: '#dc2626', cursor: 'pointer', padding: '0 2px', display: 'inline-flex' }}
+                      >
+                        <Trash2 size={11} />
+                      </button>
+                    </>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {selectedArea && (
+            <div style={{ fontSize: '12px', color: '#475569' }}>
+              Selected: <strong style={{ color: '#0f172a' }}>{selectedArea.name}</strong> • {selectedArea.points.length} vertices •{' '}
+              <strong style={{ color: '#059669' }}>{vehiclesInsideSelectedArea.length} vehicle(s) inside</strong>
+            </div>
+          )}
+        </div>
+
+        {areaFeedback && (
+          <div style={{ marginTop: '8px', fontSize: '12px', fontWeight: 600, color: '#1d4ed8' }}>
+            {areaFeedback}
+          </div>
+        )}
+      </div>
+
       <div className="tracking-container">
         
         {/* Left Side: Bike List and Filters */}
@@ -304,8 +586,14 @@ export default function LiveTrackingPage() {
 
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
                     <StatusBadge status={bike.status} />
-                    <span style={{ fontSize: '10px', color: '#94a3b8' }}>
-                      {bike.status === 'Offline' ? 'Offline' : 'Live'}
+                    <span style={{
+                      fontSize: '10px',
+                      fontWeight: 700,
+                      color: findMarkedAreaForCoordinates(bike.lat, bike.lng, markedAreas) ? '#059669' : '#64748b'
+                    }}>
+                      {findMarkedAreaForCoordinates(bike.lat, bike.lng, markedAreas)
+                        ? `In: ${findMarkedAreaForCoordinates(bike.lat, bike.lng, markedAreas).name}`
+                        : 'Unmarked Area'}
                     </span>
                   </div>
                 </div>
@@ -327,6 +615,13 @@ export default function LiveTrackingPage() {
             selectedBike={selectedBike}
             onSelectBike={setSelectedBike}
             showGeofence={false}
+            markedAreas={markedAreas}
+            selectedAreaId={selectedAreaId}
+            onSelectArea={(area) => setSelectedAreaId(area.id)}
+            isDrawingArea={isDrawingArea}
+            drawingPoints={drawingPoints}
+            onAddDrawingPoint={(pt) => setDrawingPoints(prev => [...prev, pt])}
+            focusTarget={focusTarget}
             playbackRoute={isPlaybackMode ? mockRoutePlaybackTrip.points : null}
             playbackIndex={isPlaybackMode ? playbackIndex : 0}
             height="100%"
@@ -593,6 +888,14 @@ export default function LiveTrackingPage() {
                 <div className="detail-line">
                   <MapPin size={13} className="detail-icon" />
                   <span>{selectedBike.lastLocation}</span>
+                </div>
+                <div className="detail-line">
+                  <Pentagon size={13} className="detail-icon" />
+                  <span style={{ fontWeight: 700, color: selectedBikeArea ? '#059669' : '#d97706' }}>
+                    {selectedBikeArea
+                      ? `Inside Marked Area: ${selectedBikeArea.name}`
+                      : 'Outside All Marked Areas (Unmarked Area)'}
+                  </span>
                 </div>
                 <div className="detail-line">
                   <Clock size={13} className="detail-icon" />

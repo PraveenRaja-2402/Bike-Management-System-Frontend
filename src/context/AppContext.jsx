@@ -18,6 +18,7 @@ import {
   initialServiceRecords,
   initialRepairRecords
 } from '../data/serviceData';
+import { DEFAULT_MARKED_AREAS } from '../utils/geoUtils';
 
 const AppContext = createContext(null);
 
@@ -298,6 +299,46 @@ export function AppProvider({ children }) {
 
   // Mobile Customer: Geofence Safe Zones
   const [geofences, setGeofences] = useState(mockCustomerGeofences);
+
+  // Polygon Marked Areas State (Persisted in LocalStorage)
+  const [markedAreas, setMarkedAreas] = useState(() => {
+    try {
+      const saved = localStorage.getItem('bike_service_system_marked_areas');
+      const parsed = saved ? JSON.parse(saved) : null;
+      return Array.isArray(parsed) && parsed.length > 0 ? parsed : DEFAULT_MARKED_AREAS;
+    } catch {
+      return DEFAULT_MARKED_AREAS;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('bike_service_system_marked_areas', JSON.stringify(markedAreas));
+    } catch (e) {
+      console.error('Failed to sync marked areas to localStorage', e);
+    }
+  }, [markedAreas]);
+
+  const addMarkedArea = (areaData) => {
+    const created = {
+      id: `area-${Date.now().toString().slice(-6)}`,
+      name: (areaData.name || 'Marked Zone').trim(),
+      color: areaData.color || '#2563eb',
+      description: areaData.description || '',
+      points: Array.isArray(areaData.points) ? areaData.points : [],
+      createdAt: new Date().toISOString().split('T')[0]
+    };
+    setMarkedAreas(prev => [created, ...prev]);
+    return created;
+  };
+
+  const updateMarkedArea = (id, updates) => {
+    setMarkedAreas(prev => prev.map(area => (area.id === id ? { ...area, ...updates } : area)));
+  };
+
+  const deleteMarkedArea = (id) => {
+    setMarkedAreas(prev => prev.filter(area => area.id !== id));
+  };
 
   // Service Pending Monitoring ("service bending" / pending services)
   const [pendingServices, setPendingServices] = useState(mockPendingServices);
@@ -943,6 +984,8 @@ export function AppProvider({ children }) {
       ownerPhone: serviceData.ownerPhone || '',
       serviceDate: serviceData.serviceDate || new Date().toISOString().split('T')[0],
       serviceKm: srvKm,
+      previousKm: serviceData.previousKm ?? null,
+      distanceTravelled: serviceData.distanceTravelled ?? null,
       serviceCost: parseFloat(serviceData.serviceCost) || 0,
       serviceType: serviceData.serviceType || 'General Periodic Service',
       technician: serviceData.technician || 'Mani',
@@ -1280,6 +1323,10 @@ export function AppProvider({ children }) {
         earnPoints,
         geofences,
         toggleGeofenceAlert,
+        markedAreas,
+        addMarkedArea,
+        updateMarkedArea,
+        deleteMarkedArea,
         pendingServices,
         updatePendingServiceStage,
         sendPendingReminder
