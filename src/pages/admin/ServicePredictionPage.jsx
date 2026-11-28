@@ -179,7 +179,7 @@ export default function ServicePredictionPage() {
                 </div>
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '12px' }}>
-                <button type="button" className="btn-secondary" onClick={() => setShowConfig(false)}>Cancel</button>
+                <button type="button" className="btn-cancel" onClick={() => setShowConfig(false)}>Cancel</button>
                 <button type="submit" className="btn-primary">Save Prediction Intervals</button>
               </div>
             </form>

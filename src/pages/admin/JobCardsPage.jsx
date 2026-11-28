@@ -669,7 +669,7 @@ export default function JobCardsPage() {
           )}
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '14px' }}>
-            <button type="button" className="btn-secondary" onClick={() => setIsCreateModalOpen(false)}>Cancel</button>
+            <button type="button" className="btn-cancel" onClick={() => setIsCreateModalOpen(false)}>Cancel</button>
             <button type="submit" className="btn-primary">Create Service Booking</button>
           </div>
         </form>

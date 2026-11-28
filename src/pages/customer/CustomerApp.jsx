@@ -2431,7 +2431,7 @@ export default function CustomerApp() {
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '18px' }}>
-              <button type="button" className="btn-secondary" onClick={() => setSelectedFineForPay(null)}>
+              <button type="button" className="btn-cancel" onClick={() => setSelectedFineForPay(null)}>
                 Cancel
               </button>
               <button type="submit" className="btn-primary" style={{ background: '#e11d48', borderColor: '#e11d48' }}>
@@ -2684,7 +2684,7 @@ export default function CustomerApp() {
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '16px' }}>
-            <button type="button" className="btn-secondary" onClick={() => setBookingModalOpen(false)}>
+            <button type="button" className="btn-cancel" onClick={() => setBookingModalOpen(false)}>
               Cancel
             </button>
             <button type="submit" className="btn-primary">

@@ -1484,7 +1484,7 @@ export default function NextServicePage() {
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', paddingTop: '14px', borderTop: '1px solid #e2e8f0' }}>
               <button
                 type="button"
-                className="btn-secondary"
+                className="btn-cancel"
                 onClick={() => setNotifyModalOpen(false)}
               >
                 Cancel
@@ -1565,7 +1565,7 @@ export default function NextServicePage() {
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', paddingTop: '14px', borderTop: '1px solid #e2e8f0' }}>
               <button
                 type="button"
-                className="btn-secondary"
+                className="btn-cancel"
                 onClick={() => setKmModalOpen(false)}
               >
                 Cancel

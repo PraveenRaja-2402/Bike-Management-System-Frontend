@@ -371,7 +371,7 @@ export default function Header({ onToggleSidebar, title, subtitle, breadcrumb })
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
             <button
               type="button"
-              className="btn-secondary"
+              className="btn-cancel"
               onClick={() => setIsSwitchModalOpen(false)}
             >
               Cancel

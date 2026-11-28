@@ -400,7 +400,7 @@ export default function LiveTrackingPage() {
                 Undo Point
               </button>
             )}
-            <button type="button" className="btn-secondary" onClick={handleCancelDrawing}>
+            <button type="button" className="btn-cancel" onClick={handleCancelDrawing}>
               Cancel
             </button>
             <button type="submit" className="btn-primary" disabled={drawingPoints.length < 3 || !areaNameInput.trim()}>
@@ -445,7 +445,7 @@ export default function LiveTrackingPage() {
                   >
                     <Check size={12} />
                   </button>
-                  <button type="button" className="btn-secondary btn-sm" onClick={() => setEditingAreaId(null)}>
+                  <button type="button" className="btn-cancel btn-sm" onClick={() => setEditingAreaId(null)}>
                     Cancel
                   </button>
                 </span>

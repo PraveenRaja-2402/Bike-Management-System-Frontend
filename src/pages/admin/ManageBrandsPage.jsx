@@ -202,7 +202,7 @@ export default function ManageBrandsPage() {
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '16px' }}>
-            <button type="button" className="btn-secondary" onClick={() => setIsAddModalOpen(false)}>
+            <button type="button" className="btn-cancel" onClick={() => setIsAddModalOpen(false)}>
               Cancel
             </button>
             <button type="submit" className="btn-primary">
@@ -265,7 +265,7 @@ export default function ManageBrandsPage() {
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '16px' }}>
-              <button type="button" className="btn-secondary" onClick={() => setEditBrand(null)}>
+              <button type="button" className="btn-cancel" onClick={() => setEditBrand(null)}>
                 Cancel
               </button>
               <button type="submit" className="btn-primary">

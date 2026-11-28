@@ -710,7 +710,7 @@ export default function ServiceTrackingPage() {
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '16px' }}>
-            <button type="button" className="btn-secondary" onClick={() => setIsLogModalOpen(false)}>
+            <button type="button" className="btn-cancel" onClick={() => setIsLogModalOpen(false)}>
               Cancel
             </button>
             <button type="submit" className="btn-primary">

@@ -223,7 +223,7 @@ export default function StoreLocationsPage() {
                     <StatusBadge status={store.status} />
                     <button
                       type="button"
-                      className="btn-secondary btn-sm"
+                      className="btn-edit btn-sm"
                       style={{ padding: '4px 8px' }}
                       onClick={(e) => { e.stopPropagation(); handleOpenEdit(store); }}
                       disabled={currentRole !== 'super_admin'}
@@ -474,7 +474,7 @@ export default function StoreLocationsPage() {
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '16px' }}>
-            <button type="button" className="btn-secondary" onClick={() => setIsAddModalOpen(false)}>
+            <button type="button" className="btn-cancel" onClick={() => setIsAddModalOpen(false)}>
               Cancel
             </button>
             <button type="submit" className="btn-primary">
@@ -564,7 +564,7 @@ export default function StoreLocationsPage() {
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '16px' }}>
-              <button type="button" className="btn-secondary" onClick={() => setIsEditModalOpen(false)}>
+              <button type="button" className="btn-cancel" onClick={() => setIsEditModalOpen(false)}>
                 Cancel
               </button>
               <button type="submit" className="btn-primary">

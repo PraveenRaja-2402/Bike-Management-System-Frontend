@@ -475,7 +475,7 @@ export default function BikesPage() {
                         </button>
                         <button
                           type="button"
-                          className="btn-secondary btn-sm"
+                          className="btn-edit btn-sm"
                           onClick={() => handleOpenEdit(bike)}
                           title="Edit bike details"
                         >
@@ -679,7 +679,7 @@ export default function BikesPage() {
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '16px' }}>
-            <button type="button" className="btn-secondary" onClick={() => setIsAddModalOpen(false)}>
+            <button type="button" className="btn-cancel" onClick={() => setIsAddModalOpen(false)}>
               Cancel
             </button>
             <button type="submit" className="btn-primary">
@@ -777,7 +777,7 @@ export default function BikesPage() {
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '16px' }}>
-              <button type="button" className="btn-secondary" onClick={() => setIsEditModalOpen(false)}>
+              <button type="button" className="btn-cancel" onClick={() => setIsEditModalOpen(false)}>
                 Cancel
               </button>
               <button type="submit" className="btn-primary">
@@ -819,7 +819,7 @@ export default function BikesPage() {
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '16px' }}>
-              <button type="button" className="btn-secondary" onClick={() => setIsKmModalOpen(false)}>
+              <button type="button" className="btn-cancel" onClick={() => setIsKmModalOpen(false)}>
                 Cancel
               </button>
               <button type="submit" className="btn-primary">

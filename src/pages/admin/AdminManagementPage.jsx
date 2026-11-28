@@ -396,7 +396,7 @@ export default function AdminManagementPage() {
                     <div className="table-actions" style={{ justifyContent: 'center' }}>
                       <button 
                         type="button" 
-                        className="btn-secondary btn-sm"
+                        className="btn-edit btn-sm"
                         onClick={() => handleOpenEdit(admin)}
                         disabled={currentRole !== 'super_admin'}
                       >
@@ -512,7 +512,7 @@ export default function AdminManagementPage() {
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '16px' }}>
-            <button type="button" className="btn-secondary" onClick={() => setIsAddModalOpen(false)}>
+            <button type="button" className="btn-cancel" onClick={() => setIsAddModalOpen(false)}>
               Cancel
             </button>
             <button type="submit" className="btn-primary">
@@ -608,7 +608,7 @@ export default function AdminManagementPage() {
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '16px' }}>
-              <button type="button" className="btn-secondary" onClick={() => setIsEditModalOpen(false)}>
+              <button type="button" className="btn-cancel" onClick={() => setIsEditModalOpen(false)}>
                 Cancel
               </button>
               <button type="submit" className="btn-primary">

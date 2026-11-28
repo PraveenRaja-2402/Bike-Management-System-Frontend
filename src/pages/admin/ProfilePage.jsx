@@ -1389,7 +1389,7 @@ export default function ProfilePage() {
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
-              <button type="button" className="btn-secondary" onClick={() => setIsSwitchModalOpen(false)}>
+              <button type="button" className="btn-cancel" onClick={() => setIsSwitchModalOpen(false)}>
                 Cancel
               </button>
               <button type="submit" className="btn-save-profile">

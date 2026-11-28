@@ -435,7 +435,7 @@ export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggle
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
             <button
               type="button"
-              className="btn-secondary"
+              className="btn-cancel"
               onClick={() => setIsSwitchModalOpen(false)}
             >
               Cancel
